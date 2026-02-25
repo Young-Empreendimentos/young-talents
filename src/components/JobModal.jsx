@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Check, X, ChevronLeft, ChevronDown, ChevronUp, Plus, Edit3, Trash2, ExternalLink, FileText } from 'lucide-react';
-import { JOB_STATUSES } from '../constants';
+import { JOB_STATUSES, POSTING_CHANNELS } from '../constants';
 import InputField from './InputField';
 import UrlField from './UrlField';
 
@@ -30,7 +30,9 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
             workload: '',
             deadline: '',
             recruiter: '',
-            hiringManager: ''
+            hiringManager: '',
+            approvedBy: '',
+            postingChannels: { selected: [], faculdade: '', agencia: '', outro: '' }
         };
     });
     const [showNewCompany, setShowNewCompany] = useState(false);
@@ -53,7 +55,16 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
     // Inicialização do formulário apenas quando job ou isOpen mudam (evita reset ao escolher empresa/cidade)
     useEffect(() => {
         if (job?.id) {
-            setD({ ...job });
+            const pc = job.postingChannels;
+            const postingChannels = pc && typeof pc === 'object'
+                ? {
+                    selected: Array.isArray(pc.selected) ? pc.selected : (pc.channels ? [...pc.channels] : []),
+                    faculdade: pc.faculdade ?? '',
+                    agencia: pc.agencia ?? '',
+                    outro: pc.outro ?? ''
+                }
+                : { selected: [], faculdade: '', agencia: '', outro: '' };
+            setD({ ...job, postingChannels });
         } else {
             setD({
                 title: '', code: '', company: '', city: '', interestArea: '',
@@ -61,7 +72,8 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
                 status: 'Aberta', contractType: 'CLT', workModel: 'Presencial',
                 vacancies: 1, priority: 'Média',
                 description: '', requirements: '', benefits: '', salaryRange: '',
-                workload: '', deadline: '', recruiter: '', hiringManager: ''
+                workload: '', deadline: '', recruiter: '', hiringManager: '', approvedBy: '',
+                postingChannels: { selected: [], faculdade: '', agencia: '', outro: '' }
             });
         }
         setShowNewCompany(false);
@@ -124,21 +136,13 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
             alert('Digite o nome do setor');
             return;
         }
-        try {
-            const newSector = {
-                name: newSectorName.trim(),
-                createdAt: new Date().toISOString(),
-                createdBy: options.user?.email || 'system'
-            };
-            // TODO: Migrar para Supabase
-            console.log('Create sector:', newSector);
-            setD({ ...d, sector: newSectorName.trim() });
+        const ok = options.onCreateSector ? await options.onCreateSector({ name: newSectorName.trim() }) : false;
+        if (ok) {
+            const current = (d.sector || '').split(',').map(x => x.trim()).filter(Boolean);
+            const next = current.includes(newSectorName.trim()) ? current : [...current, newSectorName.trim()];
+            setD({ ...d, sector: next.join(', ') });
             setShowNewSector(false);
             setNewSectorName('');
-            alert('Setor criado com sucesso!');
-        } catch (error) {
-            console.error('Erro ao criar setor:', error);
-            alert('Erro ao criar setor');
         }
     };
 
@@ -147,23 +151,14 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
             alert('Digite o nome do cargo');
             return;
         }
-        try {
-            const newPosition = {
-                name: newPositionName.trim(),
-                level: newPositionLevel || '',
-                createdAt: new Date().toISOString(),
-                createdBy: options.user?.email || 'system'
-            };
-            // TODO: Migrar para Supabase
-            console.log('Create position:', newPosition);
-            setD({ ...d, position: newPositionName.trim() });
+        const ok = options.onCreatePosition ? await options.onCreatePosition({ name: newPositionName.trim(), level: newPositionLevel?.trim() || null }) : false;
+        if (ok) {
+            const current = (d.position || '').split(',').map(x => x.trim()).filter(Boolean);
+            const next = current.includes(newPositionName.trim()) ? current : [...current, newPositionName.trim()];
+            setD({ ...d, position: next.join(', ') });
             setShowNewPosition(false);
             setNewPositionName('');
             setNewPositionLevel('');
-            alert('Cargo criado com sucesso!');
-        } catch (error) {
-            console.error('Erro ao criar cargo:', error);
-            alert('Erro ao criar cargo');
         }
     };
 
@@ -323,25 +318,34 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
                         )}
                     </div>
 
-                    {/* Setor */}
+                    {/* Setor (multi-seleção) */}
                     <div>
                         <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Setor</label>
-                        <div className="flex gap-2">
-                            <select
-                                className="flex-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                value={d.sector || ''}
-                                onChange={e => setD({ ...d, sector: e.target.value })}
-                            >
-                                <option value="">Selecione...</option>
-                                {sectors.map(s => (
-                                    <option key={s.id} value={s.name}>{s.name}</option>
-                                ))}
-                            </select>
+                        <div className="flex flex-wrap gap-x-4 gap-y-2 items-center">
+                            {sectors.map(s => {
+                                const selectedNames = (d.sector || '').split(',').map(x => x.trim()).filter(Boolean);
+                                const isChecked = selectedNames.includes(s.name);
+                                return (
+                                    <label key={s.id} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={isChecked}
+                                            onChange={() => {
+                                                const next = isChecked ? selectedNames.filter(n => n !== s.name) : [...selectedNames, s.name];
+                                                setD({ ...d, sector: next.join(', ') });
+                                            }}
+                                            className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <span>{s.name}</span>
+                                    </label>
+                                );
+                            })}
                             <button
+                                type="button"
                                 onClick={() => setShowNewSector(!showNewSector)}
-                                className="px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+                                className="px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors whitespace-nowrap"
                             >
-                                <Plus size={16} className="inline mr-1" /> Novo
+                                <Plus size={14} className="inline mr-1" /> Novo
                             </button>
                         </div>
                         {showNewSector && (
@@ -361,25 +365,34 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
                         )}
                     </div>
 
-                    {/* Cargo */}
+                    {/* Cargo (multi-seleção) */}
                     <div>
                         <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Cargo</label>
-                        <div className="flex gap-2">
-                            <select
-                                className="flex-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                value={d.position || ''}
-                                onChange={e => setD({ ...d, position: e.target.value })}
-                            >
-                                <option value="">Selecione...</option>
-                                {positions.map(p => (
-                                    <option key={p.id} value={p.name}>{p.name} {p.level ? `(${p.level})` : ''}</option>
-                                ))}
-                            </select>
+                        <div className="flex flex-wrap gap-x-4 gap-y-2 items-center">
+                            {positions.map(p => {
+                                const selectedNames = (d.position || '').split(',').map(x => x.trim()).filter(Boolean);
+                                const isChecked = selectedNames.includes(p.name);
+                                return (
+                                    <label key={p.id} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={isChecked}
+                                            onChange={() => {
+                                                const next = isChecked ? selectedNames.filter(n => n !== p.name) : [...selectedNames, p.name];
+                                                setD({ ...d, position: next.join(', ') });
+                                            }}
+                                            className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <span>{p.name}{p.level ? ` (${p.level})` : ''}</span>
+                                    </label>
+                                );
+                            })}
                             <button
+                                type="button"
                                 onClick={() => setShowNewPosition(!showNewPosition)}
-                                className="px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+                                className="px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors whitespace-nowrap"
                             >
-                                <Plus size={16} className="inline mr-1" /> Novo
+                                <Plus size={14} className="inline mr-1" /> Novo
                             </button>
                         </div>
                         {showNewPosition && (
@@ -441,6 +454,58 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
                                 <option key={u.email || u.id} value={u.email || ''}>{u.name || u.email || '—'}</option>
                             ))}
                         </select>
+                    </div>
+
+                    {/* Quem autorizou a abertura */}
+                    <div>
+                        <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Quem autorizou a abertura</label>
+                        <select
+                            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            value={d.approvedBy || ''}
+                            onChange={e => setD({ ...d, approvedBy: e.target.value })}
+                        >
+                            <option value="">Selecione quem autorizou...</option>
+                            {availableRecruiters.map(u => (
+                                <option key={u.email || u.id} value={u.email || ''}>{u.name || u.email || '—'}</option>
+                            ))}
+                        </select>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Responsável pela solicitação e aprovação da vaga (não quem abre no sistema).</p>
+                    </div>
+
+                    {/* Onde a vaga será divulgada */}
+                    <div>
+                        <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Onde a vaga será divulgada</label>
+                        <div className="flex flex-wrap gap-x-4 gap-y-2">
+                            {POSTING_CHANNELS.map(ch => {
+                                const selected = Array.isArray(d.postingChannels?.selected) ? d.postingChannels.selected : [];
+                                const isChecked = selected.includes(ch.id);
+                                return (
+                                    <div key={ch.id} className="flex items-center gap-2 flex-wrap">
+                                        <label className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={isChecked}
+                                                onChange={() => {
+                                                    const next = isChecked ? selected.filter(x => x !== ch.id) : [...selected, ch.id];
+                                                    setD({ ...d, postingChannels: { ...d.postingChannels, selected: next } });
+                                                }}
+                                                className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span>{ch.label}</span>
+                                        </label>
+                                        {ch.hasCustomText && isChecked && (
+                                            <input
+                                                type="text"
+                                                placeholder={ch.customKey === 'faculdade' ? 'Ex: USP' : ch.customKey === 'agencia' ? 'Ex: Nome da agência' : 'Especifique'}
+                                                className="ml-1 w-32 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-2 py-1 rounded text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500"
+                                                value={(d.postingChannels && d.postingChannels[ch.customKey]) || ''}
+                                                onChange={e => setD({ ...d, postingChannels: { ...d.postingChannels, [ch.customKey]: e.target.value } })}
+                                            />
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
 

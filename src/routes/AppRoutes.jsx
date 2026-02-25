@@ -26,6 +26,7 @@ import CsvImportModal from '../components/modals/CsvImportModal';
 import JobCandidatesModal from '../components/modals/JobsCandidateModal';
 import DashboardCandidatesModal from '../components/modals/DashboardCandidatesModal';
 import InterviewModal from '../components/modals/InterviewModal';
+import LinkToJobModal from '../components/modals/LinkToJobModal';
 import FilterSidebar from '../components/FilterSidebar';
 import { Loader2 } from 'lucide-react';
 import { CLOSING_STATUSES, CANDIDATE_FIELDS } from '../constants';
@@ -78,6 +79,8 @@ const AppRoutes = ({
     setEditingJob,
     pendingTransition,
     setPendingTransition,
+    linkToJobCandidate,
+    setLinkToJobCandidate,
     viewingJob,
     isJobModalOpen,
     isCsvModalOpen,
@@ -117,7 +120,6 @@ const AppRoutes = ({
     scheduleInterview,
     showToast,
     loadCandidates,
-    recordActionHistory,
     toggleTheme,
     isDark,
     setUserRole,
@@ -300,6 +302,17 @@ const AppRoutes = ({
                             jobs={jobs}
                             applications={applications}
                             onCreateApplication={createApplication}
+                        />
+                    )}
+
+                    {linkToJobCandidate && (
+                        <LinkToJobModal
+                            linkToJobCandidate={linkToJobCandidate}
+                            onClose={() => setLinkToJobCandidate(null)}
+                            onVincular={(candidate) => {
+                                setEditingCandidate(candidate);
+                                setLinkToJobCandidate(null);
+                            }}
                         />
                     )}
 

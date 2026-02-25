@@ -40,6 +40,26 @@ export const STAGE_REQUIRED_FIELDS = {
 
 export const JOB_STATUSES = ['Aberta', 'Preenchida', 'Cancelada', 'Fechada'];
 
+// Canais de divulgação da vaga (multi-seleção; hasCustomText = exibir campo "qual?" ao marcar)
+export const POSTING_CHANNELS = [
+  { id: 'linkedin', label: 'LinkedIn', hasCustomText: false },
+  { id: 'facebook', label: 'Facebook', hasCustomText: false },
+  { id: 'instagram', label: 'Instagram', hasCustomText: false },
+  { id: 'sine', label: 'Sine', hasCustomText: false },
+  { id: 'ciee', label: 'Ciee', hasCustomText: false },
+  { id: 'infojobs', label: 'Infojobs', hasCustomText: false },
+  { id: 'faculdade', label: 'Faculdade (qual?)', hasCustomText: true, customKey: 'faculdade' },
+  { id: 'agencia', label: 'Agência de vagas (qual?)', hasCustomText: true, customKey: 'agencia' },
+  { id: 'site_empresa', label: 'Site da empresa', hasCustomText: false },
+  { id: 'indicacao', label: 'Indicação', hasCustomText: false },
+  { id: 'whatsapp', label: 'WhatsApp', hasCustomText: false },
+  { id: 'gupy', label: 'Gupy', hasCustomText: false },
+  { id: 'catho', label: 'Catho', hasCustomText: false },
+  { id: 'vagas_com', label: 'Vagas.com', hasCustomText: false },
+  { id: 'glassdoor', label: 'Glassdoor', hasCustomText: false },
+  { id: 'outro', label: 'Outro (qual?)', hasCustomText: true, customKey: 'outro' }
+];
+
 // Motivos de rejeição para candidatos
 export const REJECTION_REASONS = [
   'Fit Cultural',
@@ -178,6 +198,7 @@ export const JOB_FIELDS = [
   { key: 'deadline', csvLabel: 'Prazo', displayName: 'Prazo', type: 'date', category: 'gestao' },
   { key: 'recruiter', csvLabel: 'Recrutador responsável', displayName: 'Recrutador', type: 'text', category: 'gestao' },
   { key: 'hiringManager', csvLabel: 'Gestor contratante', displayName: 'Gestor', type: 'text', category: 'gestao' },
+  { key: 'approvedBy', csvLabel: 'Quem autorizou a abertura', displayName: 'Autorizador', type: 'text', category: 'gestao' },
   { key: 'status', csvLabel: 'Status', displayName: 'Status', type: 'select', required: true, category: 'gestao' },
 
   // Metadados

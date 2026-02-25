@@ -28,6 +28,8 @@ export function mapJobFromSupabase(row) {
     deadline: row.deadline,
     recruiter: row.recruiter,
     hiringManager: row.hiring_manager,
+    approvedBy: row.approved_by ?? null,
+    postingChannels: row.posting_channels ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at ?? null
@@ -142,7 +144,9 @@ export function jobToSupabase(d) {
     workload: d.workload ?? null,
     deadline: d.deadline ?? null,
     recruiter: d.recruiter ?? null,
-    hiring_manager: d.hiringManager ?? null
+    hiring_manager: d.hiringManager ?? null,
+    approved_by: d.approvedBy ?? null,
+    posting_channels: d.postingChannels ?? null
   };
   if (d.id) row.id = d.id;
   return row;

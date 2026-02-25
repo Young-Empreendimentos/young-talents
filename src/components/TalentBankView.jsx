@@ -376,11 +376,11 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                                     <td className="p-3 text-sm font-medium">{c.hasLicense === 'Sim' ? <span className="text-green-600 dark:text-green-400">✓ Sim</span> : c.hasLicense === 'Não' ? <span className="text-red-600 dark:text-red-400">✗ Não</span> : <span className="text-gray-500">N/A</span>}</td>
                                     <td className="p-3 text-sm text-gray-700 dark:text-gray-300 truncate max-w-[200px]" title={c.interestAreas}>{c.interestAreas || 'N/A'}</td>
                                     <td className="p-3 text-sm text-gray-700 dark:text-gray-300">{c.source || 'N/A'}</td>
-                                    <td className="p-3 text-sm text-gray-700 dark:text-gray-300">
+                                    <td className="p-3 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
                                         {(() => {
                                             const ts = getCandidateTimestamp(c);
                                             if (!ts) return 'N/A';
-                                            return new Date(ts * 1000).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                                            return new Date(ts * 1000).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                                         })()}
                                     </td>
                                     <td className="p-3 text-sm text-gray-700 dark:text-gray-300">{c.maritalStatus || 'N/A'}</td>

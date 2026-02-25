@@ -248,6 +248,7 @@ export default function App() {
   const [dashboardModalTitle, setDashboardModalTitle] = useState('');
   const [highlightedCandidateId, setHighlightedCandidateId] = useState(null);
   const [interviewModalData, setInterviewModalData] = useState(null);
+  const [linkToJobCandidate, setLinkToJobCandidate] = useState(null);
 
   // Modal Helpers
   const openJobModal = (job = null) => {
@@ -704,7 +705,7 @@ export default function App() {
     if (!candidate || candidate.status === stage) return;
     if (PIPELINE_STAGES.indexOf(stage) >= PIPELINE_STAGES.indexOf('Considerado')) {
       if (!applications.some(a => a.candidateId === cId)) {
-        showToast('Vincule o candidato a uma vaga primeiro.', 'error');
+        setLinkToJobCandidate({ candidate, toStage: stage });
         return;
       }
     }
@@ -762,7 +763,35 @@ export default function App() {
     return data;
   }, [uniqueCandidatesByEmail, filters, jobs, applications]);
 
-  const optionsProps = { jobs, companies, cities, roles, sectors, userRoles, user: effectiveUser };
+  const onCreatePosition = React.useCallback(async ({ name, level }) => {
+    if (!supabase) return false;
+    try {
+      const { error } = await schema().from('positions').insert({ name: name.trim(), level: (level && level.trim()) || null });
+      if (error) throw error;
+      await loadRoles();
+      showToast('Cargo criado.', 'success');
+      return true;
+    } catch (err) {
+      showToast(err?.message || 'Erro ao criar cargo.', 'error');
+      return false;
+    }
+  }, [supabase, loadRoles]);
+
+  const onCreateSector = React.useCallback(async ({ name }) => {
+    if (!supabase) return false;
+    try {
+      const { error } = await schema().from('sectors').insert({ name: name.trim() });
+      if (error) throw error;
+      await loadSectors();
+      showToast('Setor criado.', 'success');
+      return true;
+    } catch (err) {
+      showToast(err?.message || 'Erro ao criar setor.', 'error');
+      return false;
+    }
+  }, [supabase, loadSectors]);
+
+  const optionsProps = { jobs, companies, cities, roles, sectors, userRoles, user: effectiveUser, onCreatePosition, onCreateSector };
   const PIPELINE_STAGES = ['Inscrito', 'Considerado', 'Avaliação', 'Entrevista', 'Teste', 'Selecionado', 'Contratado', 'Recusado'];
 
   return (
@@ -781,6 +810,7 @@ export default function App() {
       editingCandidate={editingCandidate} setEditingCandidate={setEditingCandidate}
       editingJob={editingJob} setEditingJob={setEditingJob}
       pendingTransition={pendingTransition} setPendingTransition={setPendingTransition}
+      linkToJobCandidate={linkToJobCandidate} setLinkToJobCandidate={setLinkToJobCandidate}
       viewingJob={viewingJob} isJobModalOpen={isJobModalOpen} isCsvModalOpen={isCsvModalOpen}
       dashboardModalCandidates={dashboardModalCandidates} setDashboardModalCandidates={setDashboardModalCandidates}
       dashboardModalTitle={dashboardModalTitle} setDashboardModalTitle={setDashboardModalTitle}

@@ -396,11 +396,11 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                             <td className="p-4 text-xs break-words truncate max-w-[150px] text-gray-700 dark:text-gray-300" title={c.interestAreas}>{c.interestAreas || 'N/A'}</td>
                                             <td className="p-4 text-xs font-medium">{c.hasLicense === 'Sim' ? <span className="text-green-600 dark:text-green-400">✓ Sim</span> : c.hasLicense === 'Não' ? <span className="text-red-600 dark:text-red-400">✗ Não</span> : <span className="text-gray-500">N/A</span>}</td>
                                             <td className="p-4 text-xs break-words truncate max-w-[120px] text-gray-700 dark:text-gray-300" title={c.source}>{c.source || 'N/A'}</td>
-                                            <td className="p-4 text-xs text-gray-700 dark:text-gray-300">
+                                            <td className="p-4 text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">
                                                 {(() => {
                                                     const ts = getCandidateTimestamp(c);
                                                     if (!ts) return 'N/A';
-                                                    return new Date(ts * 1000).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                                                    return new Date(ts * 1000).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                                                 })()}
                                             </td>
                                             <td className="p-4"><button onClick={() => onEdit(c)} className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"><Edit3 size={16} /></button></td>
@@ -586,8 +586,8 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                                     const date = new Date(ts * 1000);
                                     return (
                                         <div className="text-xs text-gray-500 dark:text-gray-500 flex items-center gap-1.5">
-                                            {recency && <div className={`w-2 h-2 rounded-full ${recency === 'today' ? 'bg-green-500 animate-pulse' : recency === 'yesterday' ? 'bg-green-400' : 'bg-green-400/70'}`} title={recency === 'today' ? 'Hoje' : recency === 'yesterday' ? 'Ontem' : 'Esta semana'}></div>}
-                                            <Clock size={10} /> {date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                            {recency && <div className={`w-2 h-2 rounded-full flex-shrink-0 ${recency === 'today' ? 'bg-green-500 animate-pulse' : recency === 'yesterday' ? 'bg-green-400' : 'bg-green-400/70'}`} title={recency === 'today' ? 'Hoje' : recency === 'yesterday' ? 'Ontem' : 'Esta semana'}></div>}
+                                            <Clock size={10} className="flex-shrink-0" /> <span title={date.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}>{date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} {date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
                                     );
                                 })()}

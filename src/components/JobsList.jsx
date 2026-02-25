@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Plus, Edit3, MapPin, Briefcase, Building2 } from 'lucide-react';
+import { Plus, Edit3, MapPin, Briefcase, Building2, BarChart3 } from 'lucide-react';
 import { JOB_STATUSES } from '../constants';
 import { findMatchingCandidates, getMatchBadgeColor } from '../utils/matching';
 
@@ -147,7 +147,15 @@ const JobsList = ({ jobs, candidates, onAdd, onEdit, onToggleStatus, onViewCandi
                 <p className="text-sm text-slate-400 mb-2 break-words">{j.company}</p>
                 <div className="space-y-1 mb-4">
                     {j.city && <p className="text-xs text-slate-500 flex items-center gap-1"><MapPin size={12} /> {j.city}</p>}
+                    {j.sector && <p className="text-xs text-slate-500 flex items-center gap-1"><BarChart3 size={12} /> {j.sector}</p>}
                     {j.interestArea && <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1"><Briefcase size={12} /> {j.interestArea}</p>}
+                    {j.priority && (
+                        <p className="text-xs flex items-center gap-1">
+                            <span className={`px-1.5 py-0.5 rounded font-medium ${j.priority === 'Alta' ? 'bg-red-500/20 text-red-400' : j.priority === 'Baixa' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                                {j.priority}
+                            </span>
+                        </p>
+                    )}
                 </div>
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4 flex justify-between items-center">
                     <p
