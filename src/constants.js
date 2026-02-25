@@ -20,6 +20,9 @@ export const CLOSING_STATUSES = [
 // Todos os status possíveis (para validação e cores)
 export const ALL_STATUSES = [...PIPELINE_STAGES, ...CLOSING_STATUSES];
 
+// Etapas que exigem candidato vinculado a pelo menos uma vaga
+export const STAGES_REQUIRING_APPLICATION = ['Considerado', 'Entrevista I', 'Testes', 'Entrevista II', 'Seleção', 'Contratado', 'Reprovado', 'Desistiu da vaga'];
+
 // Campos obrigatórios por etapa/fechamento do funil
 // Baseado no processo:
 // Considerado → verificar Cidade, CNH

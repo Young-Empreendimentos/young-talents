@@ -29,7 +29,7 @@ import InterviewModal from '../components/modals/InterviewModal';
 import LinkToJobModal from '../components/modals/LinkToJobModal';
 import FilterSidebar from '../components/FilterSidebar';
 import { Loader2 } from 'lucide-react';
-import { CLOSING_STATUSES, CANDIDATE_FIELDS } from '../constants';
+import { CLOSING_STATUSES, CANDIDATE_FIELDS, STAGES_REQUIRING_APPLICATION } from '../constants';
 
 const AppRoutes = ({
     // Auth & State
@@ -269,7 +269,10 @@ const AppRoutes = ({
                         onAdvanceStage={async (candidate, newStage) => {
                             const missingFields = computeMissingFields(candidate, newStage);
                             const isConclusion = CLOSING_STATUSES.includes(newStage);
-                            if (isConclusion || missingFields.length > 0) {
+                            const needsJob = STAGES_REQUIRING_APPLICATION.includes(newStage);
+                            const hasApplication = applications.some(a => a.candidateId === candidate.id);
+                            const mustShowModal = isConclusion || missingFields.length > 0 || (needsJob && !hasApplication);
+                            if (mustShowModal) {
                                 setPendingTransition({ candidate, toStage: newStage, missingFields, isConclusion });
                             } else {
                                 handleSaveGeneric('candidates', { ...candidate, status: newStage }, () => { });
@@ -302,6 +305,7 @@ const AppRoutes = ({
                             jobs={jobs}
                             applications={applications}
                             onCreateApplication={createApplication}
+                            onOpenCreateJob={() => openJobModal && openJobModal({})}
                         />
                     )}
 

@@ -1,13 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { X, Save, AlertTriangle, Briefcase, Search } from 'lucide-react';
+import { X, Save, AlertTriangle, Briefcase, Plus } from 'lucide-react';
 import { normalizeCity, getMainCitiesOptions } from '../../utils/cityNormalizer';
 import { normalizeSource, getMainSourcesOptions } from '../../utils/sourceNormalizer';
 import { normalizeInterestArea, normalizeInterestAreasString, getMainInterestAreasOptions } from '../../utils/interestAreaNormalizer';
-import { REJECTION_REASONS } from '../../constants';
+import { REJECTION_REASONS, STAGES_REQUIRING_APPLICATION } from '../../constants';
 
-const STAGES_REQUIRING_APPLICATION = ['Considerado', 'Entrevista I', 'Testes', 'Entrevista II', 'Seleção', 'Contratado', 'Reprovado', 'Desistiu da vaga'];
-
-export default function TransitionModal({ transition, onClose, onConfirm, cities, interestAreas, schooling, marital, origins, jobs = [], applications = [], onCreateApplication }) {
+export default function TransitionModal({ transition, onClose, onConfirm, cities, interestAreas, schooling, marital, origins, jobs = [], applications = [], onCreateApplication, onOpenCreateJob }) {
   const [jobSearch, setJobSearch] = useState('');
   const [selectedJobId, setSelectedJobId] = useState('');
   const [linkedSuccess, setLinkedSuccess] = useState(false);
@@ -275,16 +273,13 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
         </div>
         
         <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
-          <p className="text-sm text-slate-300">
-            Movendo <strong>{transition.candidate.fullName}</strong> para <strong className="text-brand-cyan">{transition.toStage}</strong>.
-          </p>
-
+          {/* Primeiro: vincular/criar vaga quando a etapa exige — em destaque no topo */}
           {needsApplication && !hasApplication && (
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 space-y-3">
-              <p className="text-sm font-semibold text-amber-200 flex items-center gap-2">
-                <Briefcase size={18} /> Vincular a uma vaga
+            <div className="bg-amber-500/10 border-2 border-amber-500/50 rounded-lg p-4 space-y-3">
+              <p className="text-sm font-bold text-amber-200 flex items-center gap-2">
+                <Briefcase size={18} /> Vincule a uma vaga (ou crie uma nova)
               </p>
-              <p className="text-xs text-slate-300">Esta etapa exige que o candidato esteja vinculado a pelo menos uma vaga. Selecione uma vaga abaixo e clique em Vincular.</p>
+              <p className="text-xs text-slate-300">Esta etapa exige vaga vinculada. Selecione abaixo e clique em Vincular, ou crie uma nova vaga.</p>
               <input
                 type="text"
                 placeholder="Buscar vaga por título ou empresa..."
@@ -302,24 +297,39 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
                   <option key={j.id} value={j.id}>{j.title} – {j.company}</option>
                 ))}
               </select>
-              <button
-                type="button"
-                disabled={!selectedJobId || !onCreateApplication}
-                onClick={async () => {
-                  if (!selectedJobId || !onCreateApplication || !transition?.candidate?.id) return;
-                  const ok = await onCreateApplication(transition.candidate.id, selectedJobId);
-                  if (ok) {
-                    setLinkedSuccess(true);
-                    setSelectedJobId('');
-                  }
-                }}
-                className="px-3 py-1.5 bg-brand-orange text-white rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600"
-              >
-                Vincular
-              </button>
+              <div className="flex flex-wrap gap-2 items-center">
+                <button
+                  type="button"
+                  disabled={!selectedJobId || !onCreateApplication}
+                  onClick={async () => {
+                    if (!selectedJobId || !onCreateApplication || !transition?.candidate?.id) return;
+                    const ok = await onCreateApplication(transition.candidate.id, selectedJobId);
+                    if (ok) {
+                      setLinkedSuccess(true);
+                      setSelectedJobId('');
+                    }
+                  }}
+                  className="px-3 py-1.5 bg-brand-orange text-white rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600"
+                >
+                  Vincular
+                </button>
+                {onOpenCreateJob && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenCreateJob()}
+                    className="px-3 py-1.5 bg-brand-dark border border-brand-cyan text-brand-cyan rounded text-sm font-medium hover:bg-brand-cyan/10 flex items-center gap-1.5"
+                  >
+                    <Plus size={14} /> Criar nova vaga
+                  </button>
+                )}
+              </div>
               {linkedSuccess && <p className="text-xs text-green-400">Vaga vinculada. Você pode confirmar a mudança de etapa abaixo.</p>}
             </div>
           )}
+
+          <p className="text-sm text-slate-300">
+            Movendo <strong>{transition.candidate.fullName}</strong> para <strong className="text-brand-cyan">{transition.toStage}</strong>.
+          </p>
 
           {/* Mostrar dados relevantes do candidato */}
           {transition.candidate.city && (

@@ -20,6 +20,8 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
     const [validationErrors, setValidationErrors] = useState({});
     const [validationWarnings, setValidationWarnings] = useState({});
     const [showValidationSummary, setShowValidationSummary] = useState(false);
+    const [showLinkJobDropdown, setShowLinkJobDropdown] = useState(false);
+    const [linkJobSelectedId, setLinkJobSelectedId] = useState('');
 
     // Filtrar movimentações deste candidato
     const candidateMovements = useMemo(() => {
@@ -337,35 +339,65 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                                 <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg p-4">
                                     <div className="flex items-center justify-between mb-3">
                                         <label className="block text-sm font-bold text-gray-900 dark:text-white uppercase">Candidaturas Vinculadas</label>
-                                        {onCreateApplication && (
-                                            <button
-                                                onClick={async () => {
-                                                    // Abre modal simples para selecionar vaga
-                                                    const availableJobs = (options.jobs || jobs || []).filter(j => j.status === 'Aberta');
-                                                    if (availableJobs.length === 0) {
-                                                        window.alert('Não há vagas abertas disponíveis.');
-                                                        return;
-                                                    }
-                                                    const jobList = availableJobs.map((j, idx) =>
-                                                        `${idx + 1}. ${j.title} - ${j.company}${j.city ? ` (${j.city})` : ''}`
-                                                    ).join('\n');
-                                                    const jobId = window.prompt(`Selecione uma vaga:\n\n${jobList}\n\nDigite o número da vaga:`);
-                                                    if (jobId && candidate?.id) {
-                                                        const selectedJob = availableJobs[parseInt(jobId) - 1];
-                                                        if (selectedJob) {
-                                                            await onCreateApplication(candidate.id, selectedJob.id);
-                                                            window.alert('Candidatura criada com sucesso!');
-                                                        } else {
-                                                            window.alert('Número inválido.');
-                                                        }
-                                                    }
-                                                }}
-                                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
-                                            >
-                                                <Plus size={16} /> Vincular a Nova Vaga
-                                            </button>
-                                        )}
+                                        {onCreateApplication && (() => {
+                                            const availableJobs = (options.jobs || jobs || []).filter(j => j.status === 'Aberta');
+                                            if (availableJobs.length === 0) return null;
+                                            return (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setShowLinkJobDropdown(!showLinkJobDropdown); setLinkJobSelectedId(''); }}
+                                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                                                >
+                                                    <Plus size={16} /> Vincular a Nova Vaga
+                                                </button>
+                                            );
+                                        })()}
                                     </div>
+                                    {showLinkJobDropdown && onCreateApplication && candidate?.id && (() => {
+                                        const availableJobs = (options.jobs || jobs || []).filter(j => j.status === 'Aberta');
+                                        const alreadyLinkedIds = (applications || []).filter(a => a.candidateId === candidate.id).map(a => a.jobId);
+                                        const jobsToShow = availableJobs.filter(j => !alreadyLinkedIds.includes(j.id));
+                                        return (
+                                            <div className="mt-3 p-3 bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 rounded-lg space-y-2">
+                                                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">Selecione a vaga e confirme</label>
+                                                <select
+                                                    value={linkJobSelectedId}
+                                                    onChange={e => setLinkJobSelectedId(e.target.value)}
+                                                    className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                    <option value="">Selecione uma vaga...</option>
+                                                    {jobsToShow.map(j => (
+                                                        <option key={j.id} value={j.id}>{j.title} – {j.company}{j.city ? ` (${j.city})` : ''}</option>
+                                                    ))}
+                                                </select>
+                                                {jobsToShow.length === 0 && (
+                                                    <p className="text-xs text-amber-600 dark:text-amber-400">Este candidato já está vinculado a todas as vagas abertas.</p>
+                                                )}
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        type="button"
+                                                        disabled={!linkJobSelectedId}
+                                                        onClick={async () => {
+                                                            if (!linkJobSelectedId) return;
+                                                            await onCreateApplication(candidate.id, linkJobSelectedId);
+                                                            setLinkJobSelectedId('');
+                                                            setShowLinkJobDropdown(false);
+                                                        }}
+                                                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium"
+                                                    >
+                                                        Vincular
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setShowLinkJobDropdown(false); setLinkJobSelectedId(''); }}
+                                                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                     {(() => {
                                         const candidateApplications = applications.filter(a => a.candidateId === candidate?.id);
                                         if (candidateApplications.length === 0) {
