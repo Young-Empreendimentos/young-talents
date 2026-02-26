@@ -13,12 +13,6 @@ Esta pasta contém documentos **obsoletos** ou **não implementados**, mantidos 
 | **CORRECAO_EVENTO_ONFORMSUBMIT.md** | Correção do evento do Google Forms no Apps Script (stack antiga). |
 | **CORRECOES_APLICADAS.md** | Correções baseadas em logs do fluxo Forms → Firebase (stack antiga). |
 
-## 🟡 Planejamento não implementado
-
-| Documento | Motivo do arquivo |
-|-----------|-------------------|
-| **PLANEJAMENTO_TEMPLATES_VAGA.md** | Planejamento de templates de descrição de vaga; feature ainda não implementada no ATS. |
-
 ## 📋 Histórico / outros
 
 | Documento | Motivo do arquivo |
@@ -26,7 +20,8 @@ Esta pasta contém documentos **obsoletos** ou **não implementados**, mantidos 
 | **RESUMO_FINAL.md** | Checklist pré-deploy da migração; uso atual: ver [../CHECKLIST_PRE_DEPLOY.md](../CHECKLIST_PRE_DEPLOY.md). |
 | **TESTE_COMPLETO.md** | Plano de testes (histórico). |
 | **TECHNICAL_CHANGES.md** | Registro de mudanças técnicas (histórico). |
-| **how 8b8c03d --stat --oneline**, **sado via menu Pipeline**, **tatus --short** | Arquivos acidentais do Git. |
+
+**Nota:** Planejamentos não implementados (ex.: templates de vaga) foram movidos para [../futuras-melhorias/](../futuras-melhorias/).
 
 ## ⚠️ Uso
 

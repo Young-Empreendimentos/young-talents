@@ -191,6 +191,15 @@ function readCsvRows() {
   });
 }
 
+function projectRefFromUrl(url) {
+  try {
+    const u = new URL(url);
+    return u.hostname.replace(/\.supabase\.co$/, '') || url;
+  } catch {
+    return '(URL inválida)';
+  }
+}
+
 async function main() {
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     console.error('Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (ou SUPABASE_URL e SUPABASE_ANON_KEY).');
@@ -202,6 +211,10 @@ async function main() {
   }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const projectRef = projectRefFromUrl(SUPABASE_URL);
+  console.log('Conectado ao Supabase. Projeto:', projectRef);
+  console.log('(Confira no dashboard se é o mesmo projeto: app.supabase.com → projeto → Settings → API)');
+  console.log('');
 
   console.log('Lendo CSV...');
   const records = await readCsvRows();
@@ -243,6 +256,23 @@ async function main() {
   }
 
   console.log('Concluído. Inseridos/atualizados:', inserted, 'Ignorados/erro:', skipped);
+
+  // Verificação: conferir no banco se os dados aparecem (mesmo projeto que o dashboard)
+  if (inserted > 0) {
+    const { count, error: countErr } = await supabase.from('candidates').select('*', { count: 'exact', head: true });
+    if (!countErr) {
+      console.log('');
+      console.log('Verificação no banco: total de candidatos =', count);
+      const { data: lastRows } = await supabase.from('candidates').select('email, created_at').order('created_at', { ascending: false }).limit(3);
+      if (lastRows?.length) {
+        console.log('Últimos registros (confira no Table Editor do Supabase):');
+        lastRows.forEach((r, i) => console.log('  ', i + 1, r.email, '|', r.created_at));
+      }
+      console.log('');
+      console.log('Se esses dados NÃO aparecem no dashboard, você está olhando outro projeto.');
+      console.log('No Supabase: Table Editor → schema "public" → tabela "candidates" (ou schema "young_talents" → "candidates").');
+    }
+  }
 }
 
 main().catch(err => {
