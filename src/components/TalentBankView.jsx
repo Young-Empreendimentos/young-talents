@@ -4,7 +4,7 @@ import { STATUS_COLORS, ALL_STATUSES } from '../constants';
 import { getCandidateTimestamp } from '../utils/timestampUtils';
 import { getCandidateRecency, getRecencyRowClass } from '../utils/candidateRecency';
 
-const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filteredCount = 0, onClearFilters, candidates, jobs, companies, onEdit, applications = [], onStatusChange, filters = {}, setFilters }) => {
+const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filteredCount = 0, onClearFilters, candidates, jobs, companies, onEdit, applications = [], onStatusChange, filters = {}, setFilters, onToggleStar }) => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
     const [localSearch, setLocalSearch] = useState('');
@@ -317,7 +317,8 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                             <th className="p-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase border-b border-gray-200 dark:border-gray-700 w-10">
                                 <input type="checkbox" className="accent-blue-600 dark:accent-blue-500" />
                             </th>
-                            <th className="p-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase border-b border-gray-200 dark:border-gray-700 w-12"></th>
+                            <th className="p-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase border-b border-gray-200 dark:border-gray-700 w-12" title="Em consideração"><Star size={14} className="inline text-amber-500" /></th>
+                            <th className="p-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase border-b border-gray-200 dark:border-gray-700 w-10"></th>
                             <th className="p-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none" onClick={() => handleSort('fullName')}>Nome {sortField === 'fullName' && (sortOrder === 'asc' ? <ChevronUp size={12} className="inline" /> : <ChevronDown size={12} className="inline" />)}</th>
                             <th className="p-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase border-b border-gray-200 dark:border-gray-700 min-w-[160px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none" onClick={() => handleSort('status')}>Status {sortField === 'status' && (sortOrder === 'asc' ? <ChevronUp size={12} className="inline" /> : <ChevronDown size={12} className="inline" />)}</th>
                             <th className="p-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none" onClick={() => handleSort('email')}>Email {sortField === 'email' && (sortOrder === 'asc' ? <ChevronUp size={12} className="inline" /> : <ChevronDown size={12} className="inline" />)}</th>
@@ -346,6 +347,15 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                                             checked={selectedIds.includes(c.id)}
                                             onChange={() => setSelectedIds(prev => prev.includes(c.id) ? prev.filter(x => x !== c.id) : [...prev, c.id])}
                                         />
+                                    </td>
+                                    <td className="p-3">
+                                        {onToggleStar ? (
+                                            <button type="button" onClick={(e) => { e.stopPropagation(); onToggleStar(c); }} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none" title={c.starred ? 'Remover de em consideração' : 'Marcar em consideração'}>
+                                                <Star size={16} className={c.starred ? 'text-amber-400 fill-amber-400' : 'text-gray-400 hover:text-amber-300'} />
+                                            </button>
+                                        ) : (
+                                            <span className="text-gray-400">—</span>
+                                        )}
                                     </td>
                                     <td className="p-3 text-center">
                                         {recency && (

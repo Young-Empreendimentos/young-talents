@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, ChevronLeft, Filter, Sun, Moon } from 'lucide-react';
+import { Menu, ChevronLeft, Filter, Sun, Moon, RefreshCw } from 'lucide-react';
 
 const MainHeader = ({
     activeTab,
@@ -8,6 +8,8 @@ const MainHeader = ({
     isSidebarCollapsed,
     setIsSidebarCollapsed,
     setIsFilterSidebarOpen,
+    onRefreshData,
+    candidatesLoading,
     toggleTheme,
     isDark,
     onGoHome
@@ -50,6 +52,17 @@ const MainHeader = ({
                 </h2>
             </div>
             <div className="flex items-center gap-3">
+                {onRefreshData && (
+                    <button
+                        type="button"
+                        onClick={onRefreshData}
+                        disabled={candidatesLoading}
+                        className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium px-3 py-1.5 rounded border border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Atualizar dados"
+                    >
+                        <RefreshCw size={16} className={candidatesLoading ? 'animate-spin' : ''} /> Atualizar
+                    </button>
+                )}
                 <button onClick={() => setIsFilterSidebarOpen(true)} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium px-3 py-1.5 rounded border border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
                     <Filter size={16} /> Filtros
                 </button>

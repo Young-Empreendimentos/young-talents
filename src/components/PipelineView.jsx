@@ -329,7 +329,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                             <thead className="bg-brand-card text-white font-bold sticky top-0 z-10 shadow-sm">
                                 <tr>
                                     <th className="p-4 w-10"><input type="checkbox" className="accent-blue-600 dark:accent-blue-500" checked={selectedIds.length > 0 && selectedIds.length === processedData.length} onChange={handleSelectAll} /></th>
-                                    <th className="p-4 w-12"></th>
+                                    <th className="p-4 w-12" title="Em consideração"><Star size={14} className="inline text-amber-400" /></th>
                                     <th className="p-4">Nome</th>
                                     <th className="p-4 min-w-[160px]">Status</th>
                                     <th className="p-4">Candidatura</th>
@@ -359,6 +359,15 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                     return (
                                         <tr key={c.id} className={`hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors ${needsApplication ? 'bg-yellow-50 dark:bg-yellow-900/10 border-l-4 border-yellow-500' : ''} ${!needsApplication ? getRecencyRowClass(recency) : ''}`}>
                                             <td className="p-4"><input type="checkbox" className="accent-blue-600 dark:accent-blue-500" checked={selectedIds.includes(c.id)} onChange={() => handleSelect(c.id)} /></td>
+                                            <td className="p-4">
+                                                {isInscrito && onToggleStar ? (
+                                                    <button type="button" onClick={(e) => { e.stopPropagation(); onToggleStar(c); }} className="p-1 rounded hover:bg-brand-card focus:outline-none" title={c.starred ? 'Remover de em consideração' : 'Marcar em consideração'}>
+                                                        <Star size={16} className={c.starred ? 'text-amber-400 fill-amber-400' : 'text-slate-400 hover:text-amber-300'} />
+                                                    </button>
+                                                ) : (
+                                                    <span className="text-slate-500">—</span>
+                                                )}
+                                            </td>
                                             <td className="p-4">
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-bold text-white dark:text-white cursor-pointer break-words" onClick={() => onEdit(c)}>{c.fullName || 'Sem nome'}</span>

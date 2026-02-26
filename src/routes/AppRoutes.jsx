@@ -120,6 +120,7 @@ const AppRoutes = ({
     scheduleInterview,
     showToast,
     loadCandidates,
+    refreshData,
     toggleTheme,
     isDark,
     setUserRole,
@@ -181,6 +182,8 @@ const AppRoutes = ({
                             isSidebarCollapsed={isSidebarCollapsed}
                             setIsSidebarCollapsed={setIsSidebarCollapsed}
                             setIsFilterSidebarOpen={setIsFilterSidebarOpen}
+                            onRefreshData={refreshData}
+                            candidatesLoading={candidatesLoading}
                             toggleTheme={toggleTheme}
                             isDark={isDark}
                             onGoHome={() => navigate('/dashboard')}
@@ -214,7 +217,7 @@ const AppRoutes = ({
 
                     {activeTab === 'dashboard' && <div className="p-6 overflow-y-auto h-full"><Dashboard candidatesLoading={candidatesLoading} filteredJobs={jobs} filteredCandidates={filteredCandidates} totalCandidatesCount={uniqueCandidatesByEmail.length} totalSubmissionsCount={candidates.filter(c => !c.deletedAt).length} onOpenCandidates={setDashboardModalCandidates} onSetModalTitle={setDashboardModalTitle} onNavigateToCandidates={(path) => navigate(path)} onNavigateToJobs={(path) => navigate(path)} statusMovements={statusMovements} applications={applications} onViewJob={openJobCandidatesModal} interviews={interviews} onScheduleInterview={(candidate) => setInterviewModalData({ candidate })} /></div>}
                     {activeTab === 'pipeline' && <PipelineView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onDragEnd={handleDragEnd} onEdit={openCandidateProfile} onCloseStatus={handleCloseStatus} applications={applications} interviews={interviews} forceViewMode="kanban" highlightedCandidateId={highlightedCandidateId} filters={filters} setFilters={setFilters} onToggleStar={c => { handleSaveGeneric('candidates', { ...c, starred: !c.starred }, () => {}); showToast('Atualizado.', 'success'); }} />}
-                    {activeTab === 'candidates' && <TalentBankView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onEdit={openCandidateProfile} applications={applications} onStatusChange={handleDragEnd} filters={filters} setFilters={setFilters} />}
+                    {activeTab === 'candidates' && <TalentBankView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onEdit={openCandidateProfile} applications={applications} onStatusChange={handleDragEnd} filters={filters} setFilters={setFilters} onToggleStar={c => { handleSaveGeneric('candidates', { ...c, starred: !c.starred }, () => {}); showToast('Atualizado.', 'success'); }} />}
                     {activeTab === 'submissions' && <SubmissionsView candidatesLoading={candidatesLoading} candidates={candidates.filter(c => !c.deletedAt)} onEdit={openCandidateProfile} />}
                     {(activeTab === 'jobs' || activeTab === 'companies' || activeTab === 'positions' || activeTab === 'sectors' || activeTab === 'cities') && !/^\/jobs\/[^/]+$/.test(location.pathname) && (
                         <JobsManagementPage

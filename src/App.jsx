@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 // Supabase
@@ -18,6 +18,7 @@ import {
 import { getCandidateTimestamp } from './utils/timestampUtils';
 import { mapCandidatesFromSupabase, candidateToSupabase } from './utils/candidateFromSupabase';
 import { prepareCandidateForDisplay } from './utils/candidateDisplay';
+import { translateSupabaseError } from './utils/errorMessages';
 import {
   mapJobsFromSupabase,
   mapCompaniesFromSupabase,
@@ -200,6 +201,7 @@ export default function App() {
   const [userRoles, setUserRoles] = useState([{ email: DEV_USER.email, role: 'admin' }]);
   const [activityLog, setActivityLog] = useState([]);
   const activityLogUnavailableRef = React.useRef(false);
+  const dataLoadedForUserRef = useRef(false);
   const [candidatesLoading, setCandidatesLoading] = useState(false);
 
   // Permissions & Roles
@@ -469,12 +471,23 @@ export default function App() {
   }, [loadCandidates, loadJobs, loadCompanies, loadCities, loadSectors, loadRoles, loadJobLevels, loadActivityAreas, loadApplications]);
 
   useEffect(() => {
-    if (!effectiveUser) return;
-    loadAllData();
-    if (currentUserRole === 'admin') loadActivityLog();
-    if (!supabase) return;
-    const channel = supabase.channel('candidates_changes').on('postgres_changes', { event: '*', schema: 'young_talents', table: 'candidates' }, () => { loadCandidates(); }).subscribe();
-    return () => { if (supabase) supabase.removeChannel(channel); };
+    if (!effectiveUser) {
+      dataLoadedForUserRef.current = false;
+      return;
+    }
+    let channel;
+    if (!dataLoadedForUserRef.current) {
+      loadAllData().then(() => {
+        dataLoadedForUserRef.current = true;
+      });
+      if (currentUserRole === 'admin') loadActivityLog();
+    }
+    if (supabase) {
+      channel = supabase.channel('candidates_changes').on('postgres_changes', { event: '*', schema: 'young_talents', table: 'candidates' }, () => { loadCandidates(); }).subscribe();
+    }
+    return () => {
+      if (supabase && channel) supabase.removeChannel(channel);
+    };
   }, [effectiveUser, loadAllData, loadActivityLog, currentUserRole]);
 
   // Sync user_roles
@@ -507,11 +520,16 @@ export default function App() {
     } catch (e) { console.warn('Erro activity log:', e); }
   };
 
-  const handleSaveGeneric = async (col, d, closeFn) => {
+  const handleSaveGeneric = async (col, d, closeFn, options = {}) => {
+    const { omitApprovedBy = false } = options;
     if (!supabase) return;
     try {
       if (col === 'jobs') {
-        const payload = jobToSupabase(d);
+        let payload = jobToSupabase(d);
+        if (omitApprovedBy) {
+          const { approved_by, ...rest } = payload;
+          payload = rest;
+        }
         if (d.id) {
           const { id, ...rest } = payload;
           const { error } = await schema().from('jobs').update(rest).eq('id', d.id);
@@ -553,7 +571,11 @@ export default function App() {
       closeFn?.();
     } catch (err) {
       console.error('Erro ao salvar:', err);
-      showToast(err?.message || 'Erro ao salvar.', 'error');
+      const { text, isApprovedByMissing } = translateSupabaseError(err?.message);
+      showToast(text, 'error');
+      if (col === 'jobs' && isApprovedByMissing && !omitApprovedBy && window.confirm('Deseja salvar a vaga mesmo assim sem o campo "Quem autorizou a abertura"?')) {
+        await handleSaveGeneric(col, d, closeFn, { omitApprovedBy: true });
+      }
     }
   };
 
@@ -571,7 +593,7 @@ export default function App() {
       else if (col === 'job_levels') await loadJobLevels();
       else if (col === 'activity_areas') await loadActivityAreas();
       else if (col === 'candidates') await loadCandidates();
-    } catch (err) { showToast(err?.message || 'Erro ao excluir.', 'error'); }
+    } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao excluir.', 'error'); }
   };
 
   const createApplication = async (candidateId, jobId) => {
@@ -587,7 +609,7 @@ export default function App() {
       showToast('Vinculado com sucesso!', 'success');
       await loadApplications();
       return data;
-    } catch (err) { showToast(err?.message || 'Erro ao vincular.', 'error'); return null; }
+    } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao vincular.', 'error'); return null; }
   };
 
   const updateApplicationStatus = async (id, status) => {
@@ -596,7 +618,7 @@ export default function App() {
       if (error) throw error;
       showToast('Status atualizado.', 'success');
       await loadApplications();
-    } catch (err) { showToast('Erro ao atualizar.', 'error'); }
+    } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao atualizar.', 'error'); }
   };
 
   const removeApplication = async (id) => {
@@ -606,7 +628,7 @@ export default function App() {
       if (error) throw error;
       showToast('Removido.', 'success');
       await loadApplications();
-    } catch (err) { showToast('Erro ao remover.', 'error'); }
+    } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao remover.', 'error'); }
   };
 
   const addApplicationNote = async (id, text) => {
@@ -618,7 +640,7 @@ export default function App() {
       if (error) throw error;
       showToast('Nota adicionada.', 'success');
       await loadApplications();
-    } catch (err) { showToast('Erro ao adicionar nota.', 'error'); }
+    } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao adicionar nota.', 'error'); }
   };
 
   const scheduleInterview = async (data) => {
@@ -627,7 +649,7 @@ export default function App() {
       // TODO: Save to interviews table when ready
       showToast('Entrevista agendada!', 'success');
       return { id: 'temp-' + Date.now(), ...payload };
-    } catch (err) { showToast('Erro ao agendar.', 'error'); return null; }
+    } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao agendar.', 'error'); return null; }
   };
 
   const setUserRole = async (email, role, name) => {
@@ -640,7 +662,7 @@ export default function App() {
       showToast('Permissão atualizada.', 'success');
       const { data } = await schema().from('user_roles').select('*').order('created_at', { ascending: false });
       if (data) setUserRoles(data);
-    } catch (err) { showToast(err.message, 'error'); }
+    } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro.', 'error'); }
   };
 
   const removeUserRole = async (id) => {
@@ -651,7 +673,7 @@ export default function App() {
       showToast('Acesso removido.', 'success');
       const { data } = await schema().from('user_roles').select('*').order('created_at', { ascending: false });
       if (data) setUserRoles(data);
-    } catch (err) { showToast('Erro ao remover.', 'error'); }
+    } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao remover.', 'error'); }
   };
 
   const createUserWithPassword = async (email, password, role, name) => {
@@ -694,7 +716,7 @@ export default function App() {
       if (updated) setUserRoles(updated);
       return true;
     } catch (err) {
-      showToast(err?.message || 'Erro ao criar usuário.', 'error');
+      showToast(translateSupabaseError(err?.message).text || 'Erro ao criar usuário.', 'error');
       return false;
     }
   };
@@ -776,7 +798,7 @@ export default function App() {
       showToast('Cargo criado.', 'success');
       return true;
     } catch (err) {
-      showToast(err?.message || 'Erro ao criar cargo.', 'error');
+      showToast(translateSupabaseError(err?.message).text || 'Erro ao criar cargo.', 'error');
       return false;
     }
   }, [supabase, loadRoles]);
@@ -790,10 +812,16 @@ export default function App() {
       showToast('Setor criado.', 'success');
       return true;
     } catch (err) {
-      showToast(err?.message || 'Erro ao criar setor.', 'error');
+      showToast(translateSupabaseError(err?.message).text || 'Erro ao criar setor.', 'error');
       return false;
     }
   }, [supabase, loadSectors]);
+
+  const refreshData = React.useCallback(async () => {
+    await loadAllData();
+    if (currentUserRole === 'admin') loadActivityLog();
+    showToast('Dados atualizados.', 'success');
+  }, [loadAllData, loadActivityLog, currentUserRole]);
 
   const optionsProps = { jobs, companies, cities, roles, sectors, userRoles, user: effectiveUser, onCreatePosition, onCreateSector };
   const PIPELINE_STAGES = ['Inscrito', 'Considerado', 'Avaliação', 'Entrevista', 'Teste', 'Selecionado', 'Contratado', 'Recusado'];
@@ -829,6 +857,7 @@ export default function App() {
       createApplication={createApplication} updateApplicationStatus={updateApplicationStatus}
       removeApplication={removeApplication} addApplicationNote={addApplicationNote}
       scheduleInterview={scheduleInterview} showToast={showToast} loadCandidates={loadCandidates}
+      refreshData={refreshData}
       toggleTheme={toggleTheme} isDark={isDark} setUserRole={setUserRole} removeUserRole={removeUserRole}
       createUserWithPassword={createUserWithPassword} handleDragEnd={handleDragEnd}
       handleCloseStatus={handleCloseStatus} computeMissingFields={computeMissingFields}
