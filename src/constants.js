@@ -33,7 +33,7 @@ export const STAGES_REQUIRING_APPLICATION = ['Considerado', 'Entrevista I', 'Tes
 export const STAGE_REQUIRED_FIELDS = {
   'Considerado': ['fullName', 'email', 'phone', 'city', 'hasLicense'],
   'Entrevista I': ['fullName', 'email', 'phone', 'city', 'hasLicense', 'interestAreas', 'education', 'experience', 'maritalStatus', 'source', 'interview1Date'],
-  'Testes': ['fullName', 'email', 'phone', 'city', 'interestAreas', 'interview1Date', 'testResults'],
+  'Testes': ['fullName', 'email', 'phone', 'city', 'interestAreas', 'interview1Date', 'interview1Notes', 'testResults'],
   'Entrevista II': ['fullName', 'email', 'phone', 'city', 'interestAreas', 'interview1Date', 'testResults', 'interview2Date', 'managerFeedback'],
   'Seleção': ['fullName', 'email', 'phone', 'city', 'interestAreas', 'experience', 'interview1Date', 'interview2Date'],
   'Contratado': ['fullName', 'email', 'phone', 'city', 'interestAreas', 'experience', 'source', 'returnSent'],
@@ -102,11 +102,11 @@ export const CANDIDATE_FIELDS = [
   { key: 'city', csvLabel: 'Cidade onde reside:', displayName: 'Cidade', type: 'select', category: 'pessoal' },
 
   // Dados Pessoais
-  { key: 'birthDate', csvLabel: 'Data de Nascimento:', displayName: 'Data Nasc.', type: 'date', category: 'pessoal' },
-  { key: 'age', csvLabel: 'Idade', displayName: 'Idade', type: 'number', category: 'pessoal' },
+  { key: 'birthDate', csvLabel: 'Data de Nascimento:', displayName: 'Data Nasc.', type: 'date', category: 'pessoal', required: true },
+  { key: 'age', csvLabel: 'Idade', displayName: 'Idade', type: 'number', category: 'pessoal', required: true },
   { key: 'maritalStatus', csvLabel: 'Estado civil:', displayName: 'Estado Civil', type: 'select', category: 'pessoal' },
   { key: 'childrenCount', csvLabel: 'Se tem filhos, quantos?', displayName: 'Filhos', type: 'number', category: 'pessoal' },
-  { key: 'photoUrl', csvLabel: 'Nos envie uma foto atual que você goste:', displayName: 'Foto', type: 'url', category: 'pessoal' },
+  { key: 'photoUrl', csvLabel: 'Nos envie uma foto atual que você goste:', displayName: 'Foto', type: 'url', category: 'pessoal', required: true },
   { key: 'hasLicense', csvLabel: 'Você possui CNH tipo B?', displayName: 'CNH', type: 'boolean', category: 'pessoal' },
 
   // Profissional e Acadêmico
@@ -248,3 +248,6 @@ export const PRIORITIES = ['Alta', 'Média', 'Baixa'];
 
 // Chave de armazenamento local para filtros
 export const FILTER_STORAGE_KEY = 'yt-filters';
+
+// Chave para presets de filtros nomeados (lista de { id, name, filters })
+export const SAVED_FILTER_PRESETS_KEY = 'yt-saved-filter-presets';

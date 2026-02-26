@@ -1,8 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, X } from 'lucide-react';
-import { CSV_FIELD_MAPPING_OPTIONS, PIPELINE_STAGES, CLOSING_STATUSES, FILTER_STORAGE_KEY } from '../constants';
+import { CSV_FIELD_MAPPING_OPTIONS, PIPELINE_STAGES, CLOSING_STATUSES, FILTER_STORAGE_KEY, SAVED_FILTER_PRESETS_KEY } from '../constants';
+import { Save, Trash2, Bookmark } from 'lucide-react';
+
+const loadSavedPresets = () => {
+    try {
+        const raw = localStorage.getItem(SAVED_FILTER_PRESETS_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+};
 
 const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, options, candidates = [] }) => {
+    const [savedPresets, setSavedPresets] = useState(loadSavedPresets);
+    const [presetName, setPresetName] = useState('');
     const [searchTexts, setSearchTexts] = useState({
         city: '',
         interestAreas: '',
@@ -17,6 +31,10 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
     useEffect(() => {
         setShowCustomPeriod(filters.createdAtPreset === 'custom');
     }, [filters.createdAtPreset]);
+
+    useEffect(() => {
+        if (isOpen) setSavedPresets(loadSavedPresets());
+    }, [isOpen]);
 
     // Pré-selecionar automaticamente resultados filtrados quando há busca
     useEffect(() => {
@@ -740,6 +758,76 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                             );
                         })()}
                     </div>
+                </div>
+
+                {/* Filtros salvos (presets nomeados) */}
+                <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                    <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                        <Bookmark size={16} /> Filtros salvos
+                    </h4>
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            className="flex-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 outline-none focus:border-blue-500"
+                            placeholder="Ex.: Cidade Porto Alegre"
+                            value={presetName}
+                            onChange={e => setPresetName(e.target.value)}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const name = presetName.trim();
+                                if (!name) return;
+                                const preset = { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, name, filters: { ...filters } };
+                                const next = [...savedPresets, preset];
+                                setSavedPresets(next);
+                                try {
+                                    localStorage.setItem(SAVED_FILTER_PRESETS_KEY, JSON.stringify(next));
+                                } catch (e) {
+                                    console.warn('Erro ao salvar preset', e);
+                                }
+                                setPresetName('');
+                            }}
+                            disabled={!presetName.trim()}
+                            className="px-3 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        >
+                            <Save size={14} /> Salvar como
+                        </button>
+                    </div>
+                    {savedPresets.length > 0 && (
+                        <ul className="space-y-2 max-h-40 overflow-y-auto">
+                            {savedPresets.map(p => (
+                                <li key={p.id} className="flex items-center justify-between gap-2 bg-gray-50 dark:bg-gray-900/50 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700">
+                                    <span className="text-sm text-gray-900 dark:text-white truncate flex-1">{p.name}</span>
+                                    <div className="flex gap-1 flex-shrink-0">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setFilters(p.filters); onClose?.(); }}
+                                            className="px-2 py-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded"
+                                        >
+                                            Aplicar
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const next = savedPresets.filter(x => x.id !== p.id);
+                                                setSavedPresets(next);
+                                                try {
+                                                    localStorage.setItem(SAVED_FILTER_PRESETS_KEY, JSON.stringify(next));
+                                                } catch (e) {
+                                                    console.warn('Erro ao excluir preset', e);
+                                                }
+                                            }}
+                                            className="p-1 text-gray-500 hover:text-red-600 dark:hover:text-red-400 rounded"
+                                            title="Excluir"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
 
                 <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-col gap-3">

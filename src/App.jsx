@@ -308,7 +308,8 @@ export default function App() {
     createdAtPreset: 'all',
     tags: 'all',
     status: 'all',
-    dashboardFilter: null
+    dashboardFilter: null,
+    starred: false
   };
   const [filters, setFilters] = useState(() => {
     try {
@@ -759,6 +760,9 @@ export default function App() {
     } else if (filters.dashboardFilter === 'jobs-open') {
       const openIds = jobs.filter(j => j.status === 'Aberta').map(j => j.id);
       data = data.filter(c => applications.some(a => a.candidateId === c.id && openIds.includes(a.jobId)));
+    }
+    if (filters.starred === true) {
+      data = data.filter(c => c.starred === true);
     }
     return data;
   }, [uniqueCandidatesByEmail, filters, jobs, applications]);

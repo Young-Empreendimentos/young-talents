@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Kanban, List, Briefcase, Building2, MapPin, Mail, Clock, Edit3, Check, Ban, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Kanban, List, Briefcase, Building2, MapPin, Mail, Clock, Edit3, Check, Ban, ChevronLeft, ChevronRight, Star, Info } from 'lucide-react';
 import { PIPELINE_STAGES, ALL_STATUSES, STATUS_COLORS } from '../constants';
 import { getCandidateTimestamp } from '../utils/timestampUtils';
 import { normalizeCity } from '../utils/cityNormalizer';
 import { findMatchingJobs, getMatchBadgeColor } from '../utils/matching';
 import { getCandidateRecency, getRecencyRowClass } from '../utils/candidateRecency';
 
-const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filteredCount = 0, onClearFilters, candidates, jobs, onDragEnd, onEdit, onCloseStatus, companies, applications = [], interviews = [], forceViewMode = null, highlightedCandidateId = null }) => {
+const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filteredCount = 0, onClearFilters, candidates, jobs, onDragEnd, onEdit, onCloseStatus, companies, applications = [], interviews = [], forceViewMode = null, highlightedCandidateId = null, filters = {}, setFilters, onToggleStar }) => {
     const [viewMode, setViewMode] = useState(forceViewMode || 'kanban');
     const [itemsPerPage, setItemsPerPage] = useState(50);
     const [currentPage, setCurrentPage] = useState(1);
@@ -204,6 +204,11 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                             <button onClick={() => setViewMode('list')} className={`p-2 rounded ${viewMode === 'list' ? 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400' : 'text-slate-400'}`}><List size={16} /></button>
                         </div>
                     )}
+                    <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer whitespace-nowrap">
+                        <input type="checkbox" checked={filters.starred === true} onChange={e => setFilters && setFilters(prev => ({ ...prev, starred: e.target.checked }))} className="rounded border-gray-500 text-amber-500 focus:ring-amber-500" />
+                        <Star size={14} className={filters.starred ? 'text-amber-400 fill-amber-400' : 'text-slate-400'} />
+                        <span>Em consideração</span>
+                    </label>
                     <input className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-3 py-1.5 text-sm text-white outline-none focus:border-brand-cyan w-48" placeholder="Buscar..." value={localSearch} onChange={e => setLocalSearch(e.target.value)} />
                     <select className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-3 py-1.5 text-sm text-white outline-none" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
                         <option value="active">Em Andamento</option><option value="hired">Contratados</option><option value="rejected">Reprovados</option><option value="withdrawn">Desistências</option><option value="all">Todos</option>
@@ -285,6 +290,10 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                     )}
                 </div>
             </div>
+            <div className="px-6 py-2 bg-blue-500/10 border-b border-blue-500/20 flex items-center gap-2 text-sm text-blue-200">
+                <Info size={16} className="flex-shrink-0" />
+                <span>Cada etapa do processo representa uma etapa concluída; o lead na etapa vigente está em processo de avançar para a próxima etapa.</span>
+            </div>
             <div className="flex-1 overflow-hidden flex flex-col">
                 {viewMode === 'kanban' ? (
                     <div className="flex-1 overflow-x-auto p-2 custom-scrollbar">
@@ -309,6 +318,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                     onLoadMore={(amount) => loadMoreInStage(stage, amount)}
                                     onReset={() => resetStageCount(stage)}
                                     kanbanItemsPerPage={kanbanItemsPerPage}
+                                    onToggleStar={stage === 'Inscrito' ? onToggleStar : undefined}
                                 />
                             ))}
                         </div>
@@ -453,7 +463,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
     );
 };
 
-const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displayCount, jobs, applications = [], onDragEnd, onEdit, onCloseStatus, selectedIds, onSelect, showColorPicker, onLoadMore, onReset, highlightedCandidateId = null, allJobs = [], kanbanItemsPerPage = 10 }) => {
+const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displayCount, jobs, applications = [], onDragEnd, onEdit, onCloseStatus, selectedIds, onSelect, showColorPicker, onLoadMore, onReset, highlightedCandidateId = null, allJobs = [], kanbanItemsPerPage = 10, onToggleStar }) => {
     const [columnColor, setColumnColor] = useState(() => {
         const saved = localStorage.getItem(`kanban-color-${stage}`);
         return saved || STATUS_COLORS[stage];
@@ -517,6 +527,11 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                     return (
                         <div key={c.id} id={`candidate-${c.id}`} draggable onDragStart={(e) => handleDragStart(e, c.id)} onClick={() => onEdit(c)} className={`bg-brand-card p-3 rounded-lg border hover:border-brand-cyan cursor-grab shadow-sm group relative ${selectedIds.includes(c.id) ? 'border-brand-orange bg-brand-orange/5' : 'border-gray-200 dark:border-gray-700'} ${getRecencyRowClass(recency)} ${highlightedCandidateId === c.id ? 'ring-4 ring-yellow-400 ring-opacity-75 animate-pulse border-yellow-400' : ''}`}>
                             <div className={`absolute top-2 left-2 z-20 ${selectedIds.includes(c.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} onClick={e => e.stopPropagation()}><input type="checkbox" className="accent-blue-600 dark:accent-blue-500" checked={selectedIds.includes(c.id)} onChange={() => onSelect(c.id)} /></div>
+                            {onToggleStar && (
+                                <button type="button" onClick={e => { e.stopPropagation(); onToggleStar(c); }} className="absolute top-2 right-10 z-20 p-1 rounded opacity-80 hover:opacity-100 focus:outline-none" title={c.starred ? 'Remover de em consideração' : 'Marcar em consideração'}>
+                                    <Star size={16} className={c.starred ? 'text-amber-400 fill-amber-400' : 'text-slate-400 hover:text-amber-300'} />
+                                </button>
+                            )}
 
                             {/* Cabeçalho com resumo */}
                             <div className="mb-2 border-b border-gray-200 dark:border-gray-700/50 pb-2 pl-6">

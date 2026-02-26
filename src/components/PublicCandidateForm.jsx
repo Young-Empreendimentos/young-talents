@@ -501,6 +501,10 @@ const PublicCandidateForm = () => {
         if (!formData.birthDate || formData.birthDate.trim() === '') {
           stepErrors.birthDate = 'Data de nascimento é obrigatória';
         }
+        const ageVal = formData.age !== undefined && formData.age !== null && String(formData.age).trim() !== '';
+        if (!ageVal) {
+          stepErrors.age = 'Idade é obrigatória';
+        }
         if (!formData.maritalStatus || formData.maritalStatus.trim() === '') {
           stepErrors.maritalStatus = 'Estado civil é obrigatório';
         }
@@ -571,7 +575,9 @@ const PublicCandidateForm = () => {
         }
         break;
       case 5: // Anexos
-        if (formData.photoUrl && formData.photoUrl.trim() !== '') {
+        if (!formData.photoUrl || formData.photoUrl.trim() === '') {
+          stepErrors.photoUrl = 'Foto é obrigatória';
+        } else {
           const photoValidation = validateAllowedDomain(formData.photoUrl);
           if (!photoValidation.valid) {
             stepErrors.photoUrl = photoValidation.message;

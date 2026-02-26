@@ -165,12 +165,12 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
     // Auto-preenche cidade quando empresa muda
     useEffect(() => {
         if (d.company && !d.city) {
-            const selectedCompany = options.companies.find(c => c.name === d.company);
+            const selectedCompany = (options?.companies ?? []).find(c => c.name === d.company);
             if (selectedCompany?.city) {
                 setD(prev => ({ ...prev, city: selectedCompany.city }));
             }
         }
-    }, [d.company, options.companies]);
+    }, [d.company, options?.companies]);
 
     // Buscar cidades únicas dos candidatos cadastrados
     const candidateCities = useMemo(() => {
@@ -205,7 +205,7 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
     if (!isOpen && !isPageMode) return null;
 
     // Lista de usuários para seleção de recrutador
-    const availableRecruiters = options.userRoles || [];
+    const availableRecruiters = options?.userRoles ?? [];
 
     const formContent = (
         <>
@@ -221,6 +221,19 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
                 <div className="space-y-4">
                     <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700 pb-2">Informações Principais</h4>
 
+                    {/* Título / Nome da vaga */}
+                    <div>
+                        <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Título da vaga</label>
+                        <input
+                            type="text"
+                            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            placeholder="Ex.: Cargo - Empresa"
+                            value={d.title || ''}
+                            onChange={e => setD({ ...d, title: e.target.value })}
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Nome exibido na lista de vagas. Se vazio, será gerado a partir do cargo e empresa ao salvar.</p>
+                    </div>
+
                     {/* Empresa */}
                     <div>
                         <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Empresa *</label>
@@ -231,7 +244,7 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
                                 onChange={e => setD({ ...d, company: e.target.value })}
                             >
                                 <option value="">Selecione uma empresa...</option>
-                                {options.companies.map(c => (
+                                {(options?.companies ?? []).map(c => (
                                     <option key={c.id} value={c.name}>{c.name} {c.city ? `- ${c.city}` : ''}</option>
                                 ))}
                             </select>
@@ -257,7 +270,7 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
                                     onChange={e => setNewCompanyCity(e.target.value)}
                                 >
                                     <option value="">Cidade (opcional)</option>
-                                    {options.cities.map(c => (
+                                    {(options?.cities ?? []).map(c => (
                                         <option key={c.id} value={c.name}>{c.name}</option>
                                     ))}
                                 </select>
@@ -286,9 +299,9 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
                                         ))}
                                     </optgroup>
                                 )}
-                                {options.cities && options.cities.length > 0 && (
+                                {(options?.cities ?? []).length > 0 && (
                                     <optgroup label="Cidades Cadastradas">
-                                        {options.cities.map(c => (
+                                        {(options?.cities ?? []).map(c => (
                                             <option key={c.id} value={c.name}>{c.name}</option>
                                         ))}
                                     </optgroup>
@@ -558,9 +571,9 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
                                                 ))}
                                             </optgroup>
                                         )}
-                                        {options.interestAreas && options.interestAreas.length > 0 && (
+                                        {(options?.interestAreas ?? []).length > 0 && (
                                             <optgroup label="Áreas Cadastradas">
-                                                {options.interestAreas.map(area => (
+                                                {(options?.interestAreas ?? []).map(area => (
                                                     <option key={area.id} value={area.name}>{area.name}</option>
                                                 ))}
                                             </optgroup>

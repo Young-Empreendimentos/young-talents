@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, CalendarCheck, ChevronUp, ChevronDown, Edit3 } from 'lucide-react';
+import { Search, Filter, CalendarCheck, ChevronUp, ChevronDown, Edit3, Star } from 'lucide-react';
 import { STATUS_COLORS, ALL_STATUSES } from '../constants';
 import { getCandidateTimestamp } from '../utils/timestampUtils';
 import { getCandidateRecency, getRecencyRowClass } from '../utils/candidateRecency';
 
-const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filteredCount = 0, onClearFilters, candidates, jobs, companies, onEdit, applications = [], onStatusChange }) => {
+const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filteredCount = 0, onClearFilters, candidates, jobs, companies, onEdit, applications = [], onStatusChange, filters = {}, setFilters }) => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
     const [localSearch, setLocalSearch] = useState('');
@@ -162,6 +162,13 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
+                        {typeof setFilters === 'function' && (
+                            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer whitespace-nowrap">
+                                <input type="checkbox" checked={filters.starred === true} onChange={e => setFilters(prev => ({ ...prev, starred: e.target.checked }))} className="rounded border-gray-400 text-amber-500 focus:ring-amber-500" />
+                                <Star size={16} className={filters.starred ? 'text-amber-400 fill-amber-400' : 'text-gray-400'} />
+                                <span>Em consideração</span>
+                            </label>
+                        )}
                         {/* Busca global */}
                         <div className="relative">
                             <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
