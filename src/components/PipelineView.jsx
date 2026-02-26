@@ -318,7 +318,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                     onLoadMore={(amount) => loadMoreInStage(stage, amount)}
                                     onReset={() => resetStageCount(stage)}
                                     kanbanItemsPerPage={kanbanItemsPerPage}
-                                    onToggleStar={stage === 'Inscrito' ? onToggleStar : undefined}
+                                    onToggleStar={onToggleStar}
                                 />
                             ))}
                         </div>
@@ -360,7 +360,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                         <tr key={c.id} className={`hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors ${needsApplication ? 'bg-yellow-50 dark:bg-yellow-900/10 border-l-4 border-yellow-500' : ''} ${!needsApplication ? getRecencyRowClass(recency) : ''}`}>
                                             <td className="p-4"><input type="checkbox" className="accent-blue-600 dark:accent-blue-500" checked={selectedIds.includes(c.id)} onChange={() => handleSelect(c.id)} /></td>
                                             <td className="p-4">
-                                                {isInscrito && onToggleStar ? (
+                                                {onToggleStar ? (
                                                     <button type="button" onClick={(e) => { e.stopPropagation(); onToggleStar(c); }} className="p-1 rounded hover:bg-brand-card focus:outline-none" title={c.starred ? 'Remover de em consideração' : 'Marcar em consideração'}>
                                                         <Star size={16} className={c.starred ? 'text-amber-400 fill-amber-400' : 'text-slate-400 hover:text-amber-300'} />
                                                     </button>
@@ -536,14 +536,15 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                     return (
                         <div key={c.id} id={`candidate-${c.id}`} draggable onDragStart={(e) => handleDragStart(e, c.id)} onClick={() => onEdit(c)} className={`bg-brand-card p-3 rounded-lg border hover:border-brand-cyan cursor-grab shadow-sm group relative ${selectedIds.includes(c.id) ? 'border-brand-orange bg-brand-orange/5' : 'border-gray-200 dark:border-gray-700'} ${getRecencyRowClass(recency)} ${highlightedCandidateId === c.id ? 'ring-4 ring-yellow-400 ring-opacity-75 animate-pulse border-yellow-400' : ''}`}>
                             <div className={`absolute top-2 left-2 z-20 ${selectedIds.includes(c.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} onClick={e => e.stopPropagation()}><input type="checkbox" className="accent-blue-600 dark:accent-blue-500" checked={selectedIds.includes(c.id)} onChange={() => onSelect(c.id)} /></div>
-                            {onToggleStar && (
-                                <button type="button" onClick={e => { e.stopPropagation(); onToggleStar(c); }} className="absolute top-2 right-10 z-20 p-1 rounded opacity-80 hover:opacity-100 focus:outline-none" title={c.starred ? 'Remover de em consideração' : 'Marcar em consideração'}>
-                                    <Star size={16} className={c.starred ? 'text-amber-400 fill-amber-400' : 'text-slate-400 hover:text-amber-300'} />
-                                </button>
-                            )}
 
-                            {/* Cabeçalho com resumo */}
-                            <div className="mb-2 border-b border-gray-200 dark:border-gray-700/50 pb-2 pl-6">
+                            {/* Cabeçalho com resumo: estrela à esquerda (sempre clicável) + nome e demais */}
+                            <div className="mb-2 border-b border-gray-200 dark:border-gray-700/50 pb-2 flex items-start gap-2 pl-6">
+                                {onToggleStar && (
+                                    <button type="button" onClick={e => { e.stopPropagation(); onToggleStar(c); }} className="shrink-0 mt-0.5 p-1 rounded hover:bg-white/10 focus:outline-none z-30 relative" title={c.starred ? 'Remover de em consideração' : 'Marcar em consideração'}>
+                                        <Star size={18} className={c.starred ? 'text-amber-400 fill-amber-400' : 'text-slate-400 hover:text-amber-300'} />
+                                    </button>
+                                )}
+                                <div className="min-w-0 flex-1">
                                 <h4 className="font-bold text-gray-900 dark:text-white text-sm break-words mb-1">{c.fullName}</h4>
                                 <div className="text-xs space-y-0.5">
                                     {primaryJob && (
@@ -597,6 +598,7 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                                             <Building2 size={10} /> <span className="break-words">{primaryJob.company}</span>
                                         </div>
                                     )}
+                                </div>
                                 </div>
                             </div>
 

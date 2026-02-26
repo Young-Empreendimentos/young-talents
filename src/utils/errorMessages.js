@@ -12,7 +12,7 @@ export function translateSupabaseError(message) {
 
   if (/Could not find the 'approved_by' column.*jobs|'approved_by'.*'jobs'/i.test(msg)) {
     return {
-      text: 'A coluna "Quem autorizou a abertura" não existe na tabela de vagas. Atualize o banco com o SQL de migração ou salve sem este campo.',
+      text: 'A coluna "Quem autorizou a abertura" não existe na tabela de vagas. O campo no formulário fica na seção de gestão da vaga (abaixo de "Recrutador Responsável"). Atualize o banco com o SQL de migração ou salve sem este campo.',
       isApprovedByMissing: true
     };
   }

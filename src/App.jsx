@@ -520,6 +520,20 @@ export default function App() {
     } catch (e) { console.warn('Erro activity log:', e); }
   };
 
+  const handleToggleStar = async (c) => {
+    if (!supabase || !c?.id) return;
+    try {
+      const { error } = await supabase.from('candidates').update({ starred: !c.starred }).eq('id', c.id);
+      if (error) throw error;
+      await loadCandidates();
+      showToast('Atualizado.', 'success');
+    } catch (err) {
+      console.error('Erro ao marcar estrela:', err);
+      const { text } = translateSupabaseError(err?.message);
+      showToast(text, 'error');
+    }
+  };
+
   const handleSaveGeneric = async (col, d, closeFn, options = {}) => {
     const { omitApprovedBy = false } = options;
     if (!supabase) return;
@@ -573,7 +587,7 @@ export default function App() {
       console.error('Erro ao salvar:', err);
       const { text, isApprovedByMissing } = translateSupabaseError(err?.message);
       showToast(text, 'error');
-      if (col === 'jobs' && isApprovedByMissing && !omitApprovedBy && window.confirm('Deseja salvar a vaga mesmo assim sem o campo "Quem autorizou a abertura"?')) {
+      if (col === 'jobs' && isApprovedByMissing && !omitApprovedBy && window.confirm('O campo "Quem autorizou a abertura" fica na tela de edição da vaga, na seção de gestão (abaixo de "Recrutador Responsável"). Deseja salvar a vaga mesmo assim sem preencher esse campo?')) {
         await handleSaveGeneric(col, d, closeFn, { omitApprovedBy: true });
       }
     }
@@ -857,6 +871,7 @@ export default function App() {
       createApplication={createApplication} updateApplicationStatus={updateApplicationStatus}
       removeApplication={removeApplication} addApplicationNote={addApplicationNote}
       scheduleInterview={scheduleInterview} showToast={showToast} loadCandidates={loadCandidates}
+      handleToggleStar={handleToggleStar}
       refreshData={refreshData}
       toggleTheme={toggleTheme} isDark={isDark} setUserRole={setUserRole} removeUserRole={removeUserRole}
       createUserWithPassword={createUserWithPassword} handleDragEnd={handleDragEnd}

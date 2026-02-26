@@ -72,3 +72,5 @@ supabase db push
 ```
 
 Isso aplica todas as migrations pendentes da pasta `supabase/migrations/`.
+
+**Se o `db push` falhar** (por exemplo, erro de "duplicate key" em `schema_migrations` quando há duas migrations com o mesmo número), aplique os blocos SQL acima manualmente no **SQL Editor** do Supabase Dashboard.
