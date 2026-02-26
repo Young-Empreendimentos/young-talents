@@ -5,6 +5,7 @@ export default function AdminTab({
     candidate,
     submissionsByEmail,
     changeLog,
+    activityLog = [],
     formatTimestamp
 }) {
     return (
@@ -84,6 +85,28 @@ export default function AdminTab({
                         </ul>
                     </div>
                 </div>
+            </div>
+
+            {/* Log de movimentações (activity_log) */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                    <History size={20} />
+                    Log de movimentações
+                </h2>
+                {activityLog && activityLog.length > 0 ? (
+                    <div className="space-y-3">
+                        {activityLog.map((log) => (
+                            <div key={log.id} className="border-l-2 border-blue-200 dark:border-blue-800 pl-4 py-2">
+                                <p className="text-sm text-gray-900 dark:text-white font-medium">{log.description || log.type}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {formatTimestamp(log.timestamp)} · {log.userName || log.userEmail || 'Sistema'}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Nenhuma movimentação registrada.</p>
+                )}
             </div>
 
             {/* Log Técnico de Alterações */}

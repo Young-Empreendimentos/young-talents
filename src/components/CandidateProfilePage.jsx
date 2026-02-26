@@ -32,6 +32,7 @@ export default function CandidateProfilePage({
   applications = [],
   interviews = [],
   statusMovements = [],
+  activityLog = [],
   onUpdateCandidate,
   onCreateApplication,
   onScheduleInterview,
@@ -107,6 +108,13 @@ export default function CandidateProfilePage({
     if (!candidate) return [];
     return statusMovements.filter(m => m.candidateId === candidate.id);
   }, [candidate, statusMovements]);
+
+  const candidateActivityLog = useMemo(() => {
+    if (!id || !activityLog?.length) return [];
+    return [...activityLog]
+      .filter(a => a.entityType === 'candidate' && a.entityId === id)
+      .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+  }, [activityLog, id]);
 
   // Todos os envios deste email (múltiplos cadastros = múltiplas linhas)
   const submissionsByEmail = useMemo(() => {
@@ -488,6 +496,7 @@ export default function CandidateProfilePage({
             candidate={candidate}
             submissionsByEmail={submissionsByEmail}
             changeLog={changeLog}
+            activityLog={candidateActivityLog}
             formatTimestamp={formatTimestamp}
           />
         )}

@@ -311,7 +311,7 @@ export default function App() {
     tags: 'all',
     status: 'all',
     dashboardFilter: null,
-    starred: false
+    starredFilter: 'all' // 'all' | 'starred' | 'unstarred'
   };
   const [filters, setFilters] = useState(() => {
     try {
@@ -525,6 +525,7 @@ export default function App() {
     try {
       const { error } = await supabase.from('candidates').update({ starred: !c.starred }).eq('id', c.id);
       if (error) throw error;
+      await recordActivity('update', c.starred ? 'Removido de em consideração' : 'Marcado em consideração', 'candidate', c.id);
       await loadCandidates();
       showToast('Atualizado.', 'success');
     } catch (err) {
@@ -559,14 +560,17 @@ export default function App() {
         await loadJobs();
       } else if (col === 'candidates') {
         const payload = candidateToSupabase(d);
+        const activityDescription = options.activityDescription;
         if (d.id) {
           const { id, ...rest } = payload;
           const { error } = await supabase.from('candidates').update(rest).eq('id', d.id);
           if (error) throw error;
+          await recordActivity('update', activityDescription || 'Candidato atualizado', 'candidate', d.id, { fullName: d.fullName });
           showToast('Candidato atualizado.', 'success');
         } else {
-          const { error } = await supabase.from('candidates').insert(payload);
+          const { data: inserted, error } = await supabase.from('candidates').insert(payload).select('id').single();
           if (error) throw error;
+          await recordActivity('create', 'Candidato criado', 'candidate', inserted?.id, { fullName: d.fullName });
           showToast('Candidato criado.', 'success');
         }
         await loadCandidates();
@@ -620,6 +624,7 @@ export default function App() {
       const payload = { candidate_id: candidateId, job_id: jobId, candidate_name: candidate?.fullName || 'Candidato', candidate_email: candidate?.email || '', job_title: job?.title || 'Vaga', job_company: job?.company || '', status: 'Inscrito', applied_at: new Date().toISOString(), created_by: effectiveUser.email, created_at: new Date().toISOString() };
       const { data, error } = await schema().from('applications').insert(payload).select('*').single();
       if (error) throw error;
+      await recordActivity('update', 'Candidatura criada', 'candidate', candidateId);
       showToast('Vinculado com sucesso!', 'success');
       await loadApplications();
       return data;
@@ -630,6 +635,8 @@ export default function App() {
     try {
       const { error } = await schema().from('applications').update({ status, last_activity: new Date().toISOString() }).eq('id', id);
       if (error) throw error;
+      const app = applications.find(a => a.id === id);
+      if (app?.candidateId) await recordActivity('update', `Candidatura atualizada para ${status}`, 'candidate', app.candidateId);
       showToast('Status atualizado.', 'success');
       await loadApplications();
     } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao atualizar.', 'error'); }
@@ -637,9 +644,12 @@ export default function App() {
 
   const removeApplication = async (id) => {
     if (!window.confirm('Remover esta candidatura?')) return;
+    const app = applications.find(a => a.id === id);
+    const candidateId = app?.candidateId;
     try {
       const { error } = await schema().from('applications').delete().eq('id', id);
       if (error) throw error;
+      if (candidateId) await recordActivity('update', 'Candidatura removida', 'candidate', candidateId);
       showToast('Removido.', 'success');
       await loadApplications();
     } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao remover.', 'error'); }
@@ -652,6 +662,7 @@ export default function App() {
       const newNote = { text, timestamp: new Date().toISOString(), userEmail: effectiveUser.email, userName: effectiveUser.displayName || effectiveUser.email };
       const { error } = await schema().from('applications').update({ notes: [...(app.notes || []), newNote] }).eq('id', id);
       if (error) throw error;
+      if (app.candidateId) await recordActivity('update', 'Nota adicionada na candidatura', 'candidate', app.candidateId);
       showToast('Nota adicionada.', 'success');
       await loadApplications();
     } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao adicionar nota.', 'error'); }
@@ -661,6 +672,7 @@ export default function App() {
     try {
       const payload = { ...data, createdBy: effectiveUser.email, createdAt: new Date().toISOString(), status: 'Agendada' };
       // TODO: Save to interviews table when ready
+      if (data?.candidateId) await recordActivity('update', 'Entrevista agendada', 'candidate', data.candidateId);
       showToast('Entrevista agendada!', 'success');
       return { id: 'temp-' + Date.now(), ...payload };
     } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao agendar.', 'error'); return null; }
@@ -751,7 +763,7 @@ export default function App() {
       setPendingTransition({ candidate, toStage: stage, missingFields: missing, isConclusion: CLOSING_STATUSES.includes(stage) });
       return;
     }
-    await handleSaveGeneric('candidates', { ...candidate, status: stage }, () => { });
+    await handleSaveGeneric('candidates', { ...candidate, status: stage }, () => { }, { activityDescription: `Status alterado para ${stage}` });
     showToast('Status atualizado.', 'success');
   };
 
@@ -797,9 +809,9 @@ export default function App() {
       const openIds = jobs.filter(j => j.status === 'Aberta').map(j => j.id);
       data = data.filter(c => applications.some(a => a.candidateId === c.id && openIds.includes(a.jobId)));
     }
-    if (filters.starred === true) {
-      data = data.filter(c => c.starred === true);
-    }
+    const starFilter = filters.starredFilter ?? (filters.starred === true ? 'starred' : 'all');
+    if (starFilter === 'starred') data = data.filter(c => c.starred === true);
+    else if (starFilter === 'unstarred') data = data.filter(c => !c.starred);
     return data;
   }, [uniqueCandidatesByEmail, filters, jobs, applications]);
 

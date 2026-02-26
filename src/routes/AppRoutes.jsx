@@ -151,6 +151,7 @@ const AppRoutes = ({
                     applications={applications}
                     interviews={interviews}
                     statusMovements={statusMovements}
+                    activityLog={currentUserRole === 'admin' ? activityLog : []}
                     onUpdateCandidate={() => { }} // Sync will happen via Supabase real-time
                     onCreateApplication={createApplication}
                     onScheduleInterview={(candidate) => setInterviewModalData({ candidate })}

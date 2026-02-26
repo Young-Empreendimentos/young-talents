@@ -74,3 +74,11 @@ supabase db push
 Isso aplica todas as migrations pendentes da pasta `supabase/migrations/`.
 
 **Se o `db push` falhar** (por exemplo, erro de "duplicate key" em `schema_migrations` quando há duas migrations com o mesmo número), aplique os blocos SQL acima manualmente no **SQL Editor** do Supabase Dashboard.
+
+---
+
+## Se ainda der erro de "starred" ou "closed_at" depois de rodar os SQLs acima
+
+O app acessa candidatos pela **view** `public.candidates`, não pela tabela direto. Essa view foi criada com uma lista fixa de colunas e não inclui `starred` nem as colunas de processo. Por isso, mesmo com as colunas na tabela `young_talents.candidates`, o erro pode continuar.
+
+**Solução:** execute o arquivo **`docs/sql/04_update_public_candidates_view.sql`** no SQL Editor. Ele atualiza a view e os triggers de INSERT/UPDATE para expor as novas colunas.

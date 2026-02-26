@@ -1,0 +1,16 @@
+# SQL para rodar no Supabase
+
+Arquivos para executar no **SQL Editor** do [Supabase Dashboard](https://supabase.com/dashboard) quando as colunas opcionais ainda não existirem no banco.
+
+**Como usar:** abra cada arquivo `.sql`, copie o conteúdo, cole no SQL Editor do seu projeto e execute (Run).
+
+**Ordem recomendada:** 01 → 02 → 03 → **04** (o 04 depende de 02 e 03).
+
+| Arquivo | Quando rodar |
+|---------|--------------|
+| `01_add_approved_by_to_jobs.sql` | Erro ao criar/editar vaga: *"Could not find the 'approved_by' column of 'jobs'"* |
+| `02_add_starred_to_candidates.sql` | Adiciona coluna `starred` na **tabela** young_talents.candidates |
+| `03_add_candidate_process_columns.sql` | Adiciona colunas de processo (closed_at, entrevistas, etc.) na **tabela** |
+| `04_update_public_candidates_view.sql` | **Obrigatório se ainda der erro de "starred" ou "closed_at".** O app usa a *view* public.candidates; esta atualiza a view e os triggers para expor as colunas novas. Rode depois de 02 e 03. |
+
+Os arquivos 01–03 usam `ADD COLUMN IF NOT EXISTS`. O 04 recria a view e as funções de trigger; é seguro executar mais de uma vez.

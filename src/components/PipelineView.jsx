@@ -204,11 +204,22 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                             <button onClick={() => setViewMode('list')} className={`p-2 rounded ${viewMode === 'list' ? 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400' : 'text-slate-400'}`}><List size={16} /></button>
                         </div>
                     )}
-                    <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer whitespace-nowrap">
-                        <input type="checkbox" checked={filters.starred === true} onChange={e => setFilters && setFilters(prev => ({ ...prev, starred: e.target.checked }))} className="rounded border-gray-500 text-amber-500 focus:ring-amber-500" />
-                        <Star size={14} className={filters.starred ? 'text-amber-400 fill-amber-400' : 'text-slate-400'} />
-                        <span>Em consideração</span>
-                    </label>
+                    {setFilters && (() => {
+                        const activeStar = filters.starredFilter ?? (filters.starred === true ? 'starred' : 'all');
+                        return (
+                        <div className="flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-brand-card p-0.5" role="group" aria-label="Filtro por estrela">
+                            <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'unstarred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'unstarred' ? 'bg-white dark:bg-gray-800 shadow-sm' : 'hover:bg-white/10'}`} title="Somente não considerados">
+                                <Star size={16} className="text-slate-400" />
+                            </button>
+                            <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'all' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'all' ? 'bg-white dark:bg-gray-800 shadow-sm' : 'hover:bg-white/10'}`} title="Todos">
+                                <Star size={16} className="text-amber-400" />
+                            </button>
+                            <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'starred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'starred' ? 'bg-white dark:bg-gray-800 shadow-sm' : 'hover:bg-white/10'}`} title="Somente em consideração">
+                                <Star size={16} className="text-amber-400 fill-amber-400" />
+                            </button>
+                        </div>
+                        );
+                    })()}
                     <input className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-3 py-1.5 text-sm text-white outline-none focus:border-brand-cyan w-48" placeholder="Buscar..." value={localSearch} onChange={e => setLocalSearch(e.target.value)} />
                     <select className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-3 py-1.5 text-sm text-white outline-none" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
                         <option value="active">Em Andamento</option><option value="hired">Contratados</option><option value="rejected">Reprovados</option><option value="withdrawn">Desistências</option><option value="all">Todos</option>

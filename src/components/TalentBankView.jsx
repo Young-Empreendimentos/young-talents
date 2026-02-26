@@ -162,13 +162,22 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        {typeof setFilters === 'function' && (
-                            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer whitespace-nowrap">
-                                <input type="checkbox" checked={filters.starred === true} onChange={e => setFilters(prev => ({ ...prev, starred: e.target.checked }))} className="rounded border-gray-400 text-amber-500 focus:ring-amber-500" />
-                                <Star size={16} className={filters.starred ? 'text-amber-400 fill-amber-400' : 'text-gray-400'} />
-                                <span>Em consideração</span>
-                            </label>
-                        )}
+                        {typeof setFilters === 'function' && (() => {
+                            const activeStar = filters.starredFilter ?? (filters.starred === true ? 'starred' : 'all');
+                            return (
+                            <div className="flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-0.5" role="group" aria-label="Filtro por estrela">
+                                <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'unstarred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'unstarred' ? 'bg-gray-100 dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}`} title="Somente não considerados">
+                                    <Star size={16} className="text-slate-400" />
+                                </button>
+                                <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'all' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'all' ? 'bg-gray-100 dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}`} title="Todos">
+                                    <Star size={16} className="text-amber-400" />
+                                </button>
+                                <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'starred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'starred' ? 'bg-gray-100 dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}`} title="Somente em consideração">
+                                    <Star size={16} className="text-amber-400 fill-amber-400" />
+                                </button>
+                            </div>
+                            );
+                        })()}
                         {/* Busca global */}
                         <div className="relative">
                             <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
