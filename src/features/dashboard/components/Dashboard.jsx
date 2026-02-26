@@ -1,33 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import {
-    ArrowRight, Check, AlertCircle, CalendarCheck
-} from 'lucide-react';
-import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    PieChart, Pie, Cell, Legend, LineChart, Line
-} from 'recharts';
+import { ArrowRight, Check, AlertCircle, CalendarCheck } from 'lucide-react';
 
 import { PIPELINE_STAGES } from '../../../constants';
 import { getCandidateTimestamp } from '../../../utils/timestampUtils';
-import { normalizeCity } from '../../../utils/cityNormalizer';
-import { normalizeSource } from '../../../utils/sourceNormalizer';
-import { normalizeInterestArea } from '../../../utils/interestAreaNormalizer';
-
-// Material Design Colors (Google)
-const MATERIAL_COLORS = [
-    '#4285F4', // Google Blue
-    '#34A853', // Google Green
-    '#FBBC04', // Google Yellow
-    '#EA4335', // Google Red
-    '#9C27B0', // Purple
-    '#FF9800', // Orange
-    '#00BCD4', // Cyan
-    '#E91E63', // Pink
-    '#3F51B5', // Indigo
-    '#009688', // Teal
-];
-
-const COLORS = MATERIAL_COLORS;
 
 // Dashboard com Gráficos
 const Dashboard = ({
@@ -129,16 +104,6 @@ const Dashboard = ({
             })
             .slice(0, 5); // Mostrar apenas as 5 próximas
     }, [interviews]);
-    // Dados para gráficos - ordenados por status do pipeline (usando candidatos filtrados por período)
-    const statusData = useMemo(() => {
-        const counts = {};
-        PIPELINE_STAGES.forEach(stage => {
-            counts[stage] = filteredCandidatesByPeriod.filter(c => (c.status || 'Inscrito') === stage).length;
-        });
-        counts['Contratado'] = filteredCandidatesByPeriod.filter(c => c.status === 'Contratado').length;
-        counts['Reprovado'] = filteredCandidatesByPeriod.filter(c => c.status === 'Reprovado').length;
-        return Object.entries(counts).map(([name, value]) => ({ name, value }));
-    }, [filteredCandidatesByPeriod]);
 
     // Calcular taxas de conversão BASEADAS NAS MOVIMENTAÇÕES REAIS
     // Conta quantos candidatos fizeram a transição de uma etapa para outra
@@ -194,113 +159,13 @@ const Dashboard = ({
     // Total de movimentações registradas (para mostrar indicador)
     const totalMovements = filteredMovements.length;
 
-    // Dados com taxas de conversão para o gráfico de status
-    const statusDataWithConversion = useMemo(() => {
-        return statusData.map((item, index) => {
-            const conversionRate = conversionRates.find(r => r.from === item.name);
-            return {
-                ...item,
-                conversion: conversionRate ? `${conversionRate.rate}%` : null,
-                conversionValue: conversionRate ? conversionRate.rate : null
-            };
-        });
-    }, [statusData, conversionRates]);
-
-    const areaData = useMemo(() => {
-        const areas = {};
-        // Usar filteredCandidates quando período é 'all' ou quando não há dados no período filtrado
-        const candidatesToUse = periodFilter === 'all' || filteredCandidatesByPeriod.length === 0
-            ? filteredCandidates
-            : filteredCandidatesByPeriod;
-        candidatesToUse.forEach(c => {
-            if (c.interestAreas) {
-                const areasList = c.interestAreas.split(',').map(a => normalizeInterestArea(a.trim())).filter(a => a);
-                areasList.forEach(area => {
-                    areas[area] = (areas[area] || 0) + 1;
-                });
-            }
-        });
-        const total = candidatesToUse.length;
-        return Object.entries(areas)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 5)
-            .map(([name, value]) => ({
-                name,
-                value,
-                percentage: total > 0 ? ((value / total) * 100).toFixed(1) : 0
-            }));
-    }, [filteredCandidatesByPeriod, filteredCandidates, periodFilter]);
-
-    // Cidades ordenadas do maior para o menor (normalizadas para agregação coerente)
-    const cityData = useMemo(() => {
-        const cities = {};
-        // Usar filteredCandidates quando período é 'all' ou quando não há dados no período filtrado
-        const candidatesToUse = periodFilter === 'all' || filteredCandidatesByPeriod.length === 0
-            ? filteredCandidates
-            : filteredCandidatesByPeriod;
-        candidatesToUse.forEach(c => {
-            if (c.city) {
-                const norm = normalizeCity(c.city);
-                if (norm) cities[norm] = (cities[norm] || 0) + 1;
-            }
-        });
-        return Object.entries(cities)
-            .sort((a, b) => b[1] - a[1]) // Ordenar do maior para o menor
-            .slice(0, 5)
-            .map(([name, value]) => ({ name, value }));
-    }, [filteredCandidatesByPeriod, filteredCandidates, periodFilter]);
-
-    const originData = useMemo(() => {
-        const origins = {};
-        // Usar filteredCandidates quando período é 'all' ou quando não há dados no período filtrado
-        const candidatesToUse = periodFilter === 'all' || filteredCandidatesByPeriod.length === 0
-            ? filteredCandidates
-            : filteredCandidatesByPeriod;
-        candidatesToUse.forEach(c => {
-            if (c.source) {
-                const norm = normalizeSource(c.source);
-                if (norm) origins[norm] = (origins[norm] || 0) + 1;
-            }
-        });
-        const total = candidatesToUse.length;
-        return Object.entries(origins)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 5)
-            .map(([name, value]) => ({
-                name,
-                value,
-                percentage: total > 0 ? ((value / total) * 100).toFixed(1) : 0
-            }));
-    }, [filteredCandidatesByPeriod, filteredCandidates, periodFilter]);
-
-    // Inscrições por dia (para gráfico de linha/barras)
-    const inscriptionsPerDayData = useMemo(() => {
-        const byDay = {};
-        filteredCandidatesByPeriod.forEach(c => {
-            const ts = getCandidateTimestamp(c);
-            if (!ts) return;
-            const d = new Date(ts * 1000);
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            const key = `${y}-${m}-${day}`;
-            byDay[key] = (byDay[key] || 0) + 1;
-        });
-        return Object.entries(byDay)
-            .sort((a, b) => a[0].localeCompare(b[0]))
-            .map(([date, count]) => {
-                const [y, m, d] = date.split('-');
-                return { date, label: `${d}/${m}`, count };
-            });
-    }, [filteredCandidatesByPeriod]);
-
     const missingReturnCount = useMemo(() => {
         return filteredCandidatesByPeriod.filter(c => {
             const isSelectionStage = c.status === 'Seleção' || c.status === 'Selecionado';
             const needsReturn = !c.returnSent || c.returnSent === 'Pendente' || c.returnSent === 'Não';
             return isSelectionStage && needsReturn;
         }).length;
-    }, [filteredCandidates]);
+    }, [filteredCandidatesByPeriod]);
 
     const jobStats = {
         open: filteredJobs.filter(j => j.status === 'Aberta').length,
@@ -319,22 +184,6 @@ const Dashboard = ({
     const overallConversionRate = candidateStats.total > 0
         ? ((candidateStats.hired / candidateStats.total) * 100).toFixed(1)
         : 0;
-
-    // Tooltip customizado com melhor contraste para light e dark mode
-    const tooltipStyle = {
-        backgroundColor: 'rgba(15, 23, 42, 0.95)', // slate-900 com opacidade
-        border: '2px solid #3b82f6', // blue-500
-        borderRadius: '8px',
-        color: '#f1f5f9', // slate-100 - texto claro
-        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2)',
-        padding: '12px',
-        fontSize: '14px',
-        fontWeight: '500'
-    };
-
-    // Estados para controlar visibilidade das séries (legendas clicáveis)
-    const [visibleAreaSeries, setVisibleAreaSeries] = useState(new Set());
-    const [visibleOriginSeries, setVisibleOriginSeries] = useState(new Set());
 
     if (candidatesLoading) {
         return (
@@ -452,12 +301,26 @@ const Dashboard = ({
                 </div>
             </div>
 
-            {/* Card rápido: falta dar retorno */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* 4 scorecards: Em consideração, Considerados, Em testes/entrevistas, Faltam dar retorno */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div onClick={() => onNavigateToCandidates && onNavigateToCandidates('/candidates?starred=1')} className="cursor-pointer bg-gradient-to-br from-amber-500/20 to-amber-500/10 p-4 rounded-xl border border-amber-500/30 hover:scale-[1.01] transition-transform shadow-lg">
+                    <div className="text-gray-700 dark:text-gray-300 text-sm font-medium">Em consideração</div>
+                    <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-2">{filteredCandidatesByPeriod.filter(c => c.starred === true).length}</div>
+                    <div className="text-xs text-gray-500 dark:text-slate-500 mt-1">Marcados com estrela</div>
+                </div>
+                <div onClick={() => onNavigateToCandidates && onNavigateToCandidates('/candidates')} className="cursor-pointer bg-gradient-to-br from-[#4285F4]/20 to-[#4285F4]/10 p-4 rounded-xl border border-[#4285F4]/30 hover:scale-[1.01] transition-transform shadow-lg">
+                    <div className="text-gray-700 dark:text-gray-300 text-sm font-medium">Considerados</div>
+                    <div className="text-2xl font-bold text-[#4285F4] mt-2">{filteredCandidatesByPeriod.filter(c => c.status === 'Considerado').length}</div>
+                    <div className="text-xs text-gray-500 dark:text-slate-500 mt-1">Etapa Considerado</div>
+                </div>
+                <div onClick={() => onNavigateToCandidates && onNavigateToCandidates('/candidates')} className="cursor-pointer bg-gradient-to-br from-[#34A853]/20 to-[#34A853]/10 p-4 rounded-xl border border-[#34A853]/30 hover:scale-[1.01] transition-transform shadow-lg">
+                    <div className="text-gray-700 dark:text-gray-300 text-sm font-medium">Em testes/entrevistas</div>
+                    <div className="text-2xl font-bold text-[#34A853] mt-2">{filteredCandidatesByPeriod.filter(c => ['Entrevista I', 'Testes', 'Entrevista II'].includes(c.status || '')).length}</div>
+                    <div className="text-xs text-gray-500 dark:text-slate-500 mt-1">Entrevista I, Testes, Entrevista II</div>
+                </div>
                 <div onClick={() => {
-                    if (onNavigateToCandidates) {
-                        onNavigateToCandidates('/candidates?filter=missing-return');
-                    } else if (onOpenCandidates) {
+                    if (onNavigateToCandidates) onNavigateToCandidates('/candidates?filter=missing-return');
+                    else if (onOpenCandidates) {
                         if (onSetModalTitle) onSetModalTitle('Faltam dar retorno');
                         onOpenCandidates(filteredCandidates.filter(c => {
                             const isSelectionStage = c.status === 'Seleção' || c.status === 'Selecionado';
@@ -465,10 +328,10 @@ const Dashboard = ({
                             return isSelectionStage && needsReturn;
                         }));
                     }
-                }} className="cursor-pointer bg-gradient-to-br from-[#9C27B0]/20 to-[#9C27B0]/10 p-4 rounded-xl border border-[#9C27B0]/30 hover:scale-[1.01] transition-transform shadow-lg hover:shadow-[#9C27B0]/20">
-                    <div className="text-gray-700 dark:text-gray-300 text-sm">Faltam dar retorno</div>
+                }} className="cursor-pointer bg-gradient-to-br from-[#9C27B0]/20 to-[#9C27B0]/10 p-4 rounded-xl border border-[#9C27B0]/30 hover:scale-[1.01] transition-transform shadow-lg">
+                    <div className="text-gray-700 dark:text-gray-300 text-sm font-medium">Faltam dar retorno</div>
                     <div className="text-2xl font-bold text-[#9C27B0] mt-2">{missingReturnCount}</div>
-                    <div className="text-xs text-gray-500 dark:text-slate-500 mt-1">Candidatos selecionados sem confirmação</div>
+                    <div className="text-xs text-gray-500 dark:text-slate-500 mt-1">Seleção sem confirmação</div>
                 </div>
             </div>
 
@@ -571,331 +434,6 @@ const Dashboard = ({
                     </div>
                 </div>
             )}
-
-            {/* Gráficos */}
-            <div className="grid grid-cols-1 gap-6">
-                {/* Distribuição por Status com Taxa de Conversão */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
-                    <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-4">Distribuição por Status (com Taxa de Conversão)</h3>
-                    {statusData.some(d => d.value > 0) ? (
-                        <ResponsiveContainer width="100%" height={380}>
-                            <BarChart data={statusDataWithConversion} layout="vertical" margin={{ top: 5, right: 80, left: 180, bottom: 5 }}>
-                                <defs>
-                                    <linearGradient id="gradient-status" x1="0" y1="0" x2="1" y2="0">
-                                        <stop offset="0%" stopColor="#4285F4" stopOpacity={1} />
-                                        <stop offset="100%" stopColor="#1a56db" stopOpacity={1} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                                <XAxis type="number" stroke="#94a3b8" />
-                                <YAxis type="category" dataKey="name" stroke="#94a3b8" width={170} tick={{ fontSize: 12 }} />
-                                <Tooltip
-                                    contentStyle={tooltipStyle}
-                                    cursor={{ fill: 'rgba(255,255,255,0.1)' }}
-                                    formatter={(value, name, props) => {
-                                        const conv = props.payload.conversion;
-                                        return [
-                                            <span key="v">{value} candidatos{conv ? ` (→ ${conv} conversão)` : ''}</span>,
-                                            'Quantidade'
-                                        ];
-                                    }}
-                                />
-                                <Bar
-                                    dataKey="value"
-                                    fill="url(#gradient-status)"
-                                    radius={[0, 8, 8, 0]}
-                                    isAnimationActive={true}
-                                    animationBegin={0}
-                                    animationDuration={800}
-                                    label={{
-                                        position: 'right',
-                                        fill: '#94a3b8',
-                                        fontSize: 11,
-                                        formatter: (value, entry) => {
-                                            const item = statusDataWithConversion.find(d => d.value === value);
-                                            return item?.conversion ? `${value} (${item.conversion})` : value;
-                                        }
-                                    }}
-                                />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <div className="h-[380px] flex items-center justify-center text-gray-500">Sem dados</div>
-                    )}
-                </div>
-
-                {/* Inscrições por dia */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
-                    <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-4">Candidatos inscritos por dia</h3>
-                    {inscriptionsPerDayData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={280}>
-                            <LineChart data={inscriptionsPerDayData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                                <XAxis dataKey="label" stroke="#94a3b8" tick={{ fontSize: 11 }} />
-                                <YAxis stroke="#94a3b8" allowDecimals={false} tick={{ fontSize: 11 }} />
-                                <Tooltip
-                                    contentStyle={tooltipStyle}
-                                    labelFormatter={(_, payload) => payload?.[0]?.payload?.date ? new Date(payload[0].payload.date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
-                                    formatter={(value) => [`${value} inscrições`, 'Quantidade']}
-                                />
-                                <Line type="monotone" dataKey="count" stroke="#4285F4" strokeWidth={2} dot={{ fill: '#4285F4', r: 4 }} activeDot={{ r: 6 }} name="Inscrições" />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <div className="h-[280px] flex items-center justify-center text-gray-500">Nenhuma inscrição no período selecionado</div>
-                    )}
-                </div>
-
-                {/* Top 5 Áreas de Interesse - DONUT */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
-                    <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-4">Principais Áreas de Interesse</h3>
-                    {areaData.length > 0 && areaData.some(d => d.value > 0) ? (
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <defs>
-                                    {areaData.filter(d => d.value > 0).map((entry, index) => {
-                                        const baseColor = COLORS[index % COLORS.length];
-                                        const gradients = {
-                                            '#4285F4': ['#4285F4', '#1a56db'],
-                                            '#34A853': ['#34A853', '#15803d'],
-                                            '#FBBC04': ['#FBBC04', '#d97706'],
-                                            '#EA4335': ['#EA4335', '#dc2626'],
-                                            '#00BCD4': ['#00BCD4', '#0891b2'],
-                                        };
-                                        const [light, dark] = gradients[baseColor] || [baseColor, baseColor];
-                                        return (
-                                            <linearGradient key={`gradient-area-${index}`} id={`gradient-area-${index}`} x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="0%" stopColor={light} stopOpacity={1} />
-                                                <stop offset="100%" stopColor={dark} stopOpacity={1} />
-                                            </linearGradient>
-                                        );
-                                    })}
-                                </defs>
-                                <Pie
-                                    data={areaData.filter(d => d.value > 0 && (visibleAreaSeries.size === 0 || visibleAreaSeries.has(d.name)))}
-                                    cx="50%"
-                                    cy="45%"
-                                    innerRadius={60}
-                                    outerRadius={100}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                    labelLine={false}
-                                    label={({ value, percentage }) => `${value} (${percentage}%)`}
-                                    isAnimationActive={true}
-                                    animationBegin={0}
-                                    animationDuration={800}
-                                >
-                                    {areaData.filter(d => d.value > 0).map((entry, index) => {
-                                        const isVisible = visibleAreaSeries.size === 0 || visibleAreaSeries.has(entry.name);
-                                        return (
-                                            <Cell
-                                                key={`cell-${index}`}
-                                                fill={isVisible ? `url(#gradient-area-${index})` : '#e5e7eb'}
-                                                opacity={isVisible ? 1 : 0.3}
-                                            />
-                                        );
-                                    })}
-                                </Pie>
-                                <Tooltip
-                                    contentStyle={tooltipStyle}
-                                    formatter={(value, name, props) => [`${value} (${props.payload.percentage}%)`, name]}
-                                />
-                                <Legend
-                                    verticalAlign="bottom"
-                                    height={50}
-                                    wrapperStyle={{ fontSize: 11, cursor: 'pointer' }}
-                                    onClick={(e) => {
-                                        const name = e.value;
-                                        setVisibleAreaSeries(prev => {
-                                            const newSet = new Set(prev);
-                                            if (newSet.has(name)) {
-                                                newSet.delete(name);
-                                            } else {
-                                                newSet.add(name);
-                                            }
-                                            return newSet;
-                                        });
-                                    }}
-                                />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <div className="h-[300px] flex items-center justify-center text-gray-500">Sem dados</div>
-                    )}
-                </div>
-
-                {/* Origem dos Candidatos - DONUT */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
-                    <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-4">Origem dos Candidatos</h3>
-                    {originData.length > 0 && originData.some(d => d.value > 0) ? (
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <defs>
-                                    {originData.filter(d => d.value > 0).map((entry, index) => {
-                                        const baseColor = COLORS[index % COLORS.length];
-                                        const gradients = {
-                                            '#4285F4': ['#4285F4', '#1a56db'],
-                                            '#34A853': ['#34A853', '#15803d'],
-                                            '#FBBC04': ['#FBBC04', '#d97706'],
-                                            '#EA4335': ['#EA4335', '#dc2626'],
-                                            '#00BCD4': ['#00BCD4', '#0891b2'],
-                                        };
-                                        const [light, dark] = gradients[baseColor] || [baseColor, baseColor];
-                                        return (
-                                            <linearGradient key={`gradient-origin-${index}`} id={`gradient-origin-${index}`} x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="0%" stopColor={light} stopOpacity={1} />
-                                                <stop offset="100%" stopColor={dark} stopOpacity={1} />
-                                            </linearGradient>
-                                        );
-                                    })}
-                                </defs>
-                                <Pie
-                                    data={originData.filter(d => d.value > 0 && (visibleOriginSeries.size === 0 || visibleOriginSeries.has(d.name)))}
-                                    cx="50%"
-                                    cy="45%"
-                                    innerRadius={60}
-                                    outerRadius={100}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                    labelLine={false}
-                                    label={({ value, percentage }) => `${value} (${percentage}%)`}
-                                    isAnimationActive={true}
-                                    animationBegin={0}
-                                    animationDuration={800}
-                                >
-                                    {originData.filter(d => d.value > 0).map((entry, index) => {
-                                        const isVisible = visibleOriginSeries.size === 0 || visibleOriginSeries.has(entry.name);
-                                        return (
-                                            <Cell
-                                                key={`cell-origin-${index}`}
-                                                fill={isVisible ? `url(#gradient-origin-${index})` : '#e5e7eb'}
-                                                opacity={isVisible ? 1 : 0.3}
-                                            />
-                                        );
-                                    })}
-                                </Pie>
-                                <Tooltip
-                                    contentStyle={tooltipStyle}
-                                    formatter={(value, name, props) => [`${value} (${props.payload.percentage}%)`, name]}
-                                />
-                                <Legend
-                                    verticalAlign="bottom"
-                                    height={50}
-                                    wrapperStyle={{ fontSize: 11, cursor: 'pointer' }}
-                                    onClick={(e) => {
-                                        const name = e.value;
-                                        setVisibleOriginSeries(prev => {
-                                            const newSet = new Set(prev);
-                                            if (newSet.has(name)) {
-                                                newSet.delete(name);
-                                            } else {
-                                                newSet.add(name);
-                                            }
-                                            return newSet;
-                                        });
-                                    }}
-                                />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <div className="h-[300px] flex items-center justify-center text-gray-500">Sem dados</div>
-                    )}
-                </div>
-
-                {/* Top 5 Cidades - Ordenado do maior para o menor */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
-                    <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-4">Candidatos por Cidade (Top 5)</h3>
-                    {cityData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={cityData} layout="vertical" margin={{ top: 5, right: 30, left: 200, bottom: 5 }}>
-                                <defs>
-                                    <linearGradient id="gradient-city" x1="0" y1="0" x2="1" y2="0">
-                                        <stop offset="0%" stopColor="#00BCD4" stopOpacity={1} />
-                                        <stop offset="100%" stopColor="#0891b2" stopOpacity={1} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                                <XAxis type="number" stroke="#94a3b8" />
-                                <YAxis type="category" dataKey="name" stroke="#94a3b8" width={190} tick={{ fontSize: 12 }} />
-                                <Tooltip
-                                    contentStyle={tooltipStyle}
-                                    cursor={{ fill: 'rgba(255,255,255,0.1)' }}
-                                />
-                                <Bar
-                                    dataKey="value"
-                                    fill="url(#gradient-city)"
-                                    radius={[0, 8, 8, 0]}
-                                    isAnimationActive={true}
-                                    animationBegin={0}
-                                    animationDuration={800}
-                                    label={{
-                                        position: 'inside',
-                                        fill: '#ffffff',
-                                        fontSize: 12,
-                                        fontWeight: 'bold',
-                                        formatter: (value) => value
-                                    }}
-                                />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <div className="h-[300px] flex items-center justify-center text-gray-500">Sem dados</div>
-                    )}
-                </div>
-
-                {/* Status de Vagas - Barras Verticais */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
-                    <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-4">Status das Vagas</h3>
-                    {jobStats.open > 0 || jobStats.filled > 0 || jobStats.closed > 0 ? (
-                        <ResponsiveContainer width="100%" height={280}>
-                            <BarChart
-                                data={[
-                                    { name: 'Abertas', value: jobStats.open, fill: '#FBBC04' },
-                                    { name: 'Preenchidas', value: jobStats.filled, fill: '#34A853' },
-                                    { name: 'Fechadas', value: jobStats.closed, fill: '#9E9E9E' }
-                                ]}
-                                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                            >
-                                <defs>
-                                    <linearGradient id="gradient-jobs-open" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#FBBC04" stopOpacity={1} />
-                                        <stop offset="100%" stopColor="#d97706" stopOpacity={1} />
-                                    </linearGradient>
-                                    <linearGradient id="gradient-jobs-filled" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#34A853" stopOpacity={1} />
-                                        <stop offset="100%" stopColor="#15803d" stopOpacity={1} />
-                                    </linearGradient>
-                                    <linearGradient id="gradient-jobs-closed" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#9E9E9E" stopOpacity={1} />
-                                        <stop offset="100%" stopColor="#6b7280" stopOpacity={1} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                                <XAxis dataKey="name" stroke="#94a3b8" tick={{ fontSize: 12 }} />
-                                <YAxis stroke="#94a3b8" />
-                                <Tooltip
-                                    contentStyle={tooltipStyle}
-                                    cursor={{ fill: 'rgba(255,255,255,0.1)' }}
-                                />
-                                <Bar
-                                    dataKey="value"
-                                    radius={[8, 8, 0, 0]}
-                                    isAnimationActive={true}
-                                    animationBegin={0}
-                                    animationDuration={800}
-                                    label={{ position: 'top', fill: '#94a3b8', fontSize: 14, fontWeight: 'bold' }}
-                                >
-                                    <Cell fill="url(#gradient-jobs-open)" />
-                                    <Cell fill="url(#gradient-jobs-filled)" />
-                                    <Cell fill="url(#gradient-jobs-closed)" />
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <div className="h-[280px] flex items-center justify-center text-gray-500">Sem dados</div>
-                    )}
-                </div>
-            </div>
         </div>
     );
 };

@@ -2,6 +2,15 @@
 
 Arquivos para executar no **SQL Editor** do [Supabase Dashboard](https://supabase.com/dashboard) quando as colunas opcionais ainda não existirem no banco.
 
+## O que pode dar erro de SQL se não rodar
+
+| Sintoma no app | Solução |
+|----------------|--------|
+| Ao criar/editar vaga: erro "approved_by" ou "column not found" em jobs | Rodar **01** |
+| Ao marcar estrela "em consideração": erro "starred" ou "column not found" em candidates | Rodar **02** e depois **04** (o app usa a view `public.candidates`) |
+| Ao mover candidato de etapa ou salvar entrevista: erro "closed_at" ou outras colunas em candidates | Rodar **03** e depois **04** |
+| Erro persiste após rodar 01, 02 e 03 | O app lê da **view** `public.candidates`, não da tabela direta. Rodar **04** para atualizar a view e os triggers. |
+
 **Como usar:** abra cada arquivo `.sql`, copie o conteúdo, cole no SQL Editor do seu projeto e execute (Run).
 
 **Ordem recomendada:** 01 → 02 → 03 → **04** (o 04 depende de 02 e 03).

@@ -208,14 +208,14 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                         const activeStar = filters.starredFilter ?? (filters.starred === true ? 'starred' : 'all');
                         return (
                         <div className="flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-brand-card p-0.5" role="group" aria-label="Filtro por estrela">
-                            <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'unstarred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'unstarred' ? 'bg-white dark:bg-gray-800 shadow-sm' : 'hover:bg-white/10'}`} title="Somente não considerados">
+                            <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'starred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'starred' ? 'bg-white dark:bg-gray-800 shadow-sm' : 'hover:bg-white/10'}`} title="Somente com estrela (em consideração)">
+                                <Star size={16} className="text-amber-400 fill-amber-400" />
+                            </button>
+                            <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'unstarred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'unstarred' ? 'bg-white dark:bg-gray-800 shadow-sm' : 'hover:bg-white/10'}`} title="Somente sem estrela">
                                 <Star size={16} className="text-slate-400" />
                             </button>
                             <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'all' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'all' ? 'bg-white dark:bg-gray-800 shadow-sm' : 'hover:bg-white/10'}`} title="Todos">
                                 <Star size={16} className="text-amber-400" />
-                            </button>
-                            <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'starred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'starred' ? 'bg-white dark:bg-gray-800 shadow-sm' : 'hover:bg-white/10'}`} title="Somente em consideração">
-                                <Star size={16} className="text-amber-400 fill-amber-400" />
                             </button>
                         </div>
                         );

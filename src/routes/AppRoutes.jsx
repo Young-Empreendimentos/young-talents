@@ -244,7 +244,7 @@ const AppRoutes = ({
                         />
                     )}
                     {activeTab === 'applications' && <ApplicationsPage applications={applications} candidates={candidates} jobs={jobs} companies={companies} onUpdateApplicationStatus={updateApplicationStatus} onRemoveApplication={removeApplication} onAddApplicationNote={addApplicationNote} onEditCandidate={openCandidateProfile} onViewJob={openJobCandidatesModal} onCreateApplication={createApplication} />}
-                    {activeTab === 'reports' && <ReportsPage candidates={candidates} jobs={jobs} applications={applications} statusMovements={statusMovements} />}
+                    {activeTab === 'reports' && <ReportsPage candidates={filteredCandidates} jobs={jobs} applications={applications} statusMovements={statusMovements} />}
                     {activeTab === 'help' && <DocumentationPage />}
                     {activeTab === 'sobre' && <SobrePage />}
                     {activeTab === 'diagnostic' && <div className="p-6 overflow-y-auto h-full"><DiagnosticPage candidates={candidates} /></div>}
