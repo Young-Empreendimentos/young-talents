@@ -1,9 +1,11 @@
 # Manual Completo - Young Talents ATS
 
-**Versão:** 1.0  
-**Data:** Fevereiro 2025
+**Versão:** 1.2  
+**Data:** Fevereiro 2026
 
 Este manual reúne uso, manutenção e credenciais para o sistema Young Talents ATS. Destina-se ao cliente/tenant que opera o aplicativo.
+
+> **Novidades recentes:** Filtro “em consideração” (3 opções), estrela em qualquer etapa, mensagens em português, salvar vaga sem “Quem autorizou”, botão Atualizar, log de movimentações na aba Administrativo. Ver [NOVAS_FUNCIONALIDADES_E_AJUSTES.md](./NOVAS_FUNCIONALIDADES_E_AJUSTES.md).
 
 ---
 

@@ -14,8 +14,11 @@
 
 | Documento | Uso |
 |-----------|-----|
+| [MANUAL_COMPLETO_CLIENTE.md](./MANUAL_COMPLETO_CLIENTE.md) | Manual principal do cliente (uso, manutenção, credenciais) |
+| [NOVAS_FUNCIONALIDADES_E_AJUSTES.md](./NOVAS_FUNCIONALIDADES_E_AJUSTES.md) | Novidades e ajustes para o usuário final (Fev/2026) |
 | [GUIA_SETUP_SUPABASE.md](./GUIA_SETUP_SUPABASE.md) | Setup do Supabase (migrations, credenciais, OAuth) |
 | [GUIA_CRIAR_USUARIO_ADMIN.md](./GUIA_CRIAR_USUARIO_ADMIN.md) | Criar admin (script, Dashboard, Edge Function) |
+| [LOGIN_SEM_EXPOR_CREDENCIAIS.md](./LOGIN_SEM_EXPOR_CREDENCIAIS.md) | Login sem expor usuário/senha (OAuth, Magic Link, arquivo local) |
 | [GUIA_IMPORTACAO_CSV.md](./GUIA_IMPORTACAO_CSV.md) | Importação CSV/XLSX pelo frontend |
 | [GUIA_NORMALIZACAO_CIDADES.md](./GUIA_NORMALIZACAO_CIDADES.md) | Regras de normalização de cidades |
 | [CHECKLIST_PRE_DEPLOY.md](./CHECKLIST_PRE_DEPLOY.md) | Checklist antes do deploy |
@@ -29,6 +32,10 @@
 | [SEED_CANDIDATOS_CLI.md](./SEED_CANDIDATOS_CLI.md) | Seed de candidatos via CLI |
 | [TROUBLESHOOTING_DEPLOY.md](./TROUBLESHOOTING_DEPLOY.md) | Problemas de deploy |
 | [TROUBLESHOOTING_SCHEMA.md](./TROUBLESHOOTING_SCHEMA.md) | Problemas de schema Supabase |
+
+## Futuras melhorias
+
+A pasta [futuras-melhorias/](./futuras-melhorias/) reúne planejamentos e especificações de funcionalidades **ainda não implementadas**, para consulta nas próximas etapas do projeto.
 
 ## Arquivado
 

@@ -252,6 +252,20 @@ Proprietário - Young Talents
 
 ## 🔧 Melhorias e Correções Recentes
 
+### ✨ Funcionalidades Adicionadas (v2.3.0 – Fevereiro 2026)
+- ✅ **Filtro “Em consideração” (estrela) em 3 opções**: Pipeline e Banco de Talentos — ícones (todos / só em consideração / só não considerados) com tooltips
+- ✅ **Estrela em qualquer etapa**: Marcar/desmarcar “em consideração” em qualquer etapa do funil; estrela visível no card (Kanban) e na tabela
+- ✅ **Log de movimentações do candidato**: `activity_log` gravado em todas as ações (save, toggle star, drag, candidatura, entrevista, notas); exibido na aba Administrativo do perfil (`/candidate/:id/admin`) para admins
+- ✅ **Botão “Atualizar” no header**: Refresh manual de dados (candidatos, vagas) sem recarregar a página
+- ✅ **Evitar recarregar ao navegar**: Dados não são recarregados ao sair e voltar para a mesma tela; uso de `dataLoadedForUserRef`
+- ✅ **Mensagens de erro em português**: `translateSupabaseError` para approved_by, closed_at, starred e demais erros de schema
+- ✅ **Salvar vaga sem “Quem autorizou”**: Opção com confirmação (`omitApprovedBy`); aviso explícito de onde preencher o campo (seção gestão da vaga)
+- ✅ **SQL individuais em `docs/sql/`**: 01–04 (approved_by, starred, colunas de processo, view `public.candidates`); ver `docs/SQL_COLUNAS_OPCIONAIS.md` e `docs/sql/README.md`
+
+### 🐛 Correções (v2.3.0)
+- ✅ **Toggle estrela**: Atualiza apenas coluna `starred` (`handleToggleStar`), evitando erro de `closed_at` ao marcar estrela
+- ✅ **View `public.candidates`**: Script 04 recria a view e triggers para expor `starred` e colunas de processo ao app
+
 ### ✨ Funcionalidades Adicionadas (v2.2.0)
 - ✅ **Formulário Público de Candidatos**: Formulário público (`/apply`) com envio direto para Supabase
   - Validação e normalização integradas; recadastro permitido (aviso se já cadastrado)
@@ -297,4 +311,4 @@ Proprietário - Young Talents
 
 **Status:** ✅ Pronto para Produção (stack Supabase)
 
-**Última atualização:** Fevereiro 2025
+**Última atualização:** Fevereiro 2026

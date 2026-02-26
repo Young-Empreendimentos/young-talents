@@ -1,7 +1,9 @@
 # 📖 Guia do Usuário - Young Talents ATS
-<<// https://github.com/rodrigoribasyoung/young-hunt-ats/blob/main/README_USUARIO.md //>>
 
 Bem-vindo ao sistema de gerenciamento de recrutamento Young Talents ATS! Este guia irá ajudá-lo a utilizar todas as funcionalidades do sistema.
+
+> **Novidades (Fevereiro 2026)**  
+> Filtro “em consideração” com 3 opções, estrela em qualquer etapa, mensagens em português, salvar vaga sem “Quem autorizou”, botão Atualizar no header, log de movimentações na aba Administrativo do candidato. Detalhes em [NOVAS_FUNCIONALIDADES_E_AJUSTES.md](./NOVAS_FUNCIONALIDADES_E_AJUSTES.md).
 
 ---
 
@@ -47,8 +49,9 @@ A tabela exibe todas as informações dos candidatos:
 3. A seta (↑/↓) indica a direção da ordenação
 
 ### Filtrar Candidatos
-1. Clique no botão **"Filtros Avançados"** (ícone de filtro) no topo
-2. Selecione os filtros desejados:
+1. Use os **três ícones de estrela** no topo para filtrar por “em consideração” (todos / só em consideração / só não considerados).
+2. Clique no botão **"Filtros Avançados"** (ícone de filtro) no topo.
+3. Selecione os filtros desejados:
    - **Período**: Últimos 7/30/90 dias ou período personalizado
    - **Status**: Selecione uma ou mais etapas do processo
    - **Vaga Vinculada**: Filtre por vaga específica
@@ -106,9 +109,11 @@ O pipeline mostra os candidatos organizados em colunas por etapa:
 ### Visualizar Detalhes do Candidato
 - Clique em qualquer card do Kanban para abrir o formulário completo
 - O card mostra: Nome, Vaga vinculada, Cidade, Área de Interesse, Empresa, Etapa atual
+- **Estrela “em consideração”**: Clique na estrela no card (em qualquer etapa) para marcar ou desmarcar “em consideração”.
 
 ### Filtros no Pipeline
 - **Busca local**: Digite para filtrar candidatos visíveis
+- **Em consideração (estrela)**: Três ícones no topo — cinza (só não considerados), contorno amarelo (todos), preenchido (só em consideração). Passe o mouse para ver o tooltip.
 - **Status**: Filtre por "Em Andamento", "Contratados", "Reprovados", "Todos"
 - **Ordenação**: Mais Recentes, Mais Antigos, A-Z, Z-A
 
@@ -331,6 +336,16 @@ O dashboard mostra 4 indicadores principais:
 
 ---
 
+## 🔄 Atualizar dados e log do candidato
+
+### Botão Atualizar
+- No **cabeçalho** da área principal há o botão **"Atualizar"**. Use-o para recarregar candidatos, vagas e demais dados do servidor quando quiser ver as informações mais recentes.
+
+### Log de movimentações (perfil do candidato)
+- Na **aba Administrativo** do perfil do candidato (`/candidate/[id]/admin`) há a seção **"Log de movimentações"** (visível apenas para administradores). Ela lista data/hora, usuário e descrição de cada ação feita no candidato (mudança de etapa, estrela, candidatura, entrevista, notas etc.).
+
+---
+
 ## 🎨 Personalização
 
 ### Alternar Tema (Dark/Light)
@@ -408,8 +423,8 @@ Para dúvidas ou problemas:
 
 ---
 
-**Versão do Guia:** 1.0  
-**Última atualização:** Dezembro 2025
+**Versão do Guia:** 1.1  
+**Última atualização:** Fevereiro 2026
 
 
 
