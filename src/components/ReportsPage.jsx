@@ -25,6 +25,27 @@ const tooltipStyle = {
   fontWeight: '500'
 };
 
+function CustomPieLegend({ allItems, hiddenSet, onToggle, colors }) {
+  return (
+    <div className="flex flex-wrap justify-center gap-3 pt-2" style={{ cursor: 'pointer' }}>
+      {allItems.map((item, i) => {
+        const hidden = hiddenSet.has(item.name);
+        return (
+          <span
+            key={item.name}
+            onClick={() => onToggle(item.name)}
+            className="inline-flex items-center gap-1.5 text-sm"
+            style={{ opacity: hidden ? 0.5 : 1 }}
+          >
+            <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: colors[i % colors.length] }} />
+            {item.name}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ReportsPage({ candidates = [], jobs = [], applications = [], statusMovements = [] }) {
   const [periodFilter, setPeriodFilter] = useState('all');
   const [showCustomPeriod, setShowCustomPeriod] = useState(false);
@@ -124,6 +145,28 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
         return { date, label: `${d}/${m}`, count };
       });
   }, [filteredByPeriod]);
+
+  const visibleAreaData = useMemo(() => {
+    const all = areaData.filter(d => d.value > 0);
+    const visible = all.filter(d => !hiddenAreaSeries.has(d.name));
+    const sum = visible.reduce((s, d) => s + d.value, 0);
+    return visible.map((d, i) => ({
+      ...d,
+      percentage: sum > 0 ? ((d.value / sum) * 100).toFixed(1) : 0,
+      colorIndex: all.findIndex(x => x.name === d.name)
+    }));
+  }, [areaData, hiddenAreaSeries]);
+
+  const visibleOriginData = useMemo(() => {
+    const all = originData.filter(d => d.value > 0);
+    const visible = all.filter(d => !hiddenOriginSeries.has(d.name));
+    const sum = visible.reduce((s, d) => s + d.value, 0);
+    return visible.map((d, i) => ({
+      ...d,
+      percentage: sum > 0 ? ((d.value / sum) * 100).toFixed(1) : 0,
+      colorIndex: all.findIndex(x => x.name === d.name)
+    }));
+  }, [originData, hiddenOriginSeries]);
 
   const jobStats = useMemo(() => ({
     open: jobs.filter(j => j.status === 'Aberta').length,
@@ -265,16 +308,27 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={areaData.filter(d => d.value > 0)}
+                    data={visibleAreaData}
                     cx="50%" cy="45%" innerRadius={60} outerRadius={100}
                     dataKey="value" label={({ value, percentage }) => `${value} (${percentage}%)`}
                   >
-                    {areaData.filter(d => d.value > 0).map((entry, index) => (
-                      <Cell key={index} fill={COLORS[index % COLORS.length]} opacity={hiddenAreaSeries.has(entry.name) ? 0 : 1} />
+                    {visibleAreaData.map((entry, index) => (
+                      <Cell key={entry.name} fill={COLORS[(entry.colorIndex ?? index) % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip contentStyle={tooltipStyle} formatter={(value, name, props) => [`${value} (${props.payload.percentage}%)`, name]} />
-                  <Legend verticalAlign="bottom" height={50} wrapperStyle={{ cursor: 'pointer' }} onClick={e => { const name = e?.value ?? e?.payload?.value; if (name) setHiddenAreaSeries(prev => { const n = new Set(prev); n.has(name) ? n.delete(name) : n.add(name); return n; }); }} />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={50}
+                    content={() => (
+                      <CustomPieLegend
+                        allItems={areaData.filter(d => d.value > 0)}
+                        hiddenSet={hiddenAreaSeries}
+                        onToggle={name => setHiddenAreaSeries(prev => { const n = new Set(prev); n.has(name) ? n.delete(name) : n.add(name); return n; })}
+                        colors={COLORS}
+                      />
+                    )}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -289,16 +343,27 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={originData.filter(d => d.value > 0)}
+                    data={visibleOriginData}
                     cx="50%" cy="45%" innerRadius={60} outerRadius={100}
                     dataKey="value" label={({ value, percentage }) => `${value} (${percentage}%)`}
                   >
-                    {originData.filter(d => d.value > 0).map((entry, index) => (
-                      <Cell key={index} fill={COLORS[index % COLORS.length]} opacity={hiddenOriginSeries.has(entry.name) ? 0 : 1} />
+                    {visibleOriginData.map((entry, index) => (
+                      <Cell key={entry.name} fill={COLORS[(entry.colorIndex ?? index) % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip contentStyle={tooltipStyle} formatter={(value, name, props) => [`${value} (${props.payload.percentage}%)`, name]} />
-                  <Legend verticalAlign="bottom" height={50} wrapperStyle={{ cursor: 'pointer' }} onClick={e => { const name = e?.value ?? e?.payload?.value; if (name) setHiddenOriginSeries(prev => { const n = new Set(prev); n.has(name) ? n.delete(name) : n.add(name); return n; }); }} />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={50}
+                    content={() => (
+                      <CustomPieLegend
+                        allItems={originData.filter(d => d.value > 0)}
+                        hiddenSet={hiddenOriginSeries}
+                        onToggle={name => setHiddenOriginSeries(prev => { const n = new Set(prev); n.has(name) ? n.delete(name) : n.add(name); return n; })}
+                        colors={COLORS}
+                      />
+                    )}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             ) : (

@@ -788,7 +788,7 @@ export default function App() {
     const presets = { 'today': 86400, 'yesterday': 172800, '7d': 604800, '30d': 2592000, '90d': 7776000 };
 
     Object.keys(filters).forEach(k => {
-      if (filters[k] !== 'all' && filters[k] !== null && !['createdAtPreset', 'customDateStart', 'customDateEnd', 'tags', 'dashboardFilter'].includes(k)) {
+      if (filters[k] !== 'all' && filters[k] !== null && !['createdAtPreset', 'customDateStart', 'customDateEnd', 'tags', 'dashboardFilter', 'starredFilter', 'starred'].includes(k)) {
         data = Array.isArray(filters[k]) ? data.filter(c => filters[k].includes(c[k])) : data.filter(c => c[k] === filters[k]);
       }
     });
