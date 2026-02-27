@@ -517,6 +517,14 @@ const PublicCandidateForm = () => {
         if ((!formData.city || formData.city.trim() === '') && (!formData.cityCustom || formData.cityCustom.trim() === '')) {
           stepErrors.city = 'Cidade é obrigatória';
         }
+        if (!formData.photoUrl || formData.photoUrl.trim() === '') {
+          stepErrors.photoUrl = 'Foto é obrigatória';
+        } else {
+          const photoValidation = validateAllowedDomain(formData.photoUrl);
+          if (!photoValidation.valid) {
+            stepErrors.photoUrl = photoValidation.message;
+          }
+        }
         break;
       case 3: // Formação e Experiência
         if (!formData.education || formData.education.trim() === '') {
@@ -627,9 +635,12 @@ const PublicCandidateForm = () => {
       checkRequired: true,
       strictMode: false
     });
-    // Duplicata: não bloqueia mais; apenas exibimos aviso e permitimos continuar
-    setErrors(validation.errors);
-    return validation.valid;
+    const errs = { ...validation.errors };
+    if (!formData.photoUrl || !formData.photoUrl.trim()) {
+      errs.photoUrl = 'Foto é obrigatória';
+    }
+    setErrors(errs);
+    return validation.valid && Object.keys(errs).length === 0;
   };
 
   // Detecta se o e-mail já está no Banco de Talentos (apenas para exibir aviso)
@@ -823,12 +834,18 @@ const PublicCandidateForm = () => {
     
     return (
       <div className="space-y-3">
+        {label && (
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {label}
+          </label>
+        )}
         <input
           type="url"
           name={urlField}
           value={formData[urlField] || ''}
           onChange={(e) => handleChange(urlField, e.target.value)}
           placeholder={`Cole aqui o link público de ${type === 'photo' ? 'foto' : type === 'cv' ? 'currículo' : 'portfólio'}`}
+          required={type === 'photo'}
           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange ${
             errors[urlField] || fieldErrors[urlField] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
           } bg-white dark:bg-gray-900 text-gray-900 dark:text-white`}
@@ -1171,7 +1188,7 @@ const PublicCandidateForm = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  {renderAttachmentField('photo', 'Foto (opcional)', 'photo')}
+                  {renderAttachmentField('photo', 'Foto *', 'photo')}
                 </div>
               </div>
             </section>

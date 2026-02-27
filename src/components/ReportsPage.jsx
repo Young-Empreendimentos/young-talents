@@ -3,7 +3,7 @@ import { BarChart3, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, LineChart, Line
+  PieChart, Pie, Cell, Legend
 } from 'recharts';
 
 import { PIPELINE_STAGES } from '../constants';
@@ -15,11 +15,11 @@ import { normalizeInterestArea } from '../utils/interestAreaNormalizer';
 const COLORS = ['#4285F4', '#34A853', '#FBBC04', '#EA4335', '#9C27B0', '#FF9800', '#00BCD4', '#E91E63', '#3F51B5', '#009688'];
 
 const tooltipStyle = {
-  backgroundColor: 'rgba(15, 23, 42, 0.95)',
-  border: '2px solid #3b82f6',
+  backgroundColor: '#ffffff',
+  color: '#1e293b',
+  border: '1px solid #e2e8f0',
   borderRadius: '8px',
-  color: '#f1f5f9',
-  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
   padding: '12px',
   fontSize: '14px',
   fontWeight: '500'
@@ -30,8 +30,8 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
   const [showCustomPeriod, setShowCustomPeriod] = useState(false);
   const [customDateStart, setCustomDateStart] = useState('');
   const [customDateEnd, setCustomDateEnd] = useState('');
-  const [visibleAreaSeries, setVisibleAreaSeries] = useState(new Set());
-  const [visibleOriginSeries, setVisibleOriginSeries] = useState(new Set());
+  const [hiddenAreaSeries, setHiddenAreaSeries] = useState(new Set());
+  const [hiddenOriginSeries, setHiddenOriginSeries] = useState(new Set());
 
   const filteredByPeriod = useMemo(() => {
     if (periodFilter === 'all') return candidates;
@@ -231,8 +231,8 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                   <XAxis type="number" stroke="#94a3b8" />
                   <YAxis type="category" dataKey="name" stroke="#94a3b8" width={170} tick={{ fontSize: 12 }} />
-                  <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(255,255,255,0.1)' }} />
-                  <Bar dataKey="value" fill="url(#reports-grad-status)" radius={[0, 8, 8, 0]} />
+                  <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(0,0,0,0.06)' }} formatter={(value) => [value, 'Valor']} />
+                  <Bar dataKey="value" name="Valor" fill="url(#reports-grad-status)" radius={[0, 8, 8, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -245,13 +245,13 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
             <h3 className="font-bold text-lg mb-4">Candidatos inscritos por dia</h3>
             {inscriptionsPerDayData.length > 0 ? (
               <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={inscriptionsPerDayData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <BarChart data={inscriptionsPerDayData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                   <XAxis dataKey="label" stroke="#94a3b8" tick={{ fontSize: 11 }} />
                   <YAxis stroke="#94a3b8" allowDecimals={false} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={(value) => [`${value} inscrições`, 'Quantidade']} />
-                  <Line type="monotone" dataKey="count" stroke="#4285F4" strokeWidth={2} dot={{ fill: '#4285F4', r: 4 }} name="Inscrições" />
-                </LineChart>
+                  <Tooltip contentStyle={tooltipStyle} formatter={(value) => [`${value} inscrições`, 'Valor']} />
+                  <Bar dataKey="count" name="Inscrições" fill="#4285F4" radius={[4, 4, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>
             ) : (
               <div className="h-[280px] flex items-center justify-center text-gray-500">Nenhuma inscrição no período</div>
@@ -265,16 +265,16 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={areaData.filter(d => d.value > 0 && (visibleAreaSeries.size === 0 || visibleAreaSeries.has(d.name)))}
+                    data={areaData.filter(d => d.value > 0)}
                     cx="50%" cy="45%" innerRadius={60} outerRadius={100}
                     dataKey="value" label={({ value, percentage }) => `${value} (${percentage}%)`}
                   >
                     {areaData.filter(d => d.value > 0).map((entry, index) => (
-                      <Cell key={index} fill={COLORS[index % COLORS.length]} opacity={visibleAreaSeries.size === 0 || visibleAreaSeries.has(entry.name) ? 1 : 0.3} />
+                      <Cell key={index} fill={COLORS[index % COLORS.length]} opacity={hiddenAreaSeries.has(entry.name) ? 0 : 1} />
                     ))}
                   </Pie>
                   <Tooltip contentStyle={tooltipStyle} formatter={(value, name, props) => [`${value} (${props.payload.percentage}%)`, name]} />
-                  <Legend verticalAlign="bottom" height={50} wrapperStyle={{ cursor: 'pointer' }} onClick={e => { const name = e?.value ?? e?.payload?.value; if (name) setVisibleAreaSeries(prev => { const n = new Set(prev); n.has(name) ? n.delete(name) : n.add(name); return n; }); }} />
+                  <Legend verticalAlign="bottom" height={50} wrapperStyle={{ cursor: 'pointer' }} onClick={e => { const name = e?.value ?? e?.payload?.value; if (name) setHiddenAreaSeries(prev => { const n = new Set(prev); n.has(name) ? n.delete(name) : n.add(name); return n; }); }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -289,16 +289,16 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={originData.filter(d => d.value > 0 && (visibleOriginSeries.size === 0 || visibleOriginSeries.has(d.name)))}
+                    data={originData.filter(d => d.value > 0)}
                     cx="50%" cy="45%" innerRadius={60} outerRadius={100}
                     dataKey="value" label={({ value, percentage }) => `${value} (${percentage}%)`}
                   >
                     {originData.filter(d => d.value > 0).map((entry, index) => (
-                      <Cell key={index} fill={COLORS[index % COLORS.length]} opacity={visibleOriginSeries.size === 0 || visibleOriginSeries.has(entry.name) ? 1 : 0.3} />
+                      <Cell key={index} fill={COLORS[index % COLORS.length]} opacity={hiddenOriginSeries.has(entry.name) ? 0 : 1} />
                     ))}
                   </Pie>
                   <Tooltip contentStyle={tooltipStyle} formatter={(value, name, props) => [`${value} (${props.payload.percentage}%)`, name]} />
-                  <Legend verticalAlign="bottom" height={50} wrapperStyle={{ cursor: 'pointer' }} onClick={e => { const name = e?.value ?? e?.payload?.value; if (name) setVisibleOriginSeries(prev => { const n = new Set(prev); n.has(name) ? n.delete(name) : n.add(name); return n; }); }} />
+                  <Legend verticalAlign="bottom" height={50} wrapperStyle={{ cursor: 'pointer' }} onClick={e => { const name = e?.value ?? e?.payload?.value; if (name) setHiddenOriginSeries(prev => { const n = new Set(prev); n.has(name) ? n.delete(name) : n.add(name); return n; }); }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -315,8 +315,8 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                   <XAxis type="number" stroke="#94a3b8" />
                   <YAxis type="category" dataKey="name" stroke="#94a3b8" width={110} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="value" fill="#00BCD4" radius={[0, 8, 8, 0]} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(value) => [value, 'Valor']} />
+                  <Bar dataKey="value" name="Valor" fill="#00BCD4" radius={[0, 8, 8, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -340,8 +340,8 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                   <XAxis dataKey="name" stroke="#94a3b8" />
                   <YAxis stroke="#94a3b8" />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="value" radius={[8, 8, 0, 0]} label={{ position: 'top', fill: '#94a3b8' }}>
+                  <Tooltip contentStyle={tooltipStyle} formatter={(value) => [value, 'Valor']} />
+                  <Bar dataKey="value" name="Valor" radius={[8, 8, 0, 0]} label={{ position: 'top', fill: '#94a3b8' }}>
                     <Cell fill="#FBBC04" />
                     <Cell fill="#34A853" />
                     <Cell fill="#9E9E9E" />

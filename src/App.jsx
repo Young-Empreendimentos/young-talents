@@ -522,14 +522,16 @@ export default function App() {
 
   const handleToggleStar = async (c) => {
     if (!supabase || !c?.id) return;
+    const previousCandidates = candidates;
+    setCandidates(prev => prev.map(x => x.id === c.id ? { ...x, starred: !x.starred } : x));
     try {
       const { error } = await supabase.from('candidates').update({ starred: !c.starred }).eq('id', c.id);
       if (error) throw error;
       await recordActivity('update', c.starred ? 'Removido de em consideração' : 'Marcado em consideração', 'candidate', c.id);
-      await loadCandidates();
       showToast('Atualizado.', 'success');
     } catch (err) {
       console.error('Erro ao marcar estrela:', err);
+      setCandidates(previousCandidates);
       const { text } = translateSupabaseError(err?.message);
       showToast(text, 'error');
     }

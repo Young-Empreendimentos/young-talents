@@ -166,14 +166,11 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                             const activeStar = filters.starredFilter ?? (filters.starred === true ? 'starred' : 'all');
                             return (
                             <div className="flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-0.5" role="group" aria-label="Filtro por estrela">
-                                <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'starred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'starred' ? 'bg-gray-100 dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}`} title="Somente com estrela (em consideração)">
+                                <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: activeStar === 'starred' ? 'all' : 'starred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'starred' ? 'bg-gray-100 dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}`} title="Somente com estrela (em consideração). Clique de novo para mostrar todos.">
                                     <Star size={16} className="text-amber-400 fill-amber-400" />
                                 </button>
-                                <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'unstarred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'unstarred' ? 'bg-gray-100 dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}`} title="Somente sem estrela">
+                                <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: activeStar === 'unstarred' ? 'all' : 'unstarred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'unstarred' ? 'bg-gray-100 dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}`} title="Somente sem estrela. Clique de novo para mostrar todos.">
                                     <Star size={16} className="text-slate-400" />
-                                </button>
-                                <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'all' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'all' ? 'bg-gray-100 dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}`} title="Todos">
-                                    <Star size={16} className="text-amber-400" />
                                 </button>
                             </div>
                             );
