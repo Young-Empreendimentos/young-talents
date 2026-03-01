@@ -137,6 +137,23 @@ SET default_tablespace = '';
 SET default_table_access_method = "heap";
 
 
+CREATE TABLE IF NOT EXISTS "young_talents"."activity_log" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid",
+    "user_email" "text",
+    "user_name" "text",
+    "action" "text" NOT NULL,
+    "entity_type" "text",
+    "entity_id" "text",
+    "details" "text",
+    "meta" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "young_talents"."activity_log" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "young_talents"."candidates" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "full_name" "text",
@@ -175,11 +192,27 @@ CREATE TABLE IF NOT EXISTS "young_talents"."candidates" (
     "original_timestamp" timestamp with time zone,
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"(),
-    "deleted_at" timestamp with time zone
+    "deleted_at" timestamp with time zone,
+    "starred" boolean DEFAULT false,
+    "interview1_date" timestamp with time zone,
+    "interview1_notes" "text",
+    "interview2_date" timestamp with time zone,
+    "interview2_notes" "text",
+    "manager_feedback" "text",
+    "test_results" "text",
+    "return_sent" "text",
+    "return_date" "date",
+    "return_notes" "text",
+    "rejection_reason" "text",
+    "closed_at" timestamp with time zone
 );
 
 
 ALTER TABLE "young_talents"."candidates" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "young_talents"."candidates"."starred" IS 'Marcação "em consideração" para filtro na pipeline e banco de talentos';
+
 
 
 CREATE TABLE IF NOT EXISTS "young_talents"."user_roles" (
@@ -297,11 +330,21 @@ CREATE TABLE IF NOT EXISTS "young_talents"."jobs" (
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"(),
     "deleted_at" timestamp with time zone,
+    "approved_by" "text",
+    "posting_channels" "jsonb",
     CONSTRAINT "jobs_status_check" CHECK (("status" = ANY (ARRAY['Aberta'::"text", 'Preenchida'::"text", 'Cancelada'::"text", 'Fechada'::"text"])))
 );
 
 
 ALTER TABLE "young_talents"."jobs" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "young_talents"."jobs"."approved_by" IS 'Responsável pela solicitação e autorização da abertura da vaga (não quem abre no sistema).';
+
+
+
+COMMENT ON COLUMN "young_talents"."jobs"."posting_channels" IS 'Canais onde a vaga é/será divulgada. Ex: { "selected": ["linkedin", "infojobs"], "faculdade": "USP", "agencia": "", "outro": "" }';
+
 
 
 CREATE TABLE IF NOT EXISTS "young_talents"."positions" (
@@ -336,6 +379,11 @@ ALTER TABLE ONLY "young_talents"."activity_areas"
 
 ALTER TABLE ONLY "young_talents"."activity_areas"
     ADD CONSTRAINT "activity_areas_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "young_talents"."activity_log"
+    ADD CONSTRAINT "activity_log_pkey" PRIMARY KEY ("id");
 
 
 
@@ -410,6 +458,18 @@ ALTER TABLE ONLY "young_talents"."user_roles"
 
 
 CREATE INDEX "idx_activity_areas_name" ON "young_talents"."activity_areas" USING "btree" ("name");
+
+
+
+CREATE INDEX "idx_activity_log_created_at" ON "young_talents"."activity_log" USING "btree" ("created_at" DESC);
+
+
+
+CREATE INDEX "idx_activity_log_entity" ON "young_talents"."activity_log" USING "btree" ("entity_type", "entity_id");
+
+
+
+CREATE INDEX "idx_activity_log_user" ON "young_talents"."activity_log" USING "btree" ("user_email");
 
 
 
@@ -537,6 +597,11 @@ CREATE OR REPLACE TRIGGER "update_user_roles_updated_at" BEFORE UPDATE ON "young
 
 
 
+ALTER TABLE ONLY "young_talents"."activity_log"
+    ADD CONSTRAINT "activity_log_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
+
+
+
 ALTER TABLE ONLY "young_talents"."applications"
     ADD CONSTRAINT "applications_candidate_id_fkey" FOREIGN KEY ("candidate_id") REFERENCES "young_talents"."candidates"("id") ON DELETE CASCADE;
 
@@ -574,6 +639,12 @@ CREATE POLICY "Admin e editor podem inserir candidatos" ON "young_talents"."cand
 
 
 
+CREATE POLICY "Admin pode ler activity_log" ON "young_talents"."activity_log" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles" "ur"
+  WHERE (("ur"."user_id" = "auth"."uid"()) AND ("ur"."role" = 'admin'::"text")))));
+
+
+
 CREATE POLICY "Admin pode ler todos os roles" ON "young_talents"."user_roles" FOR SELECT TO "authenticated" USING (((EXISTS ( SELECT 1
    FROM "young_talents"."user_roles" "ur"
   WHERE (("ur"."user_id" = "auth"."uid"()) AND ("ur"."role" = 'admin'::"text")))) OR "young_talents"."is_developer"()));
@@ -601,6 +672,10 @@ CREATE POLICY "Apenas admin pode deletar roles" ON "young_talents"."user_roles" 
 CREATE POLICY "Apenas admin pode inserir roles" ON "young_talents"."user_roles" FOR INSERT TO "authenticated" WITH CHECK (((EXISTS ( SELECT 1
    FROM "young_talents"."user_roles" "user_roles_1"
   WHERE (("user_roles_1"."user_id" = "auth"."uid"()) AND ("user_roles_1"."role" = 'admin'::"text")))) OR "young_talents"."is_developer"()));
+
+
+
+CREATE POLICY "Autenticado pode inserir activity_log" ON "young_talents"."activity_log" FOR INSERT TO "authenticated" WITH CHECK (true);
 
 
 
@@ -749,6 +824,9 @@ CREATE POLICY "Usuários podem ler seu próprio role" ON "young_talents"."user_r
 ALTER TABLE "young_talents"."activity_areas" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "young_talents"."activity_log" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "young_talents"."applications" ENABLE ROW LEVEL SECURITY;
 
 
@@ -797,6 +875,12 @@ GRANT ALL ON FUNCTION "young_talents"."sync_user_role_on_login"() TO "service_ro
 GRANT ALL ON FUNCTION "young_talents"."update_updated_at_column"() TO "anon";
 GRANT ALL ON FUNCTION "young_talents"."update_updated_at_column"() TO "authenticated";
 GRANT ALL ON FUNCTION "young_talents"."update_updated_at_column"() TO "service_role";
+
+
+
+GRANT ALL ON TABLE "young_talents"."activity_log" TO "anon";
+GRANT ALL ON TABLE "young_talents"."activity_log" TO "authenticated";
+GRANT ALL ON TABLE "young_talents"."activity_log" TO "service_role";
 
 
 
