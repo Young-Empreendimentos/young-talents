@@ -627,13 +627,109 @@ ALTER TABLE ONLY "young_talents"."user_roles"
 
 
 
+CREATE POLICY "Admin e editor podem atualizar activity_areas" ON "young_talents"."activity_areas" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
 CREATE POLICY "Admin e editor podem atualizar candidatos" ON "young_talents"."candidates" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "young_talents"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
 
 
 
+CREATE POLICY "Admin e editor podem atualizar cities" ON "young_talents"."cities" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
+CREATE POLICY "Admin e editor podem atualizar companies" ON "young_talents"."companies" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
+CREATE POLICY "Admin e editor podem atualizar job_levels" ON "young_talents"."job_levels" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
+CREATE POLICY "Admin e editor podem atualizar jobs" ON "young_talents"."jobs" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
+CREATE POLICY "Admin e editor podem atualizar positions" ON "young_talents"."positions" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
+CREATE POLICY "Admin e editor podem atualizar sectors" ON "young_talents"."sectors" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
+CREATE POLICY "Admin e editor podem gerenciar aplicações (Insert)" ON "young_talents"."applications" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
+CREATE POLICY "Admin e editor podem gerenciar aplicações (Update)" ON "young_talents"."applications" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
+CREATE POLICY "Admin e editor podem inserir activity_areas" ON "young_talents"."activity_areas" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
 CREATE POLICY "Admin e editor podem inserir candidatos" ON "young_talents"."candidates" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
+CREATE POLICY "Admin e editor podem inserir cities" ON "young_talents"."cities" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
+CREATE POLICY "Admin e editor podem inserir companies" ON "young_talents"."companies" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
+CREATE POLICY "Admin e editor podem inserir job_levels" ON "young_talents"."job_levels" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
+CREATE POLICY "Admin e editor podem inserir jobs" ON "young_talents"."jobs" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
+CREATE POLICY "Admin e editor podem inserir positions" ON "young_talents"."positions" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+
+
+
+CREATE POLICY "Admin e editor podem inserir sectors" ON "young_talents"."sectors" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
    FROM "young_talents"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
 
@@ -657,7 +753,49 @@ CREATE POLICY "Apenas admin pode atualizar roles" ON "young_talents"."user_roles
 
 
 
+CREATE POLICY "Apenas admin pode deletar activity_areas" ON "young_talents"."activity_areas" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+
+
+
+CREATE POLICY "Apenas admin pode deletar aplicações" ON "young_talents"."applications" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+
+
+
 CREATE POLICY "Apenas admin pode deletar candidatos" ON "young_talents"."candidates" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+
+
+
+CREATE POLICY "Apenas admin pode deletar cities" ON "young_talents"."cities" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+
+
+
+CREATE POLICY "Apenas admin pode deletar companies" ON "young_talents"."companies" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+
+
+
+CREATE POLICY "Apenas admin pode deletar job_levels" ON "young_talents"."job_levels" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+
+
+
+CREATE POLICY "Apenas admin pode deletar jobs" ON "young_talents"."jobs" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+
+
+
+CREATE POLICY "Apenas admin pode deletar positions" ON "young_talents"."positions" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "young_talents"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
 
@@ -669,6 +807,12 @@ CREATE POLICY "Apenas admin pode deletar roles" ON "young_talents"."user_roles" 
 
 
 
+CREATE POLICY "Apenas admin pode deletar sectors" ON "young_talents"."sectors" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "young_talents"."user_roles"
+  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+
+
+
 CREATE POLICY "Apenas admin pode inserir roles" ON "young_talents"."user_roles" FOR INSERT TO "authenticated" WITH CHECK (((EXISTS ( SELECT 1
    FROM "young_talents"."user_roles" "user_roles_1"
   WHERE (("user_roles_1"."user_id" = "auth"."uid"()) AND ("user_roles_1"."role" = 'admin'::"text")))) OR "young_talents"."is_developer"()));
@@ -676,70 +820,6 @@ CREATE POLICY "Apenas admin pode inserir roles" ON "young_talents"."user_roles" 
 
 
 CREATE POLICY "Autenticado pode inserir activity_log" ON "young_talents"."activity_log" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Authenticated delete activity_areas" ON "young_talents"."activity_areas" FOR DELETE TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated delete applications" ON "young_talents"."applications" FOR DELETE TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated delete cities" ON "young_talents"."cities" FOR DELETE TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated delete companies" ON "young_talents"."companies" FOR DELETE TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated delete job_levels" ON "young_talents"."job_levels" FOR DELETE TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated delete jobs" ON "young_talents"."jobs" FOR DELETE TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated delete positions" ON "young_talents"."positions" FOR DELETE TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated delete sectors" ON "young_talents"."sectors" FOR DELETE TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated insert activity_areas" ON "young_talents"."activity_areas" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Authenticated insert applications" ON "young_talents"."applications" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Authenticated insert cities" ON "young_talents"."cities" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Authenticated insert companies" ON "young_talents"."companies" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Authenticated insert job_levels" ON "young_talents"."job_levels" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Authenticated insert jobs" ON "young_talents"."jobs" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Authenticated insert positions" ON "young_talents"."positions" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Authenticated insert sectors" ON "young_talents"."sectors" FOR INSERT TO "authenticated" WITH CHECK (true);
 
 
 
@@ -772,38 +852,6 @@ CREATE POLICY "Authenticated read positions" ON "young_talents"."positions" FOR 
 
 
 CREATE POLICY "Authenticated read sectors" ON "young_talents"."sectors" FOR SELECT TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated update activity_areas" ON "young_talents"."activity_areas" FOR UPDATE TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated update applications" ON "young_talents"."applications" FOR UPDATE TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated update cities" ON "young_talents"."cities" FOR UPDATE TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated update companies" ON "young_talents"."companies" FOR UPDATE TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated update job_levels" ON "young_talents"."job_levels" FOR UPDATE TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated update jobs" ON "young_talents"."jobs" FOR UPDATE TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated update positions" ON "young_talents"."positions" FOR UPDATE TO "authenticated" USING (true);
-
-
-
-CREATE POLICY "Authenticated update sectors" ON "young_talents"."sectors" FOR UPDATE TO "authenticated" USING (true);
 
 
 
