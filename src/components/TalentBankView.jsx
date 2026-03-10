@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, CalendarCheck, ChevronUp, ChevronDown, Edit3, Star } from 'lucide-react';
+import { Search, Filter, CalendarCheck, ChevronUp, ChevronDown, Edit3, Star, Download } from 'lucide-react';
+import ExportCandidatesCsvModal from './modals/ExportCandidatesCsvModal';
 import { STATUS_COLORS, ALL_STATUSES } from '../constants';
 import { getCandidateTimestamp } from '../utils/timestampUtils';
 import { getCandidateRecency, getRecencyRowClass } from '../utils/candidateRecency';
@@ -20,6 +21,7 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
     const [customDateStart, setCustomDateStart] = useState('');
     const [customDateEnd, setCustomDateEnd] = useState('');
     const [showFilters, setShowFilters] = useState(false); // Painel de filtros colapsável
+    const [isExportCsvModalOpen, setIsExportCsvModalOpen] = useState(false);
 
     const processedData = useMemo(() => {
         let data = candidates.filter(c => !c.deletedAt);
@@ -216,6 +218,15 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                             <option value={1000}>1000 por página</option>
                             <option value={5000}>5000 por página</option>
                         </select>
+                        {/* Exportar CSV */}
+                        <button
+                            type="button"
+                            onClick={() => setIsExportCsvModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-blue-500 transition-colors"
+                        >
+                            <Download size={16} />
+                            Exportar CSV
+                        </button>
                         {/* Botão de filtros */}
                         <button
                             onClick={() => setShowFilters(!showFilters)}
@@ -448,6 +459,11 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                     </div>
                 </div>
             )}
+            <ExportCandidatesCsvModal
+                isOpen={isExportCsvModalOpen}
+                onClose={() => setIsExportCsvModalOpen(false)}
+                candidates={processedData}
+            />
         </div>
     );
 };

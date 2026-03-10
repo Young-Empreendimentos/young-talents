@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { BarChart3, Download } from 'lucide-react';
+import { BarChart3, Download, FileDown } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 
 import { PIPELINE_STAGES } from '../constants';
+import ExportCandidatesCsvModal from './modals/ExportCandidatesCsvModal';
 import { getCandidateTimestamp } from '../utils/timestampUtils';
 import { normalizeCity } from '../utils/cityNormalizer';
 import { normalizeSource } from '../utils/sourceNormalizer';
@@ -53,6 +54,7 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
   const [customDateEnd, setCustomDateEnd] = useState('');
   const [hiddenAreaSeries, setHiddenAreaSeries] = useState(new Set());
   const [hiddenOriginSeries, setHiddenOriginSeries] = useState(new Set());
+  const [isExportCsvModalOpen, setIsExportCsvModalOpen] = useState(false);
 
   const filteredByPeriod = useMemo(() => {
     if (periodFilter === 'all') return candidates;
@@ -235,6 +237,13 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
             )}
             <button onClick={handleExport} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
               <Download size={18} /> Exportar Excel
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsExportCsvModalOpen(true)}
+              className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <FileDown size={18} /> Exportar candidatos (CSV)
             </button>
           </div>
         </div>
@@ -419,6 +428,11 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
           </div>
         </div>
       </div>
+      <ExportCandidatesCsvModal
+        isOpen={isExportCsvModalOpen}
+        onClose={() => setIsExportCsvModalOpen(false)}
+        candidates={filteredByPeriod}
+      />
     </div>
   );
 }
