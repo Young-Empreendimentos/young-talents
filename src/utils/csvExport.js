@@ -1,9 +1,12 @@
 /**
- * Gera CSV a partir de candidatos e lista de campos (keys).
+ * Gera CSV, XLS e PDF a partir de candidatos e lista de campos (keys).
  * Usado na exportação filtrada (Banco de Talentos / Relatórios).
  */
 
 import { formatCandidateDate, formatCandidateTimestamp, formatCandidateChildren } from './candidateDisplay';
+import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 const UTF8_BOM = '\uFEFF';
 
@@ -74,6 +77,49 @@ export function buildCsvFromCandidates(candidates, fieldKeys, options = {}) {
 }
 
 /**
+ * Retorna cabeçalhos e linhas formatadas para uso em XLS/PDF (reutiliza formatação do CSV).
+ * @returns {{ headers: string[], rows: string[][] }}
+ */
+export function getExportData(candidates, fieldKeys, options = {}) {
+  const headerLabels = options.headerLabels || {};
+  const headers = fieldKeys.map(key => headerLabels[key] || key);
+  const rows = candidates.map(c =>
+    fieldKeys.map(key => {
+      const type = (options.fieldTypes && options.fieldTypes[key]) || 'text';
+      return formatCellValue(c, key, type);
+    })
+  );
+  return { headers, rows };
+}
+
+/**
+ * Gera e dispara download de arquivo Excel (.xlsx).
+ */
+export function downloadXls(candidates, fieldKeys, options = {}, filename) {
+  const { headers, rows } = getExportData(candidates, fieldKeys, options);
+  const data = [headers, ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Candidatos');
+  XLSX.writeFile(wb, filename || defaultExportFilename('xlsx'));
+}
+
+/**
+ * Gera e dispara download de PDF com tabela de candidatos.
+ */
+export function downloadPdf(candidates, fieldKeys, options = {}, filename) {
+  const { headers, rows } = getExportData(candidates, fieldKeys, options);
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  doc.autoTable({
+    head: [headers],
+    body: rows,
+    styles: { fontSize: 8 },
+    margin: { top: 10 },
+  });
+  doc.save(filename || defaultExportFilename('pdf'));
+}
+
+/**
  * Dispara o download do CSV no navegador.
  * Usa UTF-8 com BOM para o Excel abrir corretamente em pt-BR.
  *
@@ -91,12 +137,14 @@ export function downloadCsv(csvContent, filename = 'candidatos_export.csv') {
 }
 
 /**
- * Gera nome de arquivo com data (e opcionalmente hora).
+ * Gera nome de arquivo com data e hora.
+ * @param {string} [ext='csv'] - Extensão: 'csv' | 'xlsx' | 'pdf'
  */
-export function defaultExportFilename(withTime = true) {
+export function defaultExportFilename(ext = 'csv') {
   const now = new Date();
   const date = now.toISOString().slice(0, 10);
-  if (!withTime) return `candidatos_${date}.csv`;
   const time = now.toTimeString().slice(0, 5).replace(':', '-');
-  return `candidatos_export_${date}_${time}.csv`;
+  const base = `candidatos_export_${date}_${time}`;
+  const suffix = ext === 'xlsx' ? '.xlsx' : ext === 'pdf' ? '.pdf' : '.csv';
+  return base + suffix;
 }

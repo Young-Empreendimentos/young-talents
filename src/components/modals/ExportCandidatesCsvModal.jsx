@@ -1,14 +1,21 @@
 import React, { useState, useMemo } from 'react';
-import { X, Download, CheckSquare, Square } from 'lucide-react';
+import { X, Download, CheckSquare, Square, FileSpreadsheet, FileText } from 'lucide-react';
 import { CANDIDATE_FIELDS } from '../../constants';
-import { buildCsvFromCandidates, downloadCsv, defaultExportFilename } from '../../utils/csvExport';
+import { buildCsvFromCandidates, downloadCsv, downloadXls, downloadPdf, defaultExportFilename } from '../../utils/csvExport';
 
 const DEFAULT_SELECTED_KEYS = ['fullName', 'email', 'phone', 'city', 'status'];
 const CONTACT_ONLY_KEYS = ['fullName', 'email', 'phone'];
 
+const EXPORT_FORMATS = [
+  { value: 'csv', label: 'CSV', desc: 'Planilha texto (Excel, Google Sheets)' },
+  { value: 'xls', label: 'XLS / Excel', desc: 'Arquivo Excel (.xlsx)' },
+  { value: 'pdf', label: 'PDF', desc: 'Documento para impressão' },
+];
+
 export default function ExportCandidatesCsvModal({ isOpen, onClose, candidates = [] }) {
   const allKeys = useMemo(() => CANDIDATE_FIELDS.map(f => f.key), []);
   const [selectedKeys, setSelectedKeys] = useState(() => new Set(DEFAULT_SELECTED_KEYS));
+  const [exportFormat, setExportFormat] = useState('csv');
 
   const headerLabels = useMemo(() => {
     const map = {};
@@ -50,8 +57,15 @@ export default function ExportCandidatesCsvModal({ isOpen, onClose, candidates =
   const handleExport = () => {
     const keys = Array.from(selectedKeys);
     if (keys.length === 0) return;
-    const csv = buildCsvFromCandidates(candidates, keys, { headerLabels, fieldTypes });
-    downloadCsv(csv, defaultExportFilename(true));
+    const opts = { headerLabels, fieldTypes };
+    if (exportFormat === 'csv') {
+      const csv = buildCsvFromCandidates(candidates, keys, opts);
+      downloadCsv(csv, defaultExportFilename('csv'));
+    } else if (exportFormat === 'xls') {
+      downloadXls(candidates, keys, opts, defaultExportFilename('xlsx'));
+    } else {
+      downloadPdf(candidates, keys, opts, defaultExportFilename('pdf'));
+    }
     onClose?.();
   };
 
@@ -62,9 +76,9 @@ export default function ExportCandidatesCsvModal({ isOpen, onClose, candidates =
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
           <div>
-            <h3 className="font-bold text-xl text-gray-900 dark:text-white">Exportar candidatos em CSV</h3>
+            <h3 className="font-bold text-xl text-gray-900 dark:text-white">Exportar candidatos</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              {candidates.length} {candidates.length === 1 ? 'candidato' : 'candidatos'} na lista. Selecione as colunas para o arquivo.
+              {candidates.length} {candidates.length === 1 ? 'candidato' : 'candidatos'} na lista. Escolha o formato e as colunas.
             </p>
           </div>
           <button
@@ -76,8 +90,40 @@ export default function ExportCandidatesCsvModal({ isOpen, onClose, candidates =
           </button>
         </div>
 
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-2">
-          <span className="text-xs font-medium text-gray-600 dark:text-gray-400 self-center">Atalhos:</span>
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 space-y-3">
+          <div>
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-2">Formato de exportação</span>
+            <div className="flex flex-wrap gap-3">
+              {EXPORT_FORMATS.map((f) => (
+                <label
+                  key={f.value}
+                  className={`flex items-center gap-2 cursor-pointer rounded-lg border px-4 py-2.5 transition-colors ${
+                    exportFormat === f.value
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                      : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-500'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="exportFormat"
+                    value={f.value}
+                    checked={exportFormat === f.value}
+                    onChange={() => setExportFormat(f.value)}
+                    className="sr-only"
+                  />
+                  {f.value === 'csv' && <FileText size={18} className="shrink-0" />}
+                  {f.value === 'xls' && <FileSpreadsheet size={18} className="shrink-0" />}
+                  {f.value === 'pdf' && <FileText size={18} className="shrink-0" />}
+                  <div>
+                    <span className="font-medium text-sm">{f.label}</span>
+                    <span className="block text-xs opacity-80">{f.desc}</span>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+          <span className="text-xs font-medium text-gray-600 dark:text-gray-400 self-center">Atalhos colunas:</span>
           <button
             type="button"
             onClick={selectContactOnly}
@@ -106,6 +152,7 @@ export default function ExportCandidatesCsvModal({ isOpen, onClose, candidates =
           >
             Desmarcar todos
           </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
@@ -158,7 +205,7 @@ export default function ExportCandidatesCsvModal({ isOpen, onClose, candidates =
               disabled={selectedKeys.size === 0 || candidates.length === 0}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
             >
-              <Download size={18} /> Exportar CSV
+              <Download size={18} /> Exportar {exportFormat === 'csv' ? 'CSV' : exportFormat === 'xls' ? 'Excel' : 'PDF'}
             </button>
           </div>
         </div>
