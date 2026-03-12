@@ -56,7 +56,7 @@ const DEV_USER = {
   photoURL: null
 };
 
-const PUBLIC_PATHS = ['/apply', '/apply/test', '/apply/thank-you', '/login'];
+const PUBLIC_PATHS = ['/', '/apply', '/apply/test', '/apply/thank-you', '/login'];
 
 export default function App() {
   const { isDark, toggleTheme } = useTheme();
@@ -150,12 +150,7 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
-  // Redirecionar rota raiz para dashboard
-  useEffect(() => {
-    if (location.pathname === '/' || location.pathname === '') {
-      navigate('/dashboard', { replace: true });
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Raiz "/" é tratada pela rota em AppRoutes: usuário logado → /dashboard; não logado → /apply
 
   // Proteger rotas: sem sessão e rota não pública -> login
   const isPublicPath = PUBLIC_PATHS.some(p => location.pathname === p || location.pathname.startsWith(p + '/'));
