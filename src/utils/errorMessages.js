@@ -51,6 +51,16 @@ export function translateSupabaseError(message) {
     return { text: 'Tabela ou vista não encontrada no banco de dados. Verifique se as migrations foram aplicadas no Supabase.' };
   }
 
+  // Recursão em RLS (políticas que consultam a própria tabela)
+  if (/infinite recursion.*policy|recursion detected in policy/i.test(msg)) {
+    return { text: 'Erro de configuração RLS (recursão nas políticas). Execute a migração 028 no Supabase para corrigir.' };
+  }
+
+  // Erro 500 ou exceção no servidor: mostrar mensagem real para depuração
+  if (/500|internal server error|exception|could not execute/i.test(msg)) {
+    return { text: msg || 'Erro no servidor (500). Verifique o console do navegador (F12) para detalhes.' };
+  }
+
   if (/permission denied|row-level security|policy/i.test(msg)) {
     return { text: 'Permissão negada. Verifique as políticas de segurança (RLS) e se o usuário tem permissão para esta ação.' };
   }
