@@ -79,6 +79,8 @@ Quando o usuário aplica um filtro, abre um candidato para ver mais informaçõe
 
 ## YT-04 – Foto e currículo sem depender de autorização do candidato
 
+**Plano técnico/jurídico:** [YT-04_PLANO_FOTO_CV_RECRUTADOR.md](./YT-04_PLANO_FOTO_CV_RECRUTADOR.md) · **GitHub:** [#4](https://github.com/adventurelabsbrasil/young-talents/issues/4) (aberta)
+
 **Prioridade:** Alta  
 **Área:** Perfil do candidato / Armazenamento / LGPD
 
