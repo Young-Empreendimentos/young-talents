@@ -112,6 +112,14 @@ export function computeAgeFromBirthDate(birthDate) {
   return age;
 }
 
+/** Idade numérica para filtros e listagens (usa age ou data de nascimento). */
+export function getCandidateAge(c) {
+  if (!c) return null;
+  const n = Number(c.age);
+  if (c.age != null && c.age !== '' && !Number.isNaN(n) && n >= 0 && n <= 120) return n;
+  return computeAgeFromBirthDate(c.birthDate);
+}
+
 /**
  * Prepara candidato para exibição no frontend.
  * Adiciona campos _display que podem ser usados nos componentes.

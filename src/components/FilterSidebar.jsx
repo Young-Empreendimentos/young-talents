@@ -216,7 +216,11 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                             activeFilters.push({ key, label: `Período: ${filters[key] === 'today' ? 'Hoje' : filters[key] === 'yesterday' ? 'Ontem' : filters[key] === '7d' ? '7 dias' : filters[key] === '30d' ? '30 dias' : filters[key] === '90d' ? '90 dias' : filters[key] === 'custom' ? 'Personalizado' : filters[key]}` });
                         } else if (key === 'customDateStart' || key === 'customDateEnd') {
                             // Já tratado no createdAtPreset
-                        } else if (filters[key] && filters[key] !== 'all' && key !== 'createdAtPreset') {
+                        } else if (key === 'ageMin' && filters.ageMin !== 'all' && filters.ageMin !== '') {
+                            activeFilters.push({ key, label: `Idade mín.: ${filters.ageMin} anos` });
+                        } else if (key === 'ageMax' && filters.ageMax !== 'all' && filters.ageMax !== '') {
+                            activeFilters.push({ key, label: `Idade máx.: ${filters.ageMax} anos` });
+                        } else if (filters[key] && filters[key] !== 'all' && key !== 'createdAtPreset' && key !== 'ageMin' && key !== 'ageMax') {
                             if (Array.isArray(filters[key]) && filters[key].length > 0) {
                                 activeFilters.push({ key, label: `${key === 'status' ? 'Status' : key === 'jobId' ? 'Vaga' : key === 'interestAreas' ? 'Áreas' : key === 'city' ? 'Cidade' : key === 'source' ? 'Fonte' : key === 'schoolingLevel' ? 'Escolaridade' : key === 'maritalStatus' ? 'Estado Civil' : key === 'hasLicense' ? 'CNH' : key === 'tags' ? 'Tags' : key}: ${filters[key].length} selecionado(s)` });
                             } else if (!Array.isArray(filters[key])) {
@@ -454,6 +458,37 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                     <option value="all">Todas as Vagas</option>{options.jobs.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
                                 </select>
                             )}
+                        </div>
+
+                        <div className="space-y-3 pt-2 border-t border-dashed border-gray-300 dark:border-gray-600">
+                            <label className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase">Idade (anos)</label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <span className="text-[10px] text-gray-500 dark:text-gray-400 block mb-1">Mínima</span>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={120}
+                                        placeholder="ex: 18"
+                                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-2 text-sm text-gray-900 dark:text-white"
+                                        value={filters.ageMin === 'all' || filters.ageMin == null ? '' : filters.ageMin}
+                                        onChange={e => setFilters({ ...filters, ageMin: e.target.value === '' ? 'all' : e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <span className="text-[10px] text-gray-500 dark:text-gray-400 block mb-1">Máxima</span>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={120}
+                                        placeholder="ex: 45"
+                                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-2 text-sm text-gray-900 dark:text-white"
+                                        value={filters.ageMax === 'all' || filters.ageMax == null ? '' : filters.ageMax}
+                                        onChange={e => setFilters({ ...filters, ageMax: e.target.value === '' ? 'all' : e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400">Calculada pela idade cadastrada ou pela data de nascimento.</p>
                         </div>
 
                         {dynamicFilters.map(field => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Phone, MapPin, Calendar, Heart, Users, Camera, Copy, Check, ExternalLink, AlertCircle } from 'lucide-react';
+import { User, Phone, MapPin, Calendar, Heart, Users, Camera, Copy, Check, ExternalLink, AlertCircle, Car } from 'lucide-react';
 import { CHILDREN_OPTIONS, formatChildrenForDisplay, normalizeChildrenForStorage } from '../../../utils/childrenNormalizer';
 import { copyToClipboard } from '../../../utils/urlUtils';
 
@@ -60,6 +60,28 @@ export default function PersonalTab({
                         />
                     ) : (
                         <p className="text-gray-900 dark:text-white">{candidate.age ? `${candidate.age} anos` : 'Não informado'}</p>
+                    )}
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <Car size={16} className="text-gray-400" />
+                        CNH (tipo B) <span className="text-red-500">*</span>
+                    </label>
+                    {isEditing ? (
+                        <select
+                            value={editData.hasLicense || ''}
+                            onChange={(e) => handleFieldChange('hasLicense', e.target.value)}
+                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                        >
+                            <option value="">Selecione</option>
+                            <option value="Sim">Sim</option>
+                            <option value="Não">Não</option>
+                        </select>
+                    ) : (
+                        <p className={`font-medium ${candidate.hasLicense === 'Sim' ? 'text-green-600 dark:text-green-400' : candidate.hasLicense === 'Não' ? 'text-gray-900 dark:text-white' : 'text-amber-600 dark:text-amber-400'}`}>
+                            {candidate.hasLicense === 'Sim' ? 'Sim' : candidate.hasLicense === 'Não' ? 'Não' : 'Não informado — preencha na edição'}
+                        </p>
                     )}
                 </div>
 

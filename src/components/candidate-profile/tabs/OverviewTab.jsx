@@ -1,5 +1,6 @@
 import React from 'react';
-import { Mail, Phone, MapPin, Briefcase, TrendingUp, Clock as ClockIcon } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, TrendingUp, Clock as ClockIcon, Car, GraduationCap, Tag } from 'lucide-react';
+import { getCandidateAge } from '../../../utils/candidateDisplay';
 import { STATUS_COLORS, PIPELINE_STAGES } from '../../../constants';
 import { photoDisplayUrl, parseCandidateUrls, copyToClipboard } from '../../../utils/urlUtils';
 import { Copy, Check } from 'lucide-react';
@@ -133,15 +134,50 @@ export default function OverviewTab({
                                 </div>
                             </div>
                         )}
+                        <div className="flex items-center gap-3">
+                            <Car size={16} className="text-gray-400" />
+                            <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">CNH (tipo B)</p>
+                                <p className={`text-sm font-medium ${candidate.hasLicense ? 'text-gray-900 dark:text-white' : 'text-amber-600 dark:text-amber-400'}`}>
+                                    {candidate.hasLicense === 'Sim' ? 'Sim' : candidate.hasLicense === 'Não' ? 'Não' : 'Não informado'}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <ClockIcon size={16} className="text-gray-400" />
+                            <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Idade</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {(() => {
+                                        const a = getCandidateAge(candidate);
+                                        return a != null ? `${a} anos` : 'Não informado';
+                                    })()}
+                                </p>
+                            </div>
+                        </div>
                         <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase mb-3">Resumo de Filtros</h3>
-                            <div className="grid grid-cols-2 gap-4">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase mb-3">Dados da inscrição</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="flex items-start gap-2">
+                                    <Tag size={16} className="text-gray-400 shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Áreas de interesse</p>
+                                        <p className="text-sm font-medium text-gray-900 dark:text-white">{candidate.interestAreas || 'N/A'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <GraduationCap size={16} className="text-gray-400 shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Escolaridade</p>
+                                        <p className="text-sm font-medium text-gray-900 dark:text-white">{candidate.schoolingLevel || 'N/A'}</p>
+                                    </div>
+                                </div>
                                 <div>
                                     <p className="text-xs text-gray-500 dark:text-gray-400">Pretensão Salarial</p>
                                     <p className="text-sm font-medium text-gray-900 dark:text-white">{candidate.salaryExpectation || 'N/A'}</p>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Disponibilidade Mudança</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Disponibilidade mudança</p>
                                     <p className="text-sm font-medium text-gray-900 dark:text-white">{candidate.canRelocate || 'N/A'}</p>
                                 </div>
                             </div>

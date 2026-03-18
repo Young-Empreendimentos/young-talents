@@ -37,7 +37,7 @@ Ter mais opções no filtro, incluindo **idade** e **todas as informações que 
 
 ### Subissues / critérios de aceite
 
-- [ ] Incluir filtro por **idade** (e/ou faixa etária).
+- [x] Incluir filtro por **idade** (e/ou faixa etária).
 - [ ] Disponibilizar nos filtros os demais campos preenchidos no formulário de inscrição (ex.: área de interesse, CNH, cidade, experiência, etc.), de forma consistente com o que existe no cadastro do candidato.
 - [ ] Garantir que filtros aplicados sejam claros na UI (rótulos e valores possíveis).
 
@@ -71,7 +71,7 @@ Quando o usuário aplica um filtro, abre um candidato para ver mais informaçõe
 
 ### Subissues / critérios de aceite
 
-- [ ] Ao navegar do listagem (com filtros aplicados) para o perfil do candidato e voltar, **manter filtros aplicados** e, se possível, posição de scroll/página.
+- [x] Ao navegar do listagem (com filtros aplicados) para o perfil do candidato e voltar, **manter filtros aplicados** e, se possível, posição de scroll/página.
 - [ ] Aplicar o mesmo comportamento na Pipeline e no Banco de Talentos.
 - [ ] Considerar uso de state na URL (query params) ou estado global para persistir filtros na sessão da página.
 
@@ -143,7 +143,7 @@ No cadastro do candidato **não é possível identificar se tem CNH ou não**; e
 
 ### Subissues / critérios de aceite
 
-- [ ] Incluir **CNH** (tem/não tem ou equivalente) como campo no cadastro do candidato, obrigatório quando aplicável, e visível na tela de perfil/cadastro.
+- [x] Incluir **CNH** (tem/não tem ou equivalente) como campo no cadastro do candidato, obrigatório quando aplicável, e visível na tela de perfil/cadastro.
 - [ ] Garantir que **todos os dados do formulário de inscrição** estejam disponíveis e editáveis no cadastro do candidato (área de interesse, cidade, experiência, telefone, etc.).
 - [ ] Revisar abas/seções do perfil para que nenhum dado da inscrição fique só na “aba inicial” sem equivalente no cadastro completo.
 - [ ] Alinhar obrigatoriedade de CNH nas configurações de campos (se o app tiver gestão de obrigatoriedade por campo).

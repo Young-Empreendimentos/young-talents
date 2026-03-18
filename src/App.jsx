@@ -18,7 +18,7 @@ import {
 } from './constants';
 import { getCandidateTimestamp } from './utils/timestampUtils';
 import { mapCandidatesFromSupabase, candidateToSupabase } from './utils/candidateFromSupabase';
-import { prepareCandidateForDisplay } from './utils/candidateDisplay';
+import { prepareCandidateForDisplay, getCandidateAge } from './utils/candidateDisplay';
 import { translateSupabaseError } from './utils/errorMessages';
 import {
   mapJobsFromSupabase,
@@ -141,8 +141,14 @@ export default function App() {
     });
   }, [location.pathname, location.search]);
 
-  // Reset completo de filtros ao sair de /candidates para que Dashboard/Pipeline/Banco mostrem dados
+  const prevPathnameRef = useRef(location.pathname);
+  // YT-03: não zerar filtros ao abrir perfil do candidato; ao voltar do perfil, manter estado
   useEffect(() => {
+    const prev = prevPathnameRef.current;
+    prevPathnameRef.current = location.pathname;
+    if (location.pathname.startsWith('/candidate/')) return;
+    const leftProfile = prev.startsWith('/candidate/') && !location.pathname.startsWith('/candidate/');
+    if (leftProfile) return;
     if (location.pathname !== '/candidates') {
       setFilters(initialFilters);
     }
@@ -300,6 +306,8 @@ export default function App() {
     city: 'all',
     interestArea: 'all',
     cnh: 'all',
+    ageMin: 'all',
+    ageMax: 'all',
     marital: 'all',
     origin: 'all',
     schooling: 'all',
@@ -788,11 +796,34 @@ export default function App() {
     const preset = filters.createdAtPreset;
     const presets = { 'today': 86400, 'yesterday': 172800, '7d': 604800, '30d': 2592000, '90d': 7776000 };
 
+    const metaKeys = ['createdAtPreset', 'customDateStart', 'customDateEnd', 'tags', 'dashboardFilter', 'starredFilter', 'starred', 'ageMin', 'ageMax'];
     Object.keys(filters).forEach(k => {
-      if (filters[k] !== 'all' && filters[k] !== null && !['createdAtPreset', 'customDateStart', 'customDateEnd', 'tags', 'dashboardFilter', 'starredFilter', 'starred'].includes(k)) {
-        data = Array.isArray(filters[k]) ? data.filter(c => filters[k].includes(c[k])) : data.filter(c => c[k] === filters[k]);
+      if (filters[k] === 'all' || filters[k] === null || filters[k] === '' || metaKeys.includes(k)) return;
+      const field = k === 'interestArea' ? 'interestAreas' : k;
+      if (Array.isArray(filters[k])) {
+        if (field === 'interestAreas') {
+          data = data.filter(c => {
+            const v = String(c.interestAreas || '').toLowerCase();
+            return filters[k].some(sel => v.includes(String(sel).toLowerCase()));
+          });
+        } else {
+          data = data.filter(c => c[field] != null && filters[k].includes(c[field]));
+        }
+      } else {
+        data = data.filter(c => c[field] === filters[k]);
       }
     });
+    const minA = filters.ageMin !== 'all' && filters.ageMin !== '' && filters.ageMin != null ? Number(filters.ageMin) : null;
+    const maxA = filters.ageMax !== 'all' && filters.ageMax !== '' && filters.ageMax != null ? Number(filters.ageMax) : null;
+    if ((minA != null && !Number.isNaN(minA)) || (maxA != null && !Number.isNaN(maxA))) {
+      data = data.filter(c => {
+        const a = getCandidateAge(c);
+        if (a == null) return false;
+        if (minA != null && !Number.isNaN(minA) && a < minA) return false;
+        if (maxA != null && !Number.isNaN(maxA) && a > maxA) return false;
+        return true;
+      });
+    }
 
     if (filters.tags && Array.isArray(filters.tags) && filters.tags.length > 0) {
       data = data.filter(c => c.tags && filters.tags.some(t => c.tags.includes(t)));
