@@ -158,6 +158,10 @@ node scripts/setup-supabase-users.js
 
 ## 📚 Documentação
 
+### 📘 Wiki GitHub (Adventure Labs)
+
+Documentação navegável no repositório **[adventurelabsbrasil/young-talents — Wiki](https://github.com/adventurelabsbrasil/young-talents/wiki)**. O conteúdo-fonte fica na pasta **`wiki/`**; para publicar/atualizar a Wiki após editar esses arquivos, use `./scripts/publish-github-wiki.sh` (instruções em [`docs/PUBLICAR_WIKI_GITHUB.md`](./docs/PUBLICAR_WIKI_GITHUB.md)).
+
 ### 📖 Para Usuários Finais
 - [README_USUARIO.md](./README_USUARIO.md) - **Guia completo do usuário** - Como usar todas as funcionalidades do sistema
 
