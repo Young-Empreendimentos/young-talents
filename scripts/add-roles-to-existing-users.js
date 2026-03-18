@@ -72,6 +72,16 @@ const userRoles = [
     email: 'eduardo@youngempreendimentos.com.br',
     role: 'admin',
     name: 'Eduardo'
+  },
+  {
+    email: 'antonio@youngempreendimentos.com.br',
+    role: 'editor',
+    name: 'Antonio'
+  },
+  {
+    email: 'matheus@youngempreendimentos.com.br',
+    role: 'editor',
+    name: 'Matheus'
   }
 ];
 

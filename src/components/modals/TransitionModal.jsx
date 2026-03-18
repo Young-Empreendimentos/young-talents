@@ -71,7 +71,7 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
       return;
     }
 
-    if (transition.isConclusion && !data.returnSent) {
+    if (transition.isConclusion && transition.toStage !== 'Desistiu da vaga' && !data.returnSent) {
        if(!confirm("Você não marcou que o retorno foi enviado. Deseja continuar mesmo assim?")) {
          return;
        }
@@ -413,7 +413,9 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
                 </div>
               )}
               
-              {/* Retorno dado */}
+              {/* Desistência: apenas motivo (feedback acima); sem retorno obrigatório */}
+              {transition.toStage !== 'Desistiu da vaga' && (
+              <>
               <div>
                 <label className="block text-xs font-bold text-brand-cyan uppercase mb-1.5">Retorno Dado ao Candidato *</label>
                 {renderInput('returnSent')}
@@ -422,7 +424,6 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
                 </p>
               </div>
               
-              {/* Data do retorno (se retorno foi dado) */}
               {data.returnSent === 'Sim' && (
                 <div>
                   <label className="block text-xs font-bold text-brand-cyan uppercase mb-1.5">Data do Retorno</label>
@@ -430,12 +431,13 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
                 </div>
               )}
               
-              {/* Observações do retorno */}
               {data.returnSent && (
                 <div>
                   <label className="block text-xs font-bold text-brand-cyan uppercase mb-1.5">Observações do Retorno</label>
                   {renderInput('returnNotes')}
                 </div>
+              )}
+              </>
               )}
             </div>
           )}

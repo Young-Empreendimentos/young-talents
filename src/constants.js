@@ -7,7 +7,8 @@ export const PIPELINE_STAGES = [
   'Entrevista I',
   'Testes',
   'Entrevista II',
-  'Seleção' // Equivalente ao antigo 'Selecionado', ajustado conforme seu pedido
+  'Seleção', // Equivalente ao antigo 'Selecionado'
+  'Vaga pausada' // Candidato aguardando retomada da vaga (não é reprovação nem desistência)
 ];
 
 // Status que encerram o processo (Gatilhos)
@@ -21,7 +22,7 @@ export const CLOSING_STATUSES = [
 export const ALL_STATUSES = [...PIPELINE_STAGES, ...CLOSING_STATUSES];
 
 // Etapas que exigem candidato vinculado a pelo menos uma vaga
-export const STAGES_REQUIRING_APPLICATION = ['Considerado', 'Entrevista I', 'Testes', 'Entrevista II', 'Seleção', 'Contratado', 'Reprovado', 'Desistiu da vaga'];
+export const STAGES_REQUIRING_APPLICATION = ['Considerado', 'Entrevista I', 'Testes', 'Entrevista II', 'Seleção', 'Vaga pausada', 'Contratado', 'Reprovado', 'Desistiu da vaga'];
 
 // Campos obrigatórios por etapa/fechamento do funil
 // Baseado no processo:
@@ -36,6 +37,7 @@ export const STAGE_REQUIRED_FIELDS = {
   'Testes': ['fullName', 'email', 'phone', 'city', 'interestAreas', 'interview1Date', 'interview1Notes', 'testResults'],
   'Entrevista II': ['fullName', 'email', 'phone', 'city', 'interestAreas', 'interview1Date', 'testResults', 'interview2Date', 'managerFeedback'],
   'Seleção': ['fullName', 'email', 'phone', 'city', 'interestAreas', 'experience', 'interview1Date', 'interview2Date'],
+  'Vaga pausada': ['fullName', 'email', 'phone'],
   'Contratado': ['fullName', 'email', 'phone', 'city', 'interestAreas', 'experience', 'source', 'returnSent'],
   'Reprovado': ['fullName', 'email', 'phone', 'returnSent', 'rejectionReason'],
   'Desistiu da vaga': ['fullName', 'email', 'phone']
@@ -80,6 +82,7 @@ export const STATUS_COLORS = {
   'Testes': 'bg-purple-500 dark:bg-purple-600 text-white border-purple-600 dark:border-purple-700 font-medium',
   'Entrevista II': 'bg-indigo-500 dark:bg-indigo-600 text-white border-indigo-600 dark:border-indigo-700 font-medium',
   'Seleção': 'bg-yellow-500 dark:bg-yellow-600 text-white border-yellow-600 dark:border-yellow-700 font-medium',
+  'Vaga pausada': 'bg-amber-700 dark:bg-amber-800 text-white border-amber-600 dark:border-amber-700 font-medium',
 
   // Status de Fechamento
   'Contratado': 'bg-green-500 dark:bg-green-600 text-white border-green-600 dark:border-green-700 font-medium',

@@ -7,6 +7,7 @@ Esta pasta reúne documentos de funcionalidades ou melhorias **planejadas e aind
 | Documento | Descrição |
 |-----------|-----------|
 | [PLANEJAMENTO_TEMPLATES_VAGA.md](./PLANEJAMENTO_TEMPLATES_VAGA.md) | Templates de descrição de vaga: cadastro, listagem e uso ao criar vagas. |
+| [ISSUES_CARLA_ATS_2026.md](./ISSUES_CARLA_ATS_2026.md) | Issues e subissues do feedback da usuária Carla (Março 2026): filtros, permissões, pipeline, cadastro, migração e fluxos. |
 
 ## Uso
 

@@ -12,6 +12,7 @@ import { useTheme } from './ThemeContext';
 import {
   ALL_STATUSES,
   CLOSING_STATUSES,
+  PIPELINE_STAGES,
   STAGE_REQUIRED_FIELDS,
   FILTER_STORAGE_KEY
 } from './constants';
@@ -564,6 +565,11 @@ export default function App() {
           if (error) throw error;
           await recordActivity('update', activityDescription || 'Candidato atualizado', 'candidate', d.id, { fullName: d.fullName });
           showToast('Candidato atualizado.', 'success');
+          if (d.status != null && d.id) {
+            const { error: syncErr } = await schema().from('applications').update({ status: d.status, last_activity: new Date().toISOString() }).eq('candidate_id', d.id);
+            if (syncErr) console.warn('Sincronizar candidaturas:', syncErr);
+            else await loadApplications();
+          }
         } else {
           const { data: inserted, error } = await supabase.from('candidates').insert(payload).select('id').single();
           if (error) throw error;
@@ -847,7 +853,6 @@ export default function App() {
   }, [loadAllData, loadActivityLog, currentUserRole]);
 
   const optionsProps = { jobs, companies, cities, roles, sectors, userRoles, user: effectiveUser, onCreatePosition, onCreateSector };
-  const PIPELINE_STAGES = ['Inscrito', 'Considerado', 'Avaliação', 'Entrevista', 'Teste', 'Selecionado', 'Contratado', 'Recusado'];
 
   return (
     <AppRoutes

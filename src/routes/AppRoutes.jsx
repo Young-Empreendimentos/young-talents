@@ -294,13 +294,16 @@ const AppRoutes = ({
                             onClose={() => setPendingTransition(null)}
                             onConfirm={async d => {
                                 const payload = {
-                                    id: pendingTransition.candidate.id,
+                                    ...pendingTransition.candidate,
                                     ...d,
                                     status: pendingTransition.toStage,
                                     updatedAt: new Date().toISOString()
                                 };
                                 if (pendingTransition.isConclusion) {
                                     payload.closedAt = new Date().toISOString();
+                                }
+                                if (pendingTransition.toStage === 'Desistiu da vaga' && d.feedback) {
+                                    payload.rejectionReason = d.feedback;
                                 }
                                 handleSaveGeneric('candidates', payload, () => setPendingTransition(null));
                             }}
