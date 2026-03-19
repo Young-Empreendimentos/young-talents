@@ -201,6 +201,7 @@ export default function App() {
   const [applications, setApplications] = useState([]);
   const [interviews, setInterviews] = useState([]);
   const [userRoles, setUserRoles] = useState([{ email: DEV_USER.email, role: 'admin' }]);
+  const [userRolesLoaded, setUserRolesLoaded] = useState(false);
   const [activityLog, setActivityLog] = useState([]);
   const activityLogUnavailableRef = React.useRef(false);
   const dataLoadedForUserRef = useRef(false);
@@ -213,12 +214,17 @@ export default function App() {
     return effectiveUser.email === DEV_USER.email || devEmails.includes(effectiveUser.email.toLowerCase());
   }, [effectiveUser]);
 
+  const userRoleDoc = useMemo(() => {
+    if (!effectiveUser?.email) return null;
+    return userRoles.find(r => r.email === effectiveUser.email) || null;
+  }, [effectiveUser, userRoles]);
+
   const currentUserRole = useMemo(() => {
     if (!effectiveUser?.email) return 'viewer';
     if (isDeveloper) return 'admin';
-    const userRoleDoc = userRoles.find(r => r.email === effectiveUser.email);
-    return userRoleDoc?.role || 'admin';
-  }, [effectiveUser, userRoles, isDeveloper]);
+    // Segurança: sem linha em user_roles, tratar como viewer (nunca assumir admin)
+    return userRoleDoc?.role || 'viewer';
+  }, [effectiveUser, userRoleDoc, isDeveloper]);
 
   const hasPermission = (action) => {
     if (isDeveloper) return true;
@@ -479,6 +485,11 @@ export default function App() {
       dataLoadedForUserRef.current = false;
       return;
     }
+    // Só carrega dados do app interno quando usuário tem role em user_roles (ou é dev)
+    if (!hasStaffRole) {
+      dataLoadedForUserRef.current = false;
+      return;
+    }
     let channel;
     if (!dataLoadedForUserRef.current) {
       loadAllData().then(() => {
@@ -492,7 +503,7 @@ export default function App() {
     return () => {
       if (supabase && channel) supabase.removeChannel(channel);
     };
-  }, [effectiveUser, loadAllData, loadActivityLog, currentUserRole]);
+  }, [effectiveUser, loadAllData, loadActivityLog, currentUserRole, hasStaffRole, loadCandidates]);
 
   // Sync user_roles
   useEffect(() => {
@@ -510,9 +521,16 @@ export default function App() {
             }
           }
         }
+        setUserRolesLoaded(true);
       } catch (err) { console.error('Erro user_roles:', err); }
     })();
   }, [user]);
+
+  const hasStaffRole = useMemo(() => {
+    if (isDeveloper) return true;
+    if (!effectiveUser?.email) return false;
+    return !!userRoleDoc;
+  }, [isDeveloper, effectiveUser, userRoleDoc]);
 
   // Handlers
   const recordActivity = async (activityType, description, entityType = null, entityId = null, metadata = {}) => {
