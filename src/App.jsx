@@ -600,7 +600,7 @@ export default function App() {
       closeFn?.();
     } catch (err) {
       console.error('Erro ao salvar:', err);
-      const { text, isApprovedByMissing } = translateSupabaseError(err?.message);
+      const { text, isApprovedByMissing } = translateSupabaseError(err?.message, { entity: col });
       showToast(text, 'error');
       if (col === 'jobs' && isApprovedByMissing && !omitApprovedBy && window.confirm('O campo "Quem autorizou a abertura" fica na tela de edição da vaga, na seção de gestão (abaixo de "Recrutador Responsável"). Deseja salvar a vaga mesmo assim sem preencher esse campo?')) {
         await handleSaveGeneric(col, d, closeFn, { omitApprovedBy: true });
@@ -622,7 +622,7 @@ export default function App() {
       else if (col === 'job_levels') await loadJobLevels();
       else if (col === 'activity_areas') await loadActivityAreas();
       else if (col === 'candidates') await loadCandidates();
-    } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao excluir.', 'error'); }
+    } catch (err) { showToast(translateSupabaseError(err?.message, { entity: col }).text || 'Erro ao excluir.', 'error'); }
   };
 
   const createApplication = async (candidateId, jobId) => {
@@ -639,7 +639,7 @@ export default function App() {
       showToast('Vinculado com sucesso!', 'success');
       await loadApplications();
       return data;
-    } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao vincular.', 'error'); return null; }
+    } catch (err) { showToast(translateSupabaseError(err?.message, { entity: 'applications' }).text || 'Erro ao vincular.', 'error'); return null; }
   };
 
   const updateApplicationStatus = async (id, status) => {

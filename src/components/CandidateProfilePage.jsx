@@ -326,7 +326,7 @@ export default function CandidateProfilePage({
                 {candidate.photoUrl && photoLoadError && (
                   <span
                     className="absolute -bottom-0.5 -right-0.5 rounded-full bg-amber-100 dark:bg-amber-900/80 p-0.5"
-                    title="Link da foto indisponível ou bloqueado – solicite novo envio"
+                    title="Link da foto indisponível ou bloqueado – verifique acesso ao Drive/link"
                   >
                     <AlertCircle size={12} className="text-amber-600 dark:text-amber-500" />
                   </span>

@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "delete-candidates": "node scripts/delete-candidates-collection.js",
     "import-candidates": "node scripts/import-candidates-from-csv.js",
+    "import-candidates-append": "node scripts/import-candidates-append-only.js",
     "generate-candidates-sql": "node scripts/generate-candidates-sql.js",
     "seed-candidates-db": "node scripts/seed-candidates-db.js",
     "verify-csv-supabase": "node scripts/verify-csv-vs-supabase.js",

@@ -108,10 +108,10 @@ Criar **acesso específico por usuário** para especificar **quem está solicita
 
 ### Subissues / critérios de aceite
 
-- [ ] Campo ou vínculo “Quem solicitou a abertura” (ou similar) associado à vaga, identificando o **usuário** que solicitou.
-- [ ] Se já existir campo “Quem autorizou a abertura”, diferenciar claramente de “Quem solicitou” e preencher conforme regra de negócio.
-- [ ] Garantir que apenas usuários autorizados possam abrir/criar vagas e que o solicitante fique registrado.
-- [ ] Exibir essa informação na tela da vaga e, se aplicável, em relatórios.
+- [x] Campo ou vínculo “Quem solicitou a abertura” (ou similar) associado à vaga, identificando o **usuário** que solicitou (`requested_by_user_id` + trigger no INSERT).
+- [x] Se já existir campo “Quem autorizou a abertura”, diferenciar claramente de “Quem solicitou” e preencher conforme regra de negócio (autorizou = `approved_by`; solicitou = preenchido automaticamente).
+- [x] Garantir que apenas usuários autorizados possam abrir/criar vagas e que o solicitante fique registrado (RLS existente; trigger grava `auth.uid()`).
+- [x] Exibir essa informação na tela da vaga e, se aplicável, em relatórios (exibição no modal da vaga implementada).
 
 ---
 
@@ -128,9 +128,11 @@ Criar **acesso específico por usuário** para especificar **quem está solicita
 
 - [ ] Obter/exportar dados do banco de talentos antigo (formato e campos disponíveis).
 - [ ] Mapear campos antigos → campos do Young Talents (candidatos, vagas, candidaturas, se houver).
-- [ ] Criar script ou fluxo de importação (CSV/API) com validação e tratamento de duplicados.
+- [x] Criar script ou fluxo de importação (CSV/API) com validação e tratamento de duplicados (fluxo existente: ver `docs/MIGRACAO_BANCO_TALENTOS_ANTIGO.md` e importação CSV na UI).
 - [ ] Executar migração em ambiente controlado e validar com a usuária antes de produção.
-- [ ] Documentar processo e data da migração.
+- [x] Documentar processo e data da migração (guia em `docs/MIGRACAO_BANCO_TALENTOS_ANTIGO.md`).
+
+**Guia:** [MIGRACAO_BANCO_TALENTOS_ANTIGO.md](../../MIGRACAO_BANCO_TALENTOS_ANTIGO.md)
 
 ---
 
@@ -163,10 +165,12 @@ A usuária **não está com acesso para cadastrar novos empreendimentos**; ao te
 
 ### Subissues / critérios de aceite
 
-- [ ] Identificar qual role/perfil deve poder criar/editar empreendimentos (ex.: admin, gestor).
-- [ ] Revisar políticas RLS (e permissões de API, se houver) nas tabelas de empresas/empreendimentos/unidades.
-- [ ] Garantir que a usuária Carla (e demais usuários com o mesmo perfil) tenham permissão para cadastrar novos empreendimentos após o ajuste.
-- [ ] Mensagem de erro em português e, se possível, orientando a quem não tem permissão (ex.: “Entre em contato com o administrador”).
+- [x] Identificar qual role/perfil deve poder criar/editar empreendimentos (admin e editor; gestores Young promovidos a editor em 032 e 034).
+- [x] Revisar políticas RLS (e permissões de API, se houver) nas tabelas de empresas/empreendimentos/unidades (RLS já permite admin e editor; migration 034 garante que e-mails Young tenham editor).
+- [x] Garantir que a usuária Carla (e demais usuários com o mesmo perfil) tenham permissão para cadastrar novos empreendimentos após o ajuste (executar migration 034 no Supabase).
+- [x] Mensagem de erro em português e, se possível, orientando a quem não tem permissão (“Entre em contato com o administrador para solicitar acesso” em `errorMessages.js`).
+
+**Onde cadastrar:** Vagas → aba **Empresas** (dados reais no Supabase). Configurações → Empresas ainda usa tela mock; usar Vagas → Empresas.
 
 ---
 
@@ -200,10 +204,15 @@ A usuária **não consegue vincular um candidato a uma vaga**; o sistema informa
 
 ### Subissues / critérios de aceite
 
-- [ ] Identificar tabela(s) e operação (INSERT/UPDATE) usadas ao vincular candidato à vaga (candidaturas/applications).
-- [ ] Revisar RLS e roles para permitir que o perfil da usuária (e equivalentes) possam criar/atualizar vínculos candidato–vaga.
+- [x] Identificar tabela(s) e operação (INSERT/UPDATE) usadas ao vincular candidato à vaga (candidaturas/applications).
+- [x] Revisar RLS e roles para permitir que o perfil da usuária (e equivalentes) possam criar/atualizar vínculos candidato–vaga.
 - [ ] Testar fluxo completo: selecionar candidato, selecionar vaga, salvar vínculo, e verificar na pipeline/candidaturas.
-- [ ] Mensagem de erro em português quando permissão for negada.
+- [x] Mensagem de erro em português quando permissão for negada.
+
+### Implementado (mar/2026)
+
+- **Migration 035:** (1) Sincronização one-off de `user_id` em `user_roles` onde estava NULL e o e-mail existe em `auth.users`; (2) função `is_editor_or_admin()` que considera role admin/editor por `user_id` ou por e-mail no JWT (quem tem `user_id` NULL); (3) políticas de INSERT/UPDATE em `applications` passaram a usar `is_editor_or_admin()`, permitindo vincular mesmo quando o usuário foi pré-cadastrado só por e-mail.
+- **Front:** mensagem específica em PT para permissão negada ao vincular (`errorMessages.js` + `entity: 'applications'` em `createApplication` em `App.jsx`).
 
 ---
 

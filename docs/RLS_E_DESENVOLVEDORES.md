@@ -26,7 +26,8 @@ Eles podem, entre outras coisas:
 - **Políticas RLS**  
   Nas tabelas do `young_talents`, as políticas de INSERT/UPDATE/DELETE permitem acesso se:
   - `young_talents.is_developer()` é verdadeiro, **ou**
-  - o usuário tem role **admin** ou **editor** em `young_talents.user_roles` (via função `is_admin()` onde aplicável).
+  - o usuário tem role **admin** ou **editor** em `young_talents.user_roles`
+    (para `user_roles`, via função `is_admin()` onde aplicável; para `applications`, a migration 035 usa `is_editor_or_admin()` com fallback por email quando `user_id` está `NULL`).
 
 - **Políticas explícitas por user_id**  
   Para os três usuários acima existem políticas adicionais que permitem acesso direto por `auth.uid()`, como reforço (migrations 026 e 031).
@@ -45,14 +46,18 @@ As alterações estão nas migrations do Supabase. Aplicar no **SQL Editor** do 
 | 029 | `is_developer()` sem leitura em `auth.users` (evitar "permission denied for table users") |
 | 030 | Política "Usuários podem ler seu próprio role" sem leitura em `auth.users` |
 | 031 | Inclusão de contato@ e eduardo@ em `is_developer()` e políticas explícitas para ambos |
+| 032 | Promoção de young gestores para role `editor` |
+| 033 | Preenchimento de `requested_by_user_id` em `jobs` via trigger |
+| 034 | Garantia de role `editor` para perfis YT-08 (Young gestores) |
+| 035 | YT-10: `is_editor_or_admin()` + políticas em `applications` para permitir vincular mesmo quando `user_roles.user_id` está `NULL` (fallback por email do JWT) |
 
-Arquivos em: `supabase/migrations/024_*` até `031_*`.
+Arquivos em: `supabase/migrations/024_*` até `035_*`.
 
 ## Como aplicar no Supabase
 
 1. Abra o [Supabase Dashboard](https://supabase.com/dashboard) e selecione o projeto **Young Talents**.
 2. Vá em **SQL Editor**.
-3. Para cada migração 024 a 031 (nessa ordem), abra o arquivo `.sql` correspondente no repositório, copie todo o conteúdo, cole no editor e execute (Run).
+3. Para cada migração 024 a 035 (nessa ordem), abra o arquivo `.sql` correspondente no repositório, copie todo o conteúdo, cole no editor e execute (Run).
 
 Não é necessário redeploy do app no Vercel para as mudanças de RLS; basta aplicar o SQL no projeto correto.
 

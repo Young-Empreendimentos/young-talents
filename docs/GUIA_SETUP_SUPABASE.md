@@ -30,7 +30,14 @@ Este guia explica como configurar o Supabase para o projeto Young Talents.
    - `007_tables_master_and_jobs.sql` → `008_applications.sql` → `009_seed_initial_data.sql`
    - `010_public_user_roles_view.sql` → `011_allow_duplicate_candidate_emails.sql` → `012_expose_young_talents_for_api.sql`
    - `013_job_levels_and_activity_areas.sql` → `014_activity_log.sql` → `015_add_deleted_at_to_candidates.sql` e `015_populate_cities_rs.sql`
-   - `016_allow_null_user_id.sql` → `017_sync_user_role_on_login.sql` → `018_update_rls_for_devs.sql`
+- `016_allow_null_user_id.sql` → `017_sync_user_role_on_login.sql` → `018_update_rls_for_devs.sql`
+- `019_add_approved_by_to_jobs.sql` → `020_add_posting_channels_to_jobs.sql` → `021_add_starred_to_candidates.sql`
+- `022_add_candidate_process_columns.sql` → `023_fix_rls_vulnerabilities.sql`
+- `024_rls_full_access_developer.sql` → `025_rls_grant_execute_is_developer.sql`
+- `026_rls_dev_user_id_explicit.sql` → `027_is_developer_never_throws.sql` → `028_fix_user_roles_rls_recursion.sql`
+- `029_is_developer_no_auth_users.sql` → `030_fix_user_roles_select_policy_no_auth_users.sql` → `031_dev_contato_eduardo_full_access.sql`
+- `032_promote_young_gestores_to_editor.sql` → `033_add_requested_by_user_id_to_jobs.sql`
+- `034_ensure_young_gestores_editor_yt08.sql` → `035_sync_user_roles_user_id_and_application_access_yt10.sql`
 
 **Importante:** A migration `012_expose_young_talents_for_api.sql` expõe o schema `young_talents` no PostgREST (necessário para o frontend). Se usar apenas o SQL Editor, execute também o conteúdo dessa migration.
 

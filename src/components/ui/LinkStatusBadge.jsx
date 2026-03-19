@@ -12,8 +12,8 @@ export function LinkStatusBadge({ status, label = 'Link' }) {
 
   const tooltip =
     label === 'Foto'
-      ? 'Link da foto indisponível ou bloqueado – solicite novo envio'
-      : 'Link pode estar quebrado – solicite novo envio ou acesso';
+      ? 'Link da foto indisponível ou bloqueado – verifique acesso ao Drive/link'
+      : 'Link pode estar indisponível – verifique acesso ao Drive/link';
 
   return (
     <span

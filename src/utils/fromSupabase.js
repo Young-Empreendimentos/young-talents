@@ -29,6 +29,7 @@ export function mapJobFromSupabase(row) {
     recruiter: row.recruiter,
     hiringManager: row.hiring_manager,
     approvedBy: row.approved_by ?? null,
+    requestedByUserId: row.requested_by_user_id ?? null,
     postingChannels: row.posting_channels ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -149,5 +150,6 @@ export function jobToSupabase(d) {
     posting_channels: d.postingChannels ?? null
   };
   if (d.id) row.id = d.id;
+  // requested_by_user_id é preenchido pelo trigger no INSERT; não enviar no payload
   return row;
 }

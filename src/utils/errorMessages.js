@@ -5,10 +5,12 @@
 
 /**
  * @param {string} [message] - Mensagem de erro original
+ * @param {{ entity?: string }} [options] - entity: 'companies' | 'cities' | etc. para mensagem específica de permissão
  * @returns {{ text: string, isApprovedByMissing?: boolean, isCandidateColumnMissing?: boolean }}
  */
-export function translateSupabaseError(message) {
+export function translateSupabaseError(message, options = {}) {
   const msg = String(message || '');
+  const { entity } = options;
 
   if (/Could not find the 'approved_by' column.*jobs|'approved_by'.*'jobs'/i.test(msg)) {
     return {
@@ -62,7 +64,13 @@ export function translateSupabaseError(message) {
   }
 
   if (/permission denied|row-level security|policy/i.test(msg)) {
-    return { text: 'Permissão negada. Verifique as políticas de segurança (RLS) e se o usuário tem permissão para esta ação.' };
+    if (entity === 'companies' || /companies|empresa|empreendimento/i.test(msg)) {
+      return { text: 'Você não tem permissão para cadastrar ou editar empresas/empreendimentos. Entre em contato com o administrador para solicitar acesso.' };
+    }
+    if (entity === 'applications' || /applications|aplicações|vincular|candidatura/i.test(msg)) {
+      return { text: 'Você não tem permissão para vincular candidato à vaga. Entre em contato com o administrador.' };
+    }
+    return { text: 'Permissão negada. Verifique as políticas de segurança (RLS) e se o usuário tem permissão para esta ação. Se o problema persistir, entre em contato com o administrador.' };
   }
 
   if (/duplicate key|already exists|unique constraint/i.test(msg)) {

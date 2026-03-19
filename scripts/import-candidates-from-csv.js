@@ -6,22 +6,21 @@
  * Env: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY (ou SUPABASE_URL, SUPABASE_ANON_KEY)
  */
 
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { parse } from 'csv-parse';
+import fs from 'fs';
 import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 import { normalizeCity } from '../src/utils/cityNormalizer.js';
 import { normalizeSource } from '../src/utils/sourceNormalizer.js';
 import { normalizeInterestAreasString } from '../src/utils/interestAreaNormalizer.js';
 import { normalizeChildrenForStorage } from '../src/utils/childrenNormalizer.js';
+import { toDbRow, readCsvRows } from './lib/import-candidates-shared.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 const CSV_PATH = path.join(PROJECT_ROOT, 'assets', 'candidates', 'candidates.csv');
 
-// Carrega variáveis de ambiente - .env.local primeiro, depois .env
 const envLocalPath = path.join(PROJECT_ROOT, '.env.local');
 const envPath = path.join(PROJECT_ROOT, '.env');
 if (fs.existsSync(envLocalPath)) {
@@ -36,160 +35,6 @@ const normalizers = { normalizeCity, normalizeSource, normalizeInterestAreasStri
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-
-// Mapa: cabeçalho CSV (exato) -> coluna DB (snake_case)
-const CSV_TO_DB = {
-  'Carimbo de data/hora': 'original_timestamp',
-  'COD': null, // ignorar ou external_id se existir
-  'Nome completo:': 'full_name',
-  'Nos envie uma foto atual que você goste:': 'photo_url',
-  'Data de Nascimento:': 'birth_date',
-  'Idade': 'age',
-  'E-mail principal:': 'email',
-  'Nº telefone celular / Whatsapp:': 'phone',
-  'Cidade onde reside:': 'city',
-  'Áreas de interesse profissional': 'interest_areas',
-  'Formação:': 'education',
-  'Experiências anteriores:': 'experience',
-  'Cursos e certificações profissionais.': 'courses',
-  'Campo Livre, SEJA VOCÊ!': 'free_field',
-  'Nível de escolaridade:': 'schooling_level',
-  'Estado civil:': 'marital_status',
-  'Você possui CNH tipo B?': 'has_license',
-  'Instituição de ensino:': 'institution',
-  'Onde você nos encontrou?': 'source',
-  'Você está se candidatando a uma vaga específica ou apenas quer se inscrever no banco de talentos?': 'type_of_app',
-  'Referências profissionais:': 'professional_references',
-  'Certificações profissionais:': 'certifications',
-  'Anexar currículo:': 'cv_url',
-  'Portfólio de trabalho:': 'portfolio_url',
-  'Data de formatura:': 'graduation_date',
-  'Teria disponibilidade para mudança de cidade?': 'can_relocate',
-  'Em caso de curso superior, está cursando neste momento?': 'is_studying',
-  'Qual seria sua expectativa salarial?': 'salary_expectation',
-  'Endereço de e-mail': 'email_secondary',
-  'Se tem filhos, quantos?': 'children_count',
-  'Você foi indicado por algum colaborador da Young? Se sim, quem?': 'referral',
-  'Cópia de data': null,
-  'Não quer ser contatado': null
-};
-
-function toDbRow(record, normalizers) {
-  const row = {};
-  for (const [csvHeader, dbCol] of Object.entries(CSV_TO_DB)) {
-    if (!dbCol) continue;
-    let value = record[csvHeader];
-    if (value !== undefined && value !== null) value = String(value).trim();
-    if (value === '') value = null;
-
-    if (value == null) {
-      row[dbCol] = null;
-      continue;
-    }
-
-    switch (dbCol) {
-      case 'city':
-        row[dbCol] = normalizers.normalizeCity(value) || value;
-        break;
-      case 'source':
-        row[dbCol] = normalizers.normalizeSource(value) || value;
-        break;
-      case 'interest_areas':
-        row[dbCol] = normalizers.normalizeInterestAreasString(value) || value;
-        break;
-      case 'children_count': {
-        const n = normalizers.normalizeChildrenForStorage(value);
-        row[dbCol] = n != null ? String(n) : null;
-        break;
-      }
-      case 'photo_url':
-        row[dbCol] = value; // manter URL original (open?id=) como no CSV
-        break;
-      case 'original_timestamp':
-        row[dbCol] = parseTimestamp(value);
-        break;
-      case 'birth_date':
-      case 'graduation_date':
-        row[dbCol] = parseDate(value);
-        break;
-      case 'age':
-        row[dbCol] = parseInteger(value);
-        break;
-      default:
-        row[dbCol] = value;
-    }
-  }
-  row.status = row.status || 'Inscrito';
-  row.origin = row.origin || 'csv_import';
-  row.created_by = row.created_by || 'Importação CSV';
-  // Tabela exige phone NOT NULL: usar string vazia quando faltar
-  if (row.phone == null || row.phone === '') row.phone = '';
-  return row;
-}
-
-function parseTimestamp(str) {
-  if (!str) return null;
-  const d = parseDDMMYYYYHHMM(str);
-  return d ? d.toISOString() : null;
-}
-
-function parseDate(str) {
-  if (!str) return null;
-  const d = parseDDMMYYYY(str);
-  return d ? d.toISOString().slice(0, 10) : null;
-}
-
-function parseDDMMYYYY(str) {
-  const s = String(str).trim();
-  const m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
-  if (m) {
-    const day = parseInt(m[1], 10);
-    const month = parseInt(m[2], 10) - 1;
-    let year = parseInt(m[3], 10);
-    if (year < 100) year += 2000;
-    const d = new Date(year, month, day);
-    if (!isNaN(d.getTime())) return d;
-  }
-  return null;
-}
-
-function parseDDMMYYYYHHMM(str) {
-  const s = String(str).trim();
-  const m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})\s+(\d{1,2}):(\d{2})/);
-  if (m) {
-    const day = parseInt(m[1], 10);
-    const month = parseInt(m[2], 10) - 1;
-    let year = parseInt(m[3], 10);
-    if (year < 100) year += 2000;
-    const h = parseInt(m[4], 10);
-    const min = parseInt(m[5], 10);
-    const d = new Date(year, month, day, h, min);
-    if (!isNaN(d.getTime())) return d;
-  }
-  return parseDDMMYYYY(s);
-}
-
-function parseInteger(str) {
-  if (str == null || str === '') return null;
-  const n = parseInt(String(str).replace(/,/, '.'), 10);
-  return isNaN(n) ? null : n;
-}
-
-function readCsvRows() {
-  return new Promise((resolve, reject) => {
-    const rows = [];
-    const parser = parse({ columns: true, skip_empty_lines: true, relax_column_count: true, trim: true });
-    parser.on('readable', function () {
-      let r;
-      while ((r = parser.read()) !== null) rows.push(r);
-    });
-    parser.on('error', reject);
-    parser.on('end', () => resolve(rows));
-    const stream = fs.createReadStream(CSV_PATH);
-    stream.on('error', reject);
-    stream.pipe(parser);
-  });
-}
 
 function projectRefFromUrl(url) {
   try {
@@ -217,7 +62,7 @@ async function main() {
   console.log('');
 
   console.log('Lendo CSV...');
-  const records = await readCsvRows();
+  const records = await readCsvRows(CSV_PATH);
   console.log('Linhas lidas:', records.length);
 
   const BATCH = 100;
@@ -257,7 +102,6 @@ async function main() {
 
   console.log('Concluído. Inseridos/atualizados:', inserted, 'Ignorados/erro:', skipped);
 
-  // Verificação: conferir no banco se os dados aparecem (mesmo projeto que o dashboard)
   if (inserted > 0) {
     const { count, error: countErr } = await supabase.from('candidates').select('*', { count: 'exact', head: true });
     if (!countErr) {

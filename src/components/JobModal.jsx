@@ -469,6 +469,20 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
                         </select>
                     </div>
 
+                    {/* Quem solicitou a abertura (somente leitura; preenchido ao criar a vaga) */}
+                    {(d.id && d.requestedByUserId) && (
+                        <div>
+                            <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Quem solicitou a abertura</label>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg px-2.5 py-2">
+                                {(() => {
+                                    const u = availableRecruiters.find(r => r.user_id === d.requestedByUserId);
+                                    return u ? (u.name || u.email || '—') : (d.requestedByUserId ? 'Usuário do sistema' : '—');
+                                })()}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Usuário que criou a abertura da vaga no sistema (registrado automaticamente).</p>
+                        </div>
+                    )}
+
                     {/* Quem autorizou a abertura */}
                     <div>
                         <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Quem autorizou a abertura</label>

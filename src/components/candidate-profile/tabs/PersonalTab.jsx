@@ -155,7 +155,7 @@ export default function PersonalTab({
                                 {photoLoadError && (
                                     <span
                                         className="inline-flex text-amber-600 dark:text-amber-500"
-                                        title="Link da foto indisponível ou bloqueado – solicite novo envio"
+                                        title="Link da foto indisponível ou bloqueado – verifique acesso ao Drive/link"
                                     >
                                         <AlertCircle size={14} />
                                     </span>

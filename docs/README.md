@@ -32,7 +32,7 @@
 | [SEED_CANDIDATOS_CLI.md](./SEED_CANDIDATOS_CLI.md) | Seed de candidatos via CLI |
 | [TROUBLESHOOTING_DEPLOY.md](./TROUBLESHOOTING_DEPLOY.md) | Problemas de deploy |
 | [TROUBLESHOOTING_SCHEMA.md](./TROUBLESHOOTING_SCHEMA.md) | Problemas de schema Supabase |
-| [RLS_E_DESENVOLVEDORES.md](./RLS_E_DESENVOLVEDORES.md) | RLS e usuários desenvolvedores (dev, contato@, eduardo@); migrations 024–031; como aplicar |
+| [RLS_E_DESENVOLVEDORES.md](./RLS_E_DESENVOLVEDORES.md) | RLS e usuários desenvolvedores (dev, contato@, eduardo@); migrations 024–035; como aplicar |
 | [DIAGNOSTICO_SUPABASE.md](./DIAGNOSTICO_SUPABASE.md) | Como rodar o diagnóstico SQL/Node do Supabase |
 
 ## C-suite / base de conhecimento

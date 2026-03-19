@@ -27,6 +27,16 @@ export function useLinkStatus(url) {
 
     const trimmed = url.trim();
 
+    // Google Drive / Docs frequentemente bloqueiam `HEAD` por CORS/privacidade,
+    // mas o link pode funcionar ao abrir em nova aba. Para não sugerir "solicite novo envio",
+    // tratamos como `unknown` e omitimos o badge.
+    const isGoogleDriveLink =
+      trimmed.includes('drive.google.com') || trimmed.includes('docs.google.com');
+    if (isGoogleDriveLink) {
+      setStatus('unknown');
+      return;
+    }
+
     const cached = cache.get(trimmed);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       setStatus(cached.status);

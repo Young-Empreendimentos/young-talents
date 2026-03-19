@@ -37,6 +37,18 @@ O script mapeia as **colunas pelo nome exato** do cabeçalho. Os nomes esperados
 
 ---
 
+## 2.1. Importar só os que ainda não estão no banco (append-only)
+
+Se você tem um CSV **parcial** (ex.: `candidates-202603.csv`, só fevereiro em diante) e quer **apenas incluir quem ainda não está cadastrado** (validação por e-mail):
+
+- **Script:** `node scripts/import-candidates-append-only.js` (ou `npm run import-candidates-append`).
+- **Arquivo padrão:** `assets/candidates/candidates-202603.csv`. Para outro arquivo: `node scripts/import-candidates-append-only.js caminho/arquivo.csv`.
+
+O script busca todos os e-mails já existentes no Supabase, filtra o CSV e insere só registros novos.  
+Guia completo: **[IMPORTAR_CSV_APPEND_FEV_2026.md](./IMPORTAR_CSV_APPEND_FEV_2026.md)**.
+
+---
+
 ## 3. Como rodar a importação (popular os dados)
 
 ### Pré-requisitos

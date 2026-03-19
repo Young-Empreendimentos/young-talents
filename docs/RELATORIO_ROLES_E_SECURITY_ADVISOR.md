@@ -28,6 +28,7 @@ As políticas RLS nas tabelas do schema `young_talents` (candidatos, vagas, apli
 - **Arquivo:** `supabase/migrations/017_sync_user_role_on_login.sql`
 - **Trigger:** Em `auth.users`, após INSERT ou UPDATE (login ou atualização de perfil), o trigger chama essa função.
 - **Comportamento:** Se já existir registro em `user_roles` para o e-mail do usuário, atualiza `user_id`, `name`, `photo`, `last_login`. Se não existir, cria um novo registro com role padrão **viewer**.
+- **Complemento (YT-10):** a migration `035_sync_user_roles_user_id_and_application_access_yt10.sql` destrava pré-cadastros que ficaram com `user_roles.user_id` como `NULL` ao preencher `user_id` one-off e adicionar `young_talents.is_editor_or_admin()` para permitir INSERT/UPDATE em `young_talents.applications` quando o e-mail do JWT casa com `user_roles.email`.
 
 ### 1.4 Bypass para desenvolvedores (is_developer)
 
@@ -132,5 +133,6 @@ Políticas RLS com `USING (true)` ou `WITH CHECK (true)` em operações **INSERT
 | `supabase/migrations/018_update_rls_for_devs.sql` | Função `is_developer` e políticas de admin. |
 | `supabase/migrations/007_tables_master_and_jobs.sql` | Tabelas mestres e jobs (inclui RLS authenticated). |
 | `supabase/migrations/014_activity_log.sql` | Activity log e política apenas admin. |
+| `supabase/migrations/035_sync_user_roles_user_id_and_application_access_yt10.sql` | YT-10: is_editor_or_admin() e permissão de vínculo em applications. |
 
 Este relatório foi gerado com base no plano de recursos ATS e nos CSVs do Security Advisor do projeto.

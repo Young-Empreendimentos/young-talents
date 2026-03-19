@@ -4,6 +4,63 @@
 -- Dev: dev@adventurelabs.com.br já está em user_roles como admin no Young Talents.
 -- ==============================================================================
 
+-- Idempotência: o Supabase remoto pode já ter criado policies com os mesmos nomes.
+-- Antes de recriar, removemos as policies existentes.
+
+-- COMPANIES
+DROP POLICY IF EXISTS "Dev 6d3c9cde INSERT companies" ON young_talents.companies;
+DROP POLICY IF EXISTS "Dev 6d3c9cde UPDATE companies" ON young_talents.companies;
+DROP POLICY IF EXISTS "Dev 6d3c9cde DELETE companies" ON young_talents.companies;
+
+-- CITIES
+DROP POLICY IF EXISTS "Dev 6d3c9cde INSERT cities" ON young_talents.cities;
+DROP POLICY IF EXISTS "Dev 6d3c9cde UPDATE cities" ON young_talents.cities;
+DROP POLICY IF EXISTS "Dev 6d3c9cde DELETE cities" ON young_talents.cities;
+
+-- SECTORS
+DROP POLICY IF EXISTS "Dev 6d3c9cde INSERT sectors" ON young_talents.sectors;
+DROP POLICY IF EXISTS "Dev 6d3c9cde UPDATE sectors" ON young_talents.sectors;
+DROP POLICY IF EXISTS "Dev 6d3c9cde DELETE sectors" ON young_talents.sectors;
+
+-- POSITIONS
+DROP POLICY IF EXISTS "Dev 6d3c9cde INSERT positions" ON young_talents.positions;
+DROP POLICY IF EXISTS "Dev 6d3c9cde UPDATE positions" ON young_talents.positions;
+DROP POLICY IF EXISTS "Dev 6d3c9cde DELETE positions" ON young_talents.positions;
+
+-- JOBS
+DROP POLICY IF EXISTS "Dev 6d3c9cde INSERT jobs" ON young_talents.jobs;
+DROP POLICY IF EXISTS "Dev 6d3c9cde UPDATE jobs" ON young_talents.jobs;
+DROP POLICY IF EXISTS "Dev 6d3c9cde DELETE jobs" ON young_talents.jobs;
+
+-- JOB_LEVELS
+DROP POLICY IF EXISTS "Dev 6d3c9cde INSERT job_levels" ON young_talents.job_levels;
+DROP POLICY IF EXISTS "Dev 6d3c9cde UPDATE job_levels" ON young_talents.job_levels;
+DROP POLICY IF EXISTS "Dev 6d3c9cde DELETE job_levels" ON young_talents.job_levels;
+
+-- ACTIVITY_AREAS
+DROP POLICY IF EXISTS "Dev 6d3c9cde INSERT activity_areas" ON young_talents.activity_areas;
+DROP POLICY IF EXISTS "Dev 6d3c9cde UPDATE activity_areas" ON young_talents.activity_areas;
+DROP POLICY IF EXISTS "Dev 6d3c9cde DELETE activity_areas" ON young_talents.activity_areas;
+
+-- APPLICATIONS
+DROP POLICY IF EXISTS "Dev 6d3c9cde INSERT applications" ON young_talents.applications;
+DROP POLICY IF EXISTS "Dev 6d3c9cde UPDATE applications" ON young_talents.applications;
+DROP POLICY IF EXISTS "Dev 6d3c9cde DELETE applications" ON young_talents.applications;
+
+-- CANDIDATES
+DROP POLICY IF EXISTS "Dev 6d3c9cde INSERT candidates" ON young_talents.candidates;
+DROP POLICY IF EXISTS "Dev 6d3c9cde UPDATE candidates" ON young_talents.candidates;
+DROP POLICY IF EXISTS "Dev 6d3c9cde DELETE candidates" ON young_talents.candidates;
+
+-- USER_ROLES
+DROP POLICY IF EXISTS "Dev 6d3c9cde SELECT user_roles" ON young_talents.user_roles;
+DROP POLICY IF EXISTS "Dev 6d3c9cde INSERT user_roles" ON young_talents.user_roles;
+DROP POLICY IF EXISTS "Dev 6d3c9cde UPDATE user_roles" ON young_talents.user_roles;
+DROP POLICY IF EXISTS "Dev 6d3c9cde DELETE user_roles" ON young_talents.user_roles;
+
+-- ACTIVITY_LOG
+DROP POLICY IF EXISTS "Dev 6d3c9cde SELECT activity_log" ON young_talents.activity_log;
+
 -- COMPANIES
 CREATE POLICY "Dev 6d3c9cde INSERT companies"
   ON young_talents.companies FOR INSERT TO authenticated
