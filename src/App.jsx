@@ -480,6 +480,12 @@ export default function App() {
     await Promise.all([loadCandidates(), loadJobs(), loadCompanies(), loadCities(), loadSectors(), loadRoles(), loadJobLevels(), loadActivityAreas(), loadApplications()]);
   }, [loadCandidates, loadJobs, loadCompanies, loadCities, loadSectors, loadRoles, loadJobLevels, loadActivityAreas, loadApplications]);
 
+  const hasStaffRole = useMemo(() => {
+    if (isDeveloper) return true;
+    if (!effectiveUser?.email) return false;
+    return !!userRoleDoc;
+  }, [isDeveloper, effectiveUser, userRoleDoc]);
+
   useEffect(() => {
     if (!effectiveUser) {
       dataLoadedForUserRef.current = false;
@@ -525,12 +531,6 @@ export default function App() {
       } catch (err) { console.error('Erro user_roles:', err); }
     })();
   }, [user]);
-
-  const hasStaffRole = useMemo(() => {
-    if (isDeveloper) return true;
-    if (!effectiveUser?.email) return false;
-    return !!userRoleDoc;
-  }, [isDeveloper, effectiveUser, userRoleDoc]);
 
   // Handlers
   const recordActivity = async (activityType, description, entityType = null, entityId = null, metadata = {}) => {
