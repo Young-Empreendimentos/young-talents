@@ -103,6 +103,7 @@ const AppRoutes = ({
     userRoles,
     currentUserRole,
     hasStaffRole,
+    authStaffReady,
 
     // Handlers
     handleSaveGeneric,
@@ -163,7 +164,11 @@ const AppRoutes = ({
             } />
 
             <Route path="*" element={
-                !user || !hasStaffRole
+                !user
+                    ? <Navigate to="/login" replace />
+                    : !authStaffReady
+                    ? <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400"><Loader2 className="animate-spin mr-2" /> Verificando permissões…</div>
+                    : !hasStaffRole
                     ? <Navigate to="/login" replace />
                     : <AppLayout
                     isSidebarCollapsed={isSidebarCollapsed}

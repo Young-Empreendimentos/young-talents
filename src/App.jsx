@@ -59,6 +59,12 @@ const DEV_USER = {
 
 const PUBLIC_PATHS = ['/', '/apply', '/apply/test', '/apply/thank-you', '/login'];
 
+/** Google OAuth pode devolver o e-mail com capitalização diferente da linha em user_roles */
+const emailsMatch = (a, b) => {
+  if (a == null || b == null) return false;
+  return String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
+};
+
 export default function App() {
   const { isDark, toggleTheme } = useTheme();
   const [user, setUser] = useState(null);
@@ -217,7 +223,7 @@ export default function App() {
 
   const userRoleDoc = useMemo(() => {
     if (!effectiveUser?.email) return null;
-    return userRoles.find(r => r.email === effectiveUser.email) || null;
+    return userRoles.find(r => emailsMatch(r.email, effectiveUser.email)) || null;
   }, [effectiveUser, userRoles]);
 
   const currentUserRole = useMemo(() => {
@@ -487,6 +493,13 @@ export default function App() {
     return !!userRoleDoc;
   }, [isDeveloper, effectiveUser, userRoleDoc]);
 
+  /** Evita redirect para /login antes do fetch de user_roles (comum após OAuth). */
+  const authStaffReady = useMemo(() => {
+    if (!effectiveUser?.email) return true;
+    if (isDeveloper) return true;
+    return userRolesLoaded;
+  }, [effectiveUser, isDeveloper, userRolesLoaded]);
+
   useEffect(() => {
     if (!effectiveUser) {
       dataLoadedForUserRef.current = false;
@@ -514,13 +527,27 @@ export default function App() {
 
   // Sync user_roles
   useEffect(() => {
-    if (!supabase || !user || user.email === DEV_USER.email) return;
+    if (!supabase) {
+      setUserRolesLoaded(false);
+      return;
+    }
+    if (!user) {
+      setUserRolesLoaded(false);
+      return;
+    }
+    if (user.email === DEV_USER.email) {
+      setUserRolesLoaded(true);
+      return;
+    }
+    let cancelled = false;
+    setUserRolesLoaded(false);
     (async () => {
       try {
         const { data, error } = await schema().from('user_roles').select('*').order('created_at', { ascending: false });
+        if (cancelled) return;
         if (!error && data) {
           setUserRoles(data);
-          const current = data.find(r => r.email === user.email);
+          const current = data.find(r => emailsMatch(r.email, user.email));
           if (current) {
             const needsUpdate = current.user_id !== user.id || (user.user_metadata?.full_name || user.user_metadata?.name) !== current.name;
             if (needsUpdate) {
@@ -528,9 +555,13 @@ export default function App() {
             }
           }
         }
-        setUserRolesLoaded(true);
-      } catch (err) { console.error('Erro user_roles:', err); }
+      } catch (err) {
+        console.error('Erro user_roles:', err);
+      } finally {
+        if (!cancelled) setUserRolesLoaded(true);
+      }
     })();
+    return () => { cancelled = true; };
   }, [user]);
 
   // Handlers
@@ -927,7 +958,7 @@ export default function App() {
       highlightedCandidateId={highlightedCandidateId} setHighlightedCandidateId={setHighlightedCandidateId}
       interviewModalData={interviewModalData} setInterviewModalData={setInterviewModalData}
       toast={toast} optionsProps={optionsProps} schooling={schooling} marital={marital} origins={origins}
-      interestAreas={interestAreas} userRoles={userRoles} currentUserRole={currentUserRole} hasStaffRole={hasStaffRole}
+      interestAreas={interestAreas} userRoles={userRoles} currentUserRole={currentUserRole} hasStaffRole={hasStaffRole} authStaffReady={authStaffReady}
       handleSaveGeneric={handleSaveGeneric} handleDeleteGeneric={handleDeleteGeneric}
       openCandidateProfile={openCandidateProfile} openJobModal={openJobModal} closeJobModal={closeJobModal}
       openCsvModal={openCsvModal} closeCsvModal={closeCsvModal}

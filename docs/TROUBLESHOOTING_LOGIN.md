@@ -42,6 +42,12 @@ O Young Talents usa **Supabase Auth** com suporte a **email/senha** e **Google O
   - Adicione o usuário em `young_talents.user_roles` (email, name, role). Ver [GUIA_CRIAR_USUARIO_ADMIN.md](./GUIA_CRIAR_USUARIO_ADMIN.md).
   - Se usar Google, o trigger `sync_user_role_on_login` preenche `user_id` no primeiro login; garanta que a migration `017_sync_user_role_on_login.sql` foi aplicada.
 
+### 5b. **Google OAuth volta para a tela de login, mas email/senha funciona**
+
+- **Causa comum 1:** O Google devolve o e-mail com **capitalização diferente** da coluna `email` em `user_roles` (ex.: `Contato@…` vs `contato@…`). O app comparava com `===` e tratava como “sem staff”.
+- **Causa comum 2:** Após o redirect do OAuth, a rota interna era avaliada **antes** do fetch de `user_roles` terminar → `hasStaffRole` ficava falso por um frame e redirecionava para `/login`.
+- **Solução no código:** comparação de e-mail **case-insensitive** + estado **authStaffReady** (loader “Verificando permissões…” até carregar `user_roles`). Contas listadas em `isDeveloper` (ex.: `dev@adventurelabs.com.br`) não sofrem o mesmo sintoma porque já entram como staff sem esperar a tabela.
+
 ### 6. **Erro ao criar usuário via Configurações (email e senha)**
 
 - **Causa:** Edge Function `create-user` não deployada ou secrets não configurados.
