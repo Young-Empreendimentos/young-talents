@@ -63,15 +63,16 @@ export default function App() {
   const { isDark, toggleTheme } = useTheme();
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const isDevEnv = import.meta.env.DEV;
 
-  // Usuário efetivo: sessão ou DEV_USER quando Supabase não está configurado
-  const effectiveUser = user ?? (!supabase ? DEV_USER : null);
+  // Segurança: fallback DEV_USER só em ambiente local de desenvolvimento.
+  const effectiveUser = user ?? (isDevEnv && !supabase ? DEV_USER : null);
 
   // Auth: sessão Supabase
   useEffect(() => {
     if (!supabase) {
       setAuthLoading(false);
-      setUser(DEV_USER);
+      setUser(isDevEnv ? DEV_USER : null);
       return;
     }
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -82,7 +83,7 @@ export default function App() {
       setUser(session?.user ?? null);
     });
     return () => subscription?.unsubscribe();
-  }, []);
+  }, [isDevEnv]);
 
   // Sistema de Rotas usando URL
   const location = useLocation();
@@ -926,7 +927,7 @@ export default function App() {
       highlightedCandidateId={highlightedCandidateId} setHighlightedCandidateId={setHighlightedCandidateId}
       interviewModalData={interviewModalData} setInterviewModalData={setInterviewModalData}
       toast={toast} optionsProps={optionsProps} schooling={schooling} marital={marital} origins={origins}
-      interestAreas={interestAreas} userRoles={userRoles} currentUserRole={currentUserRole}
+      interestAreas={interestAreas} userRoles={userRoles} currentUserRole={currentUserRole} hasStaffRole={hasStaffRole}
       handleSaveGeneric={handleSaveGeneric} handleDeleteGeneric={handleDeleteGeneric}
       openCandidateProfile={openCandidateProfile} openJobModal={openJobModal} closeJobModal={closeJobModal}
       openCsvModal={openCsvModal} closeCsvModal={closeCsvModal}

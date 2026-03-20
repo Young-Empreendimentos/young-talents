@@ -102,6 +102,7 @@ const AppRoutes = ({
     origins,
     userRoles,
     currentUserRole,
+    hasStaffRole,
 
     // Handlers
     handleSaveGeneric,
@@ -162,7 +163,9 @@ const AppRoutes = ({
             } />
 
             <Route path="*" element={
-                <AppLayout
+                !user || !hasStaffRole
+                    ? <Navigate to="/login" replace />
+                    : <AppLayout
                     isSidebarCollapsed={isSidebarCollapsed}
                     SidebarComponent={
                         <Sidebar
