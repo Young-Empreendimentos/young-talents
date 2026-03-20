@@ -6,13 +6,13 @@ Prioridade: **ninguém acessa dados internos do ATS sem cadastro explícito** em
 
 1. **Supabase Auth** — Identidade (e-mail/Google/senha). Só isso **não** concede acesso ao CRM.
 2. **`young_talents.user_roles`** — Fonte da verdade para staff: `admin`, `editor` ou `viewer` (somente leitura no ATS).
-3. **RLS (Postgres)** — Leitura de candidatos, vagas, candidaturas, mestres etc. exige `young_talents.has_privileged_role('viewer')` (ou `is_developer()`). Escrita exige `editor` / `admin` conforme políticas (migration **028** e anteriores).
+3. **RLS (Postgres)** — Leitura de candidatos, vagas, candidaturas, mestres etc. exige `young_talents.has_staff_access()` (inclui `admin`/`editor`/`viewer` cadastrado e `is_developer()`). Escrita exige `editor` / `admin` conforme políticas das migrations **023+**.
 4. **App (React)** — `hasStaffRole` exige linha em `user_roles` com uma das três roles; `authStaffReady` evita race após OAuth; viewer não vê Configurações.
 
 ## Cadastro de usuários da empresa
 
 - **Admin** cria usuários em **Configurações → Usuários** (pré-cadastro por e-mail ou **e-mail + senha** via Edge Function `create-user`).
-- Após existir a linha em `user_roles`, o usuário faz login; o trigger **`sync_user_role_on_login`** apenas **preenche `user_id`** e metadados — **não insere** linha nova (migration **028**).
+- Após existir a linha em `user_roles`, o usuário faz login; o trigger **`sync_user_role_on_login`** apenas **preenche `user_id`** e metadados — **não insere** linha nova (migrations **038** + **039**, match de e-mail case-insensitive).
 
 ## Candidatos (público)
 
@@ -28,13 +28,15 @@ Recomendado alinhar ao modelo “só entra quem foi cadastrado”:
 1. **Authentication → Providers** — Avaliar desativar **sign-up** aberto ou restringir OAuth se não quiser contas órfãs em `auth.users` (RLS já bloqueia dados sem `user_roles`).
 2. **Authentication → Email** — Se usar só convite/admin `createUser`, desabilitar “Allow new users to sign up” quando a UI não tiver auto-cadastro.
 
-## Migrations relevantes
+## Migrations relevantes (repo **plataforma**)
 
 | Arquivo | Conteúdo |
 |---------|-----------|
-| `025_*` | `has_privileged_role` (admin/editor), políticas de escrita, sync com match de e-mail |
-| `026_*` | Revoga `anon` em `public.user_roles` |
-| `027_*` | `is_developer()` com tratamento de exceção (evita 500 nas políticas) |
-| `028_*` | `has_privileged_role('viewer')`, SELECT staff nas tabelas do ATS, RPC duplicidade, anon read cities, revoga SELECT anon em candidates, sync sem INSERT automático, `activity_log` insert só staff |
+| `023_*` | Escrita mestres/vagas só admin/editor |
+| `037_*` | `has_staff_access()`, SELECT staff nas tabelas do ATS; revoga SELECT `anon` em `young_talents.candidates` |
+| `038_*` | `sync_user_role_on_login` sem INSERT automático de viewer |
+| `039_*` | RPC `public_candidate_email_exists`, `anon` SELECT em `cities`, `activity_log` INSERT só staff, sync com `lower(trim(email))` |
 
-Deploy: aplicar **028** no projeto Supabase **antes** ou junto do frontend que chama `public_candidate_email_exists` e `schema('young_talents').from('cities')`.
+**Path espelho** `clients/04_young/young-talents/.../028_*` consolida parte disso com `has_privileged_role('viewer')` — no deploy pelo monorepo **use uma linha só** (normalmente as migrations da pasta `plataforma`).
+
+Deploy: aplicar até **039** no projeto Supabase **antes** ou junto do frontend que chama `public_candidate_email_exists` e `schema('young_talents').from('cities')`.

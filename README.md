@@ -4,6 +4,14 @@
 
 Sistema de Gerenciamento de Recrutamento (ATS - Applicant Tracking System) desenvolvido com React + Vite + Supabase.
 
+## 🔒 Segurança e acesso (prioridade)
+
+- **Painel ATS interno:** só quem tem linha explícita em `young_talents.user_roles` com papel `admin`, `editor` ou `viewer` (cadastro prévio). **RLS** no Postgres é a barreira principal; o app reforça com `hasStaffRole` e rotas.
+- **Candidatos:** fluxo público **`/apply`** sem login; não há “conta de candidato” para o CRM. OAuth/sign-up aberto no Supabase deve ser alinhado à política da empresa (ver doc abaixo).
+- **Sem segredos no Git:** use `.env.local` / variáveis do provedor de deploy; não commitar chaves, senhas, URLs internas nem identificadores de projeto.
+
+📄 **Detalhes técnicos:** [docs/SECURITY_MODEL.md](./docs/SECURITY_MODEL.md) · **Wiki do monorepo (clone-safe):** `wiki/Young-Talents-ATS-Seguranca.md` · Scripts SQL de diagnóstico: `docs/young-talents/sql/README.md` (na raiz do monorepo).
+
 ## 📋 Funcionalidades Principais
 
 ### 🎯 Gestão de Candidatos
@@ -148,24 +156,29 @@ node scripts/setup-supabase-users.js
 
 📖 **Guia completo**: Veja [GUIA_SETUP_SUPABASE.md](./GUIA_SETUP_SUPABASE.md) para instruções detalhadas.
 
-## 🌐 Arquitetura e URLs (produção)
+## 🌐 Rotas principais (qualquer ambiente)
 
-- **App (cliente Young):** https://youngempreendimentos.adventurelabs.com.br  
-- **Formulário público (candidatos):** https://youngempreendimentos.adventurelabs.com.br/apply  
-- **Login (recrutadores/admins):** https://youngempreendimentos.adventurelabs.com.br/login  
+- **`/`** — app (redireciona conforme sessão e cadastro)
+- **`/apply`** — formulário público (candidatos, role `anon`)
+- **`/login`** — autenticação staff (quem já foi cadastrado em `user_roles`)
 
-**Auth:** Este app usa o projeto Supabase **Young Talents** (separado do CRM Adventure). Apenas recrutadores/admins fazem login; candidatos usam apenas `/apply` (sem criação de usuário em Auth). Redirect URLs no Supabase devem apontar apenas para o domínio youngempreendimentos.adventurelabs.com.br.
+**Produção:** configure domínio, **Redirect URLs** e **Site URL** no Supabase conforme o host real do deploy — **não** versione URLs de produção nem project ref neste README.
+
+**Auth:** projeto Supabase dedicado ao ATS. Staff faz login após cadastro; candidatos usam só `/apply`. Quem tem sessão Auth mas **sem** linha em `user_roles` não lê dados do CRM (RLS).
 
 ## 📚 Documentação
 
-### 📘 Wiki GitHub (Adventure Labs)
+### 📘 Wiki (monorepo Adventure Labs)
 
-Documentação navegável no repositório **[adventurelabsbrasil/young-talents — Wiki](https://github.com/adventurelabsbrasil/young-talents/wiki)**. O conteúdo-fonte fica na pasta **`wiki/`**; para publicar/atualizar a Wiki após editar esses arquivos, use `./scripts/publish-github-wiki.sh` (instruções em [`docs/PUBLICAR_WIKI_GITHUB.md`](./docs/PUBLICAR_WIKI_GITHUB.md)).
+No repositório principal do monorepo, a pasta **`wiki/`** inclui **`Young-Talents-ATS-Seguranca.md`** (modelo de acesso, sem segredos). Para publicar a Wiki do GitHub após edições locais: `scripts/publish-github-wiki.sh` na raiz do monorepo (ver também `docs/WIKI_GITHUB_AGENTIC.md` se aplicável).
 
 ### 📖 Para Usuários Finais
 - [README_USUARIO.md](./README_USUARIO.md) - **Guia completo do usuário** - Como usar todas as funcionalidades do sistema
 
 ### 🔧 Para Desenvolvedores / Administradores
+
+#### Segurança e acesso
+- [docs/SECURITY_MODEL.md](./docs/SECURITY_MODEL.md) — RLS, roles, formulário público, migrations **037–039**, Auth no Dashboard
 
 #### Navegação e Rotas
 - [docs/ROTAS_E_NAVEGACAO.md](./docs/ROTAS_E_NAVEGACAO.md) - **Guia completo de rotas e navegação** - Todas as URLs e slugs do sistema
@@ -267,10 +280,13 @@ Proprietário - Young Talents
 
 ## 👥 Contribuidores
 
-- Rodrigo Ribas (Young Talents)
-- GitHub Copilot (Desenvolvimento)
+Mantido pela equipe **Adventure Labs** / cliente Young (histórico de commits no Git).
 
 ## 🔧 Melhorias e Correções Recentes
+
+### 🔒 Segurança (ATS)
+
+- Acesso interno restrito a **`user_roles`** + RLS (`has_staff_access` nas migrations **037+**); sync de login **sem** criação automática de `viewer`; formulário público com RPC de duplicidade e leitura limitada de dados mestre para `anon`. Ver [SECURITY_MODEL.md](./docs/SECURITY_MODEL.md).
 
 ### ✨ Funcionalidades Adicionadas (v2.2.0)
 - ✅ **Formulário Público de Candidatos**: Formulário público (`/apply`) que substitui Google Forms + AppScript
