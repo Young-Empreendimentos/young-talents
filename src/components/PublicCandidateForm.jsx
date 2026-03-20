@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
-import { validateCandidate, validateEmail, validatePhone, checkDuplicateEmail } from '../utils/validation';
+import { validateCandidate, validateEmail, validatePhone } from '../utils/validation';
 import { normalizeCity } from '../utils/cityNormalizer';
 import { normalizeSource, getMainSourcesOptions } from '../utils/sourceNormalizer';
 import { normalizeInterestAreasString, getMainInterestAreasOptions } from '../utils/interestAreaNormalizer';
@@ -111,7 +111,8 @@ const PublicCandidateForm = () => {
   const [fieldErrors, setFieldErrors] = useState({}); // Erros em tempo real
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [existingCandidates, setExistingCandidates] = useState([]);
+  /** null = ainda não checou; true/false via RPC (sem listar a base de candidatos) */
+  const [publicEmailExists, setPublicEmailExists] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [citySearchTerm, setCitySearchTerm] = useState('');
   const [showCityCustom, setShowCityCustom] = useState(false);
@@ -161,29 +162,35 @@ const PublicCandidateForm = () => {
     }
   };
 
-  // Carregar candidatos existentes para verificação de duplicatas
+  // Duplicidade de e-mail: RPC segura (não expõe lista de candidatos)
   useEffect(() => {
-    const loadCandidates = async () => {
+    const email = formData.email?.trim();
+    if (!email || !validateEmail(email).valid) {
+      setPublicEmailExists(null);
+      return;
+    }
+    let cancelled = false;
+    const t = setTimeout(async () => {
       try {
-        const { data, error } = await supabase
-          .from('candidates')
-          .select('id, email')
-          .range(0, 9999);
-        
-        if (error) throw error;
-        setExistingCandidates(data || []);
-      } catch (error) {
-        console.error('Erro ao carregar candidatos:', error);
+        const { data, error } = await supabase.rpc('public_candidate_email_exists', { p_email: email });
+        if (!cancelled && !error) setPublicEmailExists(data === true);
+        if (!cancelled && error) setPublicEmailExists(null);
+      } catch {
+        if (!cancelled) setPublicEmailExists(null);
       }
+    }, 450);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
     };
-    loadCandidates();
-  }, []);
+  }, [formData.email]);
 
-  // Carregar cidades do banco de dados
+  // Carregar cidades do banco (schema young_talents; anon com política de leitura na migration 028)
   useEffect(() => {
     const loadCities = async () => {
       try {
         const { data, error } = await supabase
+          .schema('young_talents')
           .from('cities')
           .select('*')
           .order('name');
@@ -646,7 +653,7 @@ const PublicCandidateForm = () => {
   // Detecta se o e-mail já está no Banco de Talentos (apenas para exibir aviso)
   const isExistingCandidate = formData.email?.trim() &&
     validateEmail(formData.email).valid &&
-    checkDuplicateEmail(formData.email, existingCandidates).isDuplicate;
+    publicEmailExists === true;
 
   const submitForm = async () => {
     // Rate limiting

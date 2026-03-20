@@ -37,15 +37,16 @@ O Young Talents usa **Supabase Auth** com suporte a **email/senha** e **Google O
 
 ### 5. **Login aceito mas usuário sem permissões / tela em branco**
 
-- **Causa:** Usuário existe no Supabase Auth mas não tem registro em `young_talents.user_roles`, ou a role não está sendo lida.
+- **Causa:** Usuário existe no Supabase Auth mas **não** tem linha em `young_talents.user_roles` com `admin`, `editor` ou `viewer` (cadastro explícito).
 - **Solução:**
-  - Adicione o usuário em `young_talents.user_roles` (email, name, role). Ver [GUIA_CRIAR_USUARIO_ADMIN.md](./GUIA_CRIAR_USUARIO_ADMIN.md).
-  - Se usar Google, o trigger `sync_user_role_on_login` preenche `user_id` no primeiro login; garanta que a migration `017_sync_user_role_on_login.sql` foi aplicada.
+  - Um **admin** deve cadastrar o e-mail em **Configurações → Usuários** ou via SQL/Edge Function. Ver [GUIA_CRIAR_USUARIO_ADMIN.md](./GUIA_CRIAR_USUARIO_ADMIN.md) e [SECURITY_MODEL.md](./SECURITY_MODEL.md).
+  - Com a migration **028**, o trigger **`sync_user_role_on_login`** **não cria** mais linha automática: só **atualiza** `user_id` se a linha já existir.
 
-### 5c. **Usuário com só `viewer` em `user_roles` entrava no CRM**
+### 5c. **Papéis `admin`, `editor` e `viewer`**
 
-- **Causa:** O app tratava “tem linha em `user_roles`” como acesso ao painel. O trigger de sync cria conta nova com role **`viewer`**, então qualquer pessoa que logasse com Google ganhava linha e via o app interno (mesmo só com permissão de “view”).
-- **Comportamento atual:** Só **`admin`** e **`editor`** (e e-mails developer) acessam rotas internas. **`viewer`** ou sem linha: redirecionamento para **`/apply`** (formulário público). Perfil `/candidate/:id` também exige staff.
+- **`admin` / `editor`:** acesso ao ATS; editor não gerencia usuários (Configurações restrita a admin onde aplicável).
+- **`viewer`:** acesso ao ATS em **somente leitura** (RLS + `hasPermission`); menu **Configurações** oculto; rota `/settings` redireciona.
+- **Sem linha em `user_roles`:** sessão pode existir, mas o app envia para **`/apply`**; a API **não** retorna dados do CRM (RLS migration **028**).
 
 ### 5b. **Google OAuth volta para a tela de login, mas email/senha funciona**
 

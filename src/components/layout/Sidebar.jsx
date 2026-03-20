@@ -14,8 +14,10 @@ const Sidebar = ({
     effectiveUser,
     supabase,
     user,
-    setRoute
+    setRoute,
+    currentUserRole
 }) => {
+    const isViewer = currentUserRole === 'viewer';
     return (
         <div className={`fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} ${!isSidebarCollapsed ? 'lg:translate-x-0' : 'lg:-translate-x-full'}`}>
             <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
@@ -32,7 +34,9 @@ const Sidebar = ({
                     />
                     <div>
                         <div className="font-bold text-gray-900 dark:text-white text-sm">Young Talents</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">ATS</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                            ATS{isViewer ? ' · somente leitura' : ''}
+                        </div>
                     </div>
                 </button>
                 <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"><X /></button>
@@ -83,10 +87,12 @@ const Sidebar = ({
                     <BarChart3 size={18} /> Relatórios
                 </button>
 
-                {/* Configurações — navega já com aba padrão para abrir em um clique */}
+                {/* Configurações — apenas admin/editor (gestão de usuários e mestres) */}
+                {!isViewer && (
                 <button onClick={() => { navigate('/settings?settingsTab=campos'); setRoute(prev => ({ ...prev, page: 'settings', settingsTab: 'campos' })); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'settings' ? 'bg-blue-600 text-white shadow-lg dark:bg-blue-500' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'}`}>
                     <Settings size={18} /> Configurações
                 </button>
+                )}
 
                 {/* Diagnóstico — em desenvolvimento */}
                 <button onClick={() => { setActiveTab('diagnostic'); setIsSidebarOpen(false); }} title="Funcionalidade em desenvolvimento" className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors cursor-not-allowed opacity-70 ${activeTab === 'diagnostic' ? 'bg-gray-500 text-white dark:bg-gray-600' : 'text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
