@@ -1,24 +1,18 @@
 -- Script SQL para adicionar roles para usuários existentes
--- Execute este script no SQL Editor do Supabase
--- Este script busca os usuários por email e cria/atualiza as roles automaticamente
+-- Execute no SQL Editor do Supabase após criar usuários em Authentication.
+--
+-- IMPORTANTE (repositório público / clone): os e-mails abaixo são **exemplos**.
+-- Substitua pelos e-mails reais da sua organização antes de executar,
+-- ou cadastre staff pelo app (Configurações → Usuários) / Edge Function.
 
--- Adicionar roles para os usuários existentes
 DO $$
 DECLARE
   user_record RECORD;
   user_emails TEXT[] := ARRAY[
-    'contato@adventurelabs.com.br',
-    'suelen@youngempreendimentos.com.br',
-    'carla@youngempreendimentos.com.br',
-    'rodrigo@youngempreendimentos.com.br',
-    'eduardo@youngempreendimentos.com.br'
+    'admin@example.com'
   ];
   user_roles_map JSONB := '{
-    "contato@adventurelabs.com.br": {"name": "Admin Principal", "role": "admin"},
-    "suelen@youngempreendimentos.com.br": {"name": "Suelen", "role": "admin"},
-    "carla@youngempreendimentos.com.br": {"name": "Carla", "role": "editor"},
-    "rodrigo@youngempreendimentos.com.br": {"name": "Rodrigo", "role": "admin"},
-    "eduardo@youngempreendimentos.com.br": {"name": "Eduardo", "role": "admin"}
+    "admin@example.com": {"name": "Administrador inicial", "role": "admin"}
   }'::JSONB;
   user_email TEXT;
   user_data JSONB;
@@ -26,23 +20,20 @@ DECLARE
 BEGIN
   FOREACH user_email IN ARRAY user_emails
   LOOP
-    -- Buscar usuário no auth.users
     SELECT id, email INTO user_record
     FROM auth.users
     WHERE email = user_email
     LIMIT 1;
-    
+
     IF user_record.id IS NOT NULL THEN
       user_data := user_roles_map->user_email;
-      
-      -- Verificar se role já existe
+
       SELECT EXISTS(
-        SELECT 1 FROM young_talents.user_roles 
+        SELECT 1 FROM young_talents.user_roles
         WHERE user_id = user_record.id OR email = user_email
       ) INTO role_exists;
-      
+
       IF role_exists THEN
-        -- Atualizar role existente
         UPDATE young_talents.user_roles
         SET
           user_id = user_record.id,
@@ -51,10 +42,9 @@ BEGIN
           email = user_email,
           updated_at = NOW()
         WHERE user_id = user_record.id OR email = user_email;
-        
+
         RAISE NOTICE '✅ Role atualizada para % (ID: %)', user_email, user_record.id;
       ELSE
-        -- Criar nova role
         INSERT INTO young_talents.user_roles (user_id, email, name, role, created_at)
         VALUES (
           user_record.id,
@@ -63,7 +53,7 @@ BEGIN
           user_data->>'role',
           NOW()
         );
-        
+
         RAISE NOTICE '✅ Role criada para % (ID: %)', user_email, user_record.id;
       END IF;
     ELSE
@@ -72,8 +62,7 @@ BEGIN
   END LOOP;
 END $$;
 
--- Verificar resultados - Listar todas as roles criadas
-SELECT 
+SELECT
   ur.id,
   ur.email,
   ur.name,
@@ -86,8 +75,7 @@ FROM young_talents.user_roles ur
 LEFT JOIN auth.users u ON u.id = ur.user_id
 ORDER BY ur.email;
 
--- Resumo
-SELECT 
+SELECT
   COUNT(*) as total_roles,
   COUNT(CASE WHEN role = 'admin' THEN 1 END) as total_admin,
   COUNT(CASE WHEN role = 'editor' THEN 1 END) as total_editor,

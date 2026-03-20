@@ -56,7 +56,7 @@ Antes do deploy, teste localmente:
    - Verificar se salva no Supabase
 
 2. **Login**: 
-   - Testar login com `contato@adventurelabs.com.br` / `admin123`
+   - Testar login com conta staff do **seu** ambiente (sem credenciais no repositório)
    - Verificar se role é carregada
 
 3. **Alteração de senha**:

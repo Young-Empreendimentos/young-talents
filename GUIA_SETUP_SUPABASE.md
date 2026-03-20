@@ -70,12 +70,7 @@ SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key-aqui
 node scripts/setup-supabase-users.js
 ```
 
-Este script criará os seguintes usuários:
-- `contato@adventurelabs.com.br` - admin (senha: admin123)
-- `suelen@youngempreendimentos.com.br` - admin (senha provisória: temp123)
-- `carla@youngempreendimentos.com.br` - editor (senha provisória: temp123)
-- `rodrigo@youngempreendimentos.com.br` - admin (senha provisória: temp123)
-- `eduardo@youngempreendimentos.com.br` - admin (senha provisória: temp123)
+O script lê `scripts/users-setup.local.json` (a partir de `users-setup.example.json`). **Não** documente nem commite senhas ou e-mails reais neste repositório.
 
 ### 6. Configurar Google OAuth (Opcional)
 

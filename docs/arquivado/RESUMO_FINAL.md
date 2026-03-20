@@ -69,7 +69,7 @@ git push origin main
 ## 🧪 Testes Após Deploy:
 
 1. **Formulário público**: `/apply` - deve salvar no Supabase
-2. **Login**: `contato@adventurelabs.com.br` / `admin123`
+2. **Login**: usar conta staff configurada localmente (não usar credenciais de exemplo em produção)
 3. **Verificar roles**: Deve carregar permissões corretas
 
 ## ⚠️ Importante:

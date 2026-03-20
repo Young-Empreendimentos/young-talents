@@ -14,9 +14,9 @@ O projeto tem um workflow de GitHub Actions que faz backup **apenas do schema `y
 |--------|-------------|-----------|
 | `SUPABASE_DB_URL` | Sim | Connection string do banco **de origem** (projeto de onde o backup é feito). Dashboard do projeto → Settings → Database → Connection string → **URI** (ex.: `postgresql://postgres.[ref]:[SENHA]@...`). |
 | `RESEND_API_KEY` | Sim | API key do [Resend](https://resend.com). **Gere uma nova** se a chave já foi exposta em algum lugar. |
-| `BACKUP_NOTIFY_EMAIL` | Sim | Emails que recebem notificação, separados por vírgula. Ex.: `contato@adventurelabs.com.br,eduardo@youngempreendimentos.com.br` |
-| `RESEND_FROM_EMAIL` | Não | Remetente (deve ser um endereço em domínio **verificado** no Resend). Ex.: `noreply@updates.adventurelabs.com.br`. Se não definir, o workflow usa `noreply@updates.adventurelabs.com.br`. |
-| `DESTINATION_SUPABASE_URL` | Sim (para cópia) | URL do projeto **destino** onde a cópia do backup vai. Ex.: `https://cporcxqbxzekbrilzaec.supabase.co` |
+| `BACKUP_NOTIFY_EMAIL` | Sim | E-mails internos que recebem notificação (lista separada por vírgula). Configure só no GitHub Secrets — **não** coloque endereços reais na documentação versionada. |
+| `RESEND_FROM_EMAIL` | Não | Remetente em domínio **verificado** no Resend (ex.: `noreply@seudominio-verificado.com`). |
+| `DESTINATION_SUPABASE_URL` | Sim (para cópia) | URL do projeto Supabase **destino** (`https://<ref>.supabase.co`). Valor apenas em Secrets. |
 | `DESTINATION_SUPABASE_SERVICE_ROLE_KEY` | Sim (para cópia) | Chave **service_role** do projeto destino. Dashboard do projeto destino → Settings → API → service_role. Necessária para gravar no Storage. |
 
 ## Projeto destino (cópia do backup)
@@ -32,9 +32,10 @@ Os arquivos ficam disponíveis no Dashboard do projeto destino em **Storage → 
 ## Checklist
 
 1. Repositório **privado**.
-2. Resend: domínio verificado se usar `noreply@adventurelabs.com.br` ou outro “from” customizado.
-3. **Rotacionar** a Resend API key se ela já foi exposta (ex.: em chat).
-4. Rodar o workflow manualmente uma vez e conferir: commit no repo, arquivos no Storage do destino e emails recebidos.
+2. Secret **`RESEND_FROM_EMAIL`** definido (o workflow não usa mais remetente padrão versionado no YAML).
+3. Resend: domínio do remetente verificado conforme o e-mail configurado em `RESEND_FROM_EMAIL`.
+4. **Rotacionar** a Resend API key se ela já foi exposta (ex.: em chat).
+5. Rodar o workflow manualmente uma vez e conferir: commit no repo, arquivos no Storage do destino e e-mails recebidos.
 
 ## Restauração
 

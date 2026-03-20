@@ -2,15 +2,9 @@
 
 # 🏆 Young Talents ATS
 
+> **Nota (monorepo):** o app Supabase canônico vive em **`apps/clientes/young-talents/plataforma`**. Este diretório em `clients/04_young/` mantém espelho de SQL/docs. Modelo de segurança (sem segredos): `wiki/Young-Talents-ATS-Seguranca.md` e `docs/young-talents/sql/README.md` na raiz do monorepo.
+
 Sistema de Gerenciamento de Recrutamento (ATS - Applicant Tracking System) desenvolvido com React + Vite + Supabase.
-
-## 🔒 Segurança e acesso (prioridade)
-
-- **Painel ATS interno:** só quem tem linha explícita em `young_talents.user_roles` com papel `admin`, `editor` ou `viewer` (cadastro prévio). **RLS** no Postgres é a barreira principal; o app reforça com `hasStaffRole` e rotas.
-- **Candidatos:** fluxo público **`/apply`** sem login; não há “conta de candidato” para o CRM. OAuth/sign-up aberto no Supabase deve ser alinhado à política da empresa (ver doc abaixo).
-- **Sem segredos no Git:** use `.env.local` / variáveis do provedor de deploy; não commitar chaves, senhas, URLs internas nem identificadores de projeto.
-
-📄 **Detalhes técnicos:** [docs/SECURITY_MODEL.md](./docs/SECURITY_MODEL.md) · **Wiki do monorepo (clone-safe):** `wiki/Young-Talents-ATS-Seguranca.md` · Scripts SQL de diagnóstico: `docs/young-talents/sql/README.md` (na raiz do monorepo).
 
 ## 📋 Funcionalidades Principais
 
@@ -100,9 +94,9 @@ Sistema de Gerenciamento de Recrutamento (ATS - Applicant Tracking System) desen
 ### Instalação
 
 \`\`\`bash
-# Clone o repositório
-git clone https://github.com/rodrigoribasyoung/young-hunt-ats.git
-cd young-hunt-ats
+# Clone o monorepo ou o repositório interno da sua organização
+git clone <URL_DO_REPOSITORIO>
+cd <PASTA_DO_PROJETO>
 
 # Instale dependências
 npm install
@@ -156,29 +150,19 @@ node scripts/setup-supabase-users.js
 
 📖 **Guia completo**: Veja [GUIA_SETUP_SUPABASE.md](./GUIA_SETUP_SUPABASE.md) para instruções detalhadas.
 
-## 🌐 Rotas principais (qualquer ambiente)
+## 🌐 Rotas principais
 
-- **`/`** — app (redireciona conforme sessão e cadastro)
-- **`/apply`** — formulário público (candidatos, role `anon`)
-- **`/login`** — autenticação staff (quem já foi cadastrado em `user_roles`)
+- **`/apply`** — formulário público (anon)
+- **`/login`** — staff cadastrado em `user_roles`
 
-**Produção:** configure domínio, **Redirect URLs** e **Site URL** no Supabase conforme o host real do deploy — **não** versione URLs de produção nem project ref neste README.
-
-**Auth:** projeto Supabase dedicado ao ATS. Staff faz login após cadastro; candidatos usam só `/apply`. Quem tem sessão Auth mas **sem** linha em `user_roles` não lê dados do CRM (RLS).
+**Produção:** defina domínio e Redirect URLs no Supabase no ambiente real — **não** versione URLs fixas de cliente neste README (clone seguro).
 
 ## 📚 Documentação
-
-### 📘 Wiki (monorepo Adventure Labs)
-
-No repositório principal do monorepo, a pasta **`wiki/`** inclui **`Young-Talents-ATS-Seguranca.md`** (modelo de acesso, sem segredos). Para publicar a Wiki do GitHub após edições locais: `scripts/publish-github-wiki.sh` na raiz do monorepo (ver também `docs/WIKI_GITHUB_AGENTIC.md` se aplicável).
 
 ### 📖 Para Usuários Finais
 - [README_USUARIO.md](./README_USUARIO.md) - **Guia completo do usuário** - Como usar todas as funcionalidades do sistema
 
 ### 🔧 Para Desenvolvedores / Administradores
-
-#### Segurança e acesso
-- [docs/SECURITY_MODEL.md](./docs/SECURITY_MODEL.md) — RLS, roles, formulário público, migrations **037–039**, Auth no Dashboard
 
 #### Navegação e Rotas
 - [docs/ROTAS_E_NAVEGACAO.md](./docs/ROTAS_E_NAVEGACAO.md) - **Guia completo de rotas e navegação** - Todas as URLs e slugs do sistema
@@ -280,13 +264,9 @@ Proprietário - Young Talents
 
 ## 👥 Contribuidores
 
-Mantido pela equipe **Adventure Labs** / cliente Young (histórico de commits no Git).
+Equipe Adventure Labs / cliente Young — ver histórico de commits.
 
 ## 🔧 Melhorias e Correções Recentes
-
-### 🔒 Segurança (ATS)
-
-- Acesso interno restrito a **`user_roles`** + RLS (`has_staff_access` nas migrations **037+**); sync de login **sem** criação automática de `viewer`; formulário público com RPC de duplicidade e leitura limitada de dados mestre para `anon`. Ver [SECURITY_MODEL.md](./docs/SECURITY_MODEL.md).
 
 ### ✨ Funcionalidades Adicionadas (v2.2.0)
 - ✅ **Formulário Público de Candidatos**: Formulário público (`/apply`) que substitui Google Forms + AppScript

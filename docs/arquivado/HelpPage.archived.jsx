@@ -25,7 +25,7 @@ export default function HelpPage() {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
               <Github size={20} /> Documentação no GitHub
             </h2>
-            <a href="https://github.com/rodrigoribasyoung/young-hunt-ats" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium">
+            <a href="https://github.com/adventurelabsbrasil/adventure-labs" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium">
               <ExternalLink size={16} /> Repositório no GitHub
             </a>
           </div>

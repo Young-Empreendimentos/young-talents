@@ -139,21 +139,13 @@ Servidor rodando em: **http://localhost:5175/**
 
 ### Pré-requisitos:
 1. Conta no [Vercel](https://vercel.com)
-2. Repositório conectado (já feito - rodrigoribasyoung/young-hunt-ats)
+2. Repositório conectado ao seu projeto de deploy
 
 ### Passos:
 1. Acesse [Vercel Dashboard](https://vercel.com/dashboard)
-2. Selecione projeto "young-hunt-ats"
+2. Selecione o projeto do ATS
 3. Vá para **Settings** → **Environment Variables**
-4. Adicione 6 variáveis:
-   ```
-   VITE_FIREBASE_API_KEY = AIzaSyD54i_1mQdEbS3ePMxhCkN2bhezjcq7xEg
-   VITE_FIREBASE_AUTH_DOMAIN = young-talents-ats.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID = young-talents-ats
-   VITE_FIREBASE_STORAGE_BUCKET = young-talents-ats.firebasestorage.app
-   VITE_FIREBASE_MESSAGING_SENDER_ID = 436802511318
-   VITE_FIREBASE_APP_ID = 436802511318:web:c7f103e4b09344f9bf4477
-   ```
+4. Adicione as variáveis do **Supabase** (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) conforme o dashboard do projeto. *(Documento arquivado: versões antigas citavam Firebase com valores reais — removidos por segurança.)*
 5. Clique em "Redeploy"
 
 ---
@@ -229,6 +221,6 @@ Ver arquivo **TROUBLESHOOTING_LOGIN.md** para mais detalhes
 
 **Status:** ✅ Pronto para teste
 **Commit:** 328ec58 - feat: melhorias gerais no ATS
-**GitHub:** https://github.com/rodrigoribasyoung/young-hunt-ats
+**GitHub:** _use a URL do repositório privado da organização (não versionar aqui)._
 
 Última atualização: 4 de Dezembro, 2025

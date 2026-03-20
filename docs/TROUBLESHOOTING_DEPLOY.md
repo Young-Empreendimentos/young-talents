@@ -10,7 +10,7 @@
 
 **Solução:**
 1. Acesse o [Vercel Dashboard](https://vercel.com/dashboard)
-2. Selecione o projeto `young-hunt-ats`
+2. Selecione o projeto do ATS no dashboard do provedor (nome conforme o seu deploy)
 3. Vá em **Settings** → **Environment Variables**
 4. Verifique se todas as variáveis estão configuradas:
    - `VITE_FIREBASE_API_KEY`

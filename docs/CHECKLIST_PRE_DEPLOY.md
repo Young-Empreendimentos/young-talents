@@ -48,7 +48,7 @@ Antes do deploy, teste localmente:
    - Verificar se salva no Supabase
 
 2. **Login**: 
-   - Testar login com `contato@adventurelabs.com.br` / `admin123`
+   - Testar login com uma conta **staff** criada no seu ambiente (e-mail/senha definidos fora do Git)
    - Verificar se role é carregada
 
 3. **Alteração de senha**:

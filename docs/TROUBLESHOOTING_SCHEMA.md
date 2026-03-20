@@ -13,7 +13,7 @@ Assim você aplica as migrations (012, 013, etc.) no projeto remoto sem colar SQ
 npx supabase login
 
 # 2. Vincular ao seu projeto (substitua pelo seu project ref)
-npx supabase link --project-ref ttvwfocuftsvyziecjeu
+npx supabase link --project-ref YOUR_PROJECT_REF
 ```
 Quando pedir, informe a **senha do banco** (Settings → Database no dashboard).
 

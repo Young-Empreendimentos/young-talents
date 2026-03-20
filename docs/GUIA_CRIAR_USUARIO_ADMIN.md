@@ -48,7 +48,7 @@ Após criar os usuários, acesse `/login` e use **Email e senha** ou **Entrar co
 3. Vá em **Authentication** > **Users**
 4. Clique em **Add user** > **Create new user**
 5. Preencha:
-   - **Email**: ex. `admin@adventurelabs.com.br`
+   - **Email**: ex. `admin@sua-organizacao.com` (use o domínio real só no painel, não em exemplos públicos)
    - **Password**: defina uma senha segura
    - Marque **Auto Confirm User**
 6. Clique em **Create user**
@@ -74,7 +74,7 @@ INSERT INTO young_talents.user_roles (user_id, email, name, role)
 VALUES (NULL, 'seu@email.com', 'Nome do Usuário', 'admin');
 ```
 
-Com a migration **028**, o trigger `sync_user_role_on_login` **só atualiza** `user_id` e metadados se **já existir** linha em `user_roles` para aquele e-mail. **Não** cria mais usuário `viewer` automático no primeiro login — o cadastro deve existir antes (admin ou Edge Function).
+O trigger `sync_user_role_on_login` preencherá o `user_id` automaticamente no primeiro login.
 
 ---
 
@@ -132,7 +132,6 @@ Depois do deploy, em **Configurações > Usuários > Adicionar Usuário**, selec
 
 ## Segurança
 
-- Modelo completo (RLS, público, papéis): [SECURITY_MODEL.md](./SECURITY_MODEL.md)
 - **Após o primeiro login, altere a senha provisória** em Configurações > Alterar senha
 - A `SUPABASE_SERVICE_ROLE_KEY` nunca deve ser exposta no frontend
 - Use o script apenas em ambiente local ou em pipelines seguros
@@ -169,4 +168,4 @@ Execute as migrations do Supabase na ordem correta.
 Verifique se existe registro em `young_talents.user_roles` com o email correto e role adequada.
 
 ### Login de desenvolvedor não funciona
-Confirme que o email é um dos reconhecidos: `dev@adventurelabs.com.br` ou `developer@adventurelabs.com.br`, e que o usuário existe no Supabase Auth.
+Confirme que o e-mail está listado na função `young_talents.is_developer()` (migrations do projeto) ou que o usuário tem role staff em `user_roles`, conforme a política atual do repositório canônico (`apps/clientes/young-talents/plataforma`).

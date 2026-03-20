@@ -1,4 +1,4 @@
-﻿2026-02-04T14:43:23.5731630Z Current runner version: '2.331.0'
+2026-02-04T14:43:23.5731630Z Current runner version: '2.331.0'
 2026-02-04T14:43:23.5756839Z ##[group]Runner Image Provisioner
 2026-02-04T14:43:23.5757847Z Hosted Compute Agent
 2026-02-04T14:43:23.5758378Z Version: 20260123.484
@@ -383,7 +383,7 @@
 2026-02-04T14:44:46.6288710Z 9b6a811c69a0: Pull complete
 2026-02-04T14:44:46.6325363Z Digest: sha256:82a04ba6c05f60950a74ae46be3726abb18d06ee44da936276fd782e72e36855
 2026-02-04T14:44:46.6338611Z Status: Downloaded newer image for ghcr.io/supabase/postgres:17.6.1.075
-2026-02-04T14:44:46.7966030Z pg_dump: error: connection to server at "db.ttvwfocuftsvyziecjeu.supabase.co" (2600:1f1e:75b:4b04:b8a7:147b:63ef:cb6a), port 5432 failed: Network is unreachable
+2026-02-04T14:44:46.7966030Z pg_dump: error: connection to server at "db.<REDACTED_PROJECT_REF>.supabase.co" (<REDACTED_IPv6>), port 5432 failed: Network is unreachable
 2026-02-04T14:44:46.7967992Z 	Is the server running on that host and accepting TCP/IP connections?
 2026-02-04T14:44:46.8375511Z error running container: exit 1
 2026-02-04T14:44:46.8376128Z Try rerunning the command with --debug to troubleshoot the error.

@@ -25,3 +25,5 @@ Arquivos para executar no **SQL Editor** do [Supabase Dashboard](https://supabas
 | `05_add_posting_channels_to_jobs.sql` | Erro ao editar/criar vaga: *"Could not find the 'posting_channels' column of 'jobs'"* |
 
 Os arquivos 01–03 e 05 usam `ADD COLUMN IF NOT EXISTS`. O 04 recria a view e as funções de trigger; é seguro executar mais de uma vez.
+
+**Segurança / RLS / acesso ao ATS:** ver `wiki/Young-Talents-ATS-Seguranca.md` e `docs/young-talents/sql/README.md` na raiz do monorepo (migrations **037–039** no app `plataforma`).

@@ -75,7 +75,7 @@ jobs:
           BACKUP_NOTIFY_EMAIL: ${{ secrets.BACKUP_NOTIFY_EMAIL }}
           RESEND_FROM: ${{ secrets.RESEND_FROM_EMAIL }}
         run: |
-          FROM="${RESEND_FROM:-contato@adventurelabs.com.br}"
+          FROM="${RESEND_FROM:?Defina o secret RESEND_FROM_EMAIL no repositório (remetente verificado no Resend)}"
           IFS=','; read -ra EMAILS <<< "$BACKUP_NOTIFY_EMAIL"
           TO_JSON=$(for e in "${EMAILS[@]}"; do echo -n "\"$(echo "$e" | xargs)\","; done | sed 's/,$//')
           TO_ARR="[$TO_JSON]"
@@ -93,7 +93,7 @@ jobs:
           BACKUP_NOTIFY_EMAIL: ${{ secrets.BACKUP_NOTIFY_EMAIL }}
           RESEND_FROM: ${{ secrets.RESEND_FROM_EMAIL }}
         run: |
-          FROM="${RESEND_FROM:-contato@adventurelabs.com.br}}"
+          FROM="${RESEND_FROM:?Defina o secret RESEND_FROM_EMAIL no repositório (remetente verificado no Resend)}"
           IFS=','; read -ra EMAILS <<< "$BACKUP_NOTIFY_EMAIL"
           TO_JSON=$(for e in "${EMAILS[@]}"; do echo -n "\"$(echo "$e" | xargs)\","; done | sed 's/,$//')
           TO_ARR="[$TO_JSON]"

@@ -2,6 +2,8 @@
 
 Índice da documentação ativa. O ATS usa **Supabase** (não Firebase).
 
+**Clone seguro:** não commite senhas, chaves, `project-ref`, e-mails pessoais de clientes nem URLs internas de produção. Use `.env.local`, GitHub Secrets e o Supabase Dashboard.
+
 ## Na raiz do projeto
 
 | Documento | Uso |
@@ -32,7 +34,7 @@
 | [SEED_CANDIDATOS_CLI.md](./SEED_CANDIDATOS_CLI.md) | Seed de candidatos via CLI |
 | [TROUBLESHOOTING_DEPLOY.md](./TROUBLESHOOTING_DEPLOY.md) | Problemas de deploy |
 | [TROUBLESHOOTING_SCHEMA.md](./TROUBLESHOOTING_SCHEMA.md) | Problemas de schema Supabase |
-| [RLS_E_DESENVOLVEDORES.md](./RLS_E_DESENVOLVEDORES.md) | RLS e usuários desenvolvedores (dev, contato@, eduardo@); migrations 024–035; como aplicar |
+| [RLS_E_DESENVOLVEDORES.md](./RLS_E_DESENVOLVEDORES.md) | RLS e função `is_developer()` — visão genérica (sem e-mails/UUIDs de produção no texto) |
 | [DIAGNOSTICO_SUPABASE.md](./DIAGNOSTICO_SUPABASE.md) | Como rodar o diagnóstico SQL/Node do Supabase |
 
 ## C-suite / base de conhecimento
