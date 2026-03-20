@@ -487,10 +487,12 @@ export default function App() {
     await Promise.all([loadCandidates(), loadJobs(), loadCompanies(), loadCities(), loadSectors(), loadRoles(), loadJobLevels(), loadActivityAreas(), loadApplications()]);
   }, [loadCandidates, loadJobs, loadCompanies, loadCities, loadSectors, loadRoles, loadJobLevels, loadActivityAreas, loadApplications]);
 
+  /** Painel interno: só admin/editor (ou dev). Role viewer = só formulário público /apply — não CRM. */
   const hasStaffRole = useMemo(() => {
     if (isDeveloper) return true;
     if (!effectiveUser?.email) return false;
-    return !!userRoleDoc;
+    const r = userRoleDoc?.role;
+    return r === 'admin' || r === 'editor';
   }, [isDeveloper, effectiveUser, userRoleDoc]);
 
   /** Evita redirect para /login antes do fetch de user_roles (comum após OAuth). */

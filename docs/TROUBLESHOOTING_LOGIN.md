@@ -42,6 +42,11 @@ O Young Talents usa **Supabase Auth** com suporte a **email/senha** e **Google O
   - Adicione o usuário em `young_talents.user_roles` (email, name, role). Ver [GUIA_CRIAR_USUARIO_ADMIN.md](./GUIA_CRIAR_USUARIO_ADMIN.md).
   - Se usar Google, o trigger `sync_user_role_on_login` preenche `user_id` no primeiro login; garanta que a migration `017_sync_user_role_on_login.sql` foi aplicada.
 
+### 5c. **Usuário com só `viewer` em `user_roles` entrava no CRM**
+
+- **Causa:** O app tratava “tem linha em `user_roles`” como acesso ao painel. O trigger de sync cria conta nova com role **`viewer`**, então qualquer pessoa que logasse com Google ganhava linha e via o app interno (mesmo só com permissão de “view”).
+- **Comportamento atual:** Só **`admin`** e **`editor`** (e e-mails developer) acessam rotas internas. **`viewer`** ou sem linha: redirecionamento para **`/apply`** (formulário público). Perfil `/candidate/:id` também exige staff.
+
 ### 5b. **Google OAuth volta para a tela de login, mas email/senha funciona**
 
 - **Causa comum 1:** O Google devolve o e-mail com **capitalização diferente** da coluna `email` em `user_roles` (ex.: `Contato@…` vs `contato@…`). O app comparava com `===` e tratava como “sem staff”.

@@ -145,9 +145,24 @@ const AppRoutes = ({
             <Route path="/apply/test" element={<FormSubmitTestPage />} />
             <Route path="/apply/thank-you" element={<ThankYouPage />} />
 
-            <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Navigate to="/apply" replace />} />
+            <Route path="/" element={
+                !user
+                    ? <Navigate to="/apply" replace />
+                    : !authStaffReady
+                    ? <div className="flex min-h-screen items-center justify-center bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400"><Loader2 className="animate-spin mr-2" /> Verificando permissões…</div>
+                    : hasStaffRole
+                    ? <Navigate to="/dashboard" replace />
+                    : <Navigate to="/apply" replace />
+            } />
 
             <Route path="/candidate/:id/:tab?" element={
+                !user
+                    ? <Navigate to="/login" replace />
+                    : !authStaffReady
+                    ? <div className="flex min-h-screen items-center justify-center bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400"><Loader2 className="animate-spin mr-2" /> Verificando permissões…</div>
+                    : !hasStaffRole
+                    ? <Navigate to="/apply" replace />
+                    : (
                 <CandidateProfilePage
                     candidates={candidates}
                     jobs={jobs}
@@ -161,6 +176,7 @@ const AppRoutes = ({
                     onScheduleInterview={(candidate) => setInterviewModalData({ candidate })}
                     onStatusChange={handleDragEnd}
                 />
+                    )
             } />
 
             <Route path="*" element={
@@ -169,7 +185,7 @@ const AppRoutes = ({
                     : !authStaffReady
                     ? <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400"><Loader2 className="animate-spin mr-2" /> Verificando permissões…</div>
                     : !hasStaffRole
-                    ? <Navigate to="/login" replace />
+                    ? <Navigate to="/apply" replace />
                     : <AppLayout
                     isSidebarCollapsed={isSidebarCollapsed}
                     SidebarComponent={
