@@ -359,7 +359,7 @@ export default function App() {
       let hasMore = true;
       while (hasMore) {
         const { data, error } = await supabase
-          .from('candidates')
+          .from('talents_candidates')
           .select('*')
           .order('created_at', { ascending: false })
           .range(offset, offset + PAGE_SIZE - 1);
