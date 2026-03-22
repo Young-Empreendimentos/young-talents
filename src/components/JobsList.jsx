@@ -1,7 +1,22 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Plus, Edit3, MapPin, Briefcase, Building2, BarChart3 } from 'lucide-react';
+import { Plus, Edit3, MapPin, Briefcase, Building2, BarChart3, Clock } from 'lucide-react';
 import { JOB_STATUSES } from '../constants';
 import { findMatchingCandidates, getMatchBadgeColor } from '../utils/matching';
+
+const daysOpen = (job) => {
+    const raw = job.createdAt || job.created_at;
+    if (!raw) return null;
+    const ms = typeof raw === 'number' ? raw * 1000 : new Date(raw).getTime();
+    return Math.floor((Date.now() - ms) / 86400000);
+};
+
+const formatDeadline = (deadline) => {
+    if (!deadline) return null;
+    const d = new Date(deadline);
+    const expired = d < new Date();
+    const label = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return { label, expired };
+};
 
 const JobsList = ({ jobs, candidates, onAdd, onEdit, onToggleStatus, onViewCandidates, companies, initialStatusFilter }) => {
     const [activeTab, setActiveTab] = useState('status');
@@ -122,11 +137,11 @@ const JobsList = ({ jobs, candidates, onAdd, onEdit, onToggleStatus, onViewCandi
     const renderJobCard = (j) => {
         const matchInfo = jobMatches[j.id] || { count: 0, topMatch: null, allMatches: [] };
         return (
-            <div key={j.id} className="bg-brand-card p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg group hover:border-brand-cyan/50 transition-colors">
+            <div key={j.id} className="bg-brand-card p-6 rounded-lg border border-border shadow-sm group hover:border-brand-cyan/50 transition-colors">
                 <div className="flex justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <select
-                            className="text-xs px-2 py-1 rounded border bg-transparent outline-none cursor-pointer text-gray-600 dark:text-gray-400 border-brand-cyan/30 hover:bg-brand-cyan/10 transition-colors"
+                            className="text-xs px-2 py-1 rounded border bg-transparent outline-none cursor-pointer text-muted-foreground border-brand-cyan/30 hover:bg-brand-cyan/10 transition-colors"
                             value={j.status}
                             onChange={(e) => onToggleStatus('jobs', { id: j.id, status: e.target.value })}
                             onClick={(e) => e.stopPropagation()}
@@ -148,7 +163,7 @@ const JobsList = ({ jobs, candidates, onAdd, onEdit, onToggleStatus, onViewCandi
                 <div className="space-y-1 mb-4">
                     {j.city && <p className="text-xs text-slate-500 flex items-center gap-1"><MapPin size={12} /> {j.city}</p>}
                     {j.sector && <p className="text-xs text-slate-500 flex items-center gap-1"><BarChart3 size={12} /> {j.sector}</p>}
-                    {j.interestArea && <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1"><Briefcase size={12} /> {j.interestArea}</p>}
+                    {j.interestArea && <p className="text-xs text-muted-foreground flex items-center gap-1"><Briefcase size={12} /> {j.interestArea}</p>}
                     {j.priority && (
                         <p className="text-xs flex items-center gap-1">
                             <span className={`px-1.5 py-0.5 rounded font-medium ${j.priority === 'Alta' ? 'bg-red-500/20 text-red-400' : j.priority === 'Baixa' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
@@ -156,10 +171,19 @@ const JobsList = ({ jobs, candidates, onAdd, onEdit, onToggleStatus, onViewCandi
                             </span>
                         </p>
                     )}
+                    {j.status === 'Aberta' && (() => {
+                        const dl = formatDeadline(j.deadline);
+                        if (!dl) return null;
+                        return (
+                            <p className={`text-xs flex items-center gap-1 font-medium ${dl.expired ? 'text-red-500' : 'text-slate-400'}`}>
+                                <Clock size={11} /> Prazo: {dl.label}{dl.expired ? ' — vencido' : ''}
+                            </p>
+                        );
+                    })()}
                 </div>
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-4 flex justify-between items-center">
+                <div className="border-t border-border pt-4 flex justify-between items-center">
                     <p
-                        className="text-xs text-slate-500 cursor-pointer hover:text-gray-600 dark:text-gray-400 transition-colors"
+                        className="text-xs text-slate-500 cursor-pointer hover:text-muted-foreground transition-colors"
                         onClick={(e) => {
                             e.stopPropagation();
                             if (onViewCandidates) onViewCandidates(j);
@@ -167,6 +191,11 @@ const JobsList = ({ jobs, candidates, onAdd, onEdit, onToggleStatus, onViewCandi
                     >
                         {candidates.filter(c => c.jobId === j.id).length} candidatos
                     </p>
+                    {j.status === 'Aberta' && daysOpen(j) !== null && (
+                        <span className="flex items-center gap-1 text-xs text-slate-500">
+                            <Clock size={11} /> aberta há {daysOpen(j)}d
+                        </span>
+                    )}
                 </div>
             </div>
         );
@@ -179,7 +208,7 @@ const JobsList = ({ jobs, candidates, onAdd, onEdit, onToggleStatus, onViewCandi
                 <h2 className="text-2xl font-bold text-white">Vagas</h2>
                 <button
                     onClick={onAdd}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors font-medium shadow-lg hover:shadow-xl"
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors font-medium shadow-sm hover:shadow-xl"
                 >
                     <Plus size={20} /> Abrir Vaga
                 </button>
@@ -189,7 +218,7 @@ const JobsList = ({ jobs, candidates, onAdd, onEdit, onToggleStatus, onViewCandi
             <div className="flex gap-3 items-center">
                 <label className="text-sm font-medium text-gray-300">Visualizar por:</label>
                 <select
-                    className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-4 py-2 text-sm text-white outline-none focus:border-brand-cyan min-w-[180px]"
+                    className="bg-brand-card border border-border rounded px-4 py-2 text-sm text-white outline-none focus:border-brand-cyan min-w-[180px]"
                     value={activeTab}
                     onChange={e => {
                         setActiveTab(e.target.value);
@@ -211,7 +240,7 @@ const JobsList = ({ jobs, candidates, onAdd, onEdit, onToggleStatus, onViewCandi
             <div className="flex gap-3 items-center flex-wrap">
                 {activeTab === 'status' && (
                     <select
-                        className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-3 py-1.5 text-sm text-white outline-none focus:border-brand-cyan"
+                        className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none focus:border-brand-cyan"
                         value={statusFilter}
                         onChange={e => setStatusFilter(e.target.value)}
                     >
@@ -221,7 +250,7 @@ const JobsList = ({ jobs, candidates, onAdd, onEdit, onToggleStatus, onViewCandi
                 )}
                 {activeTab === 'city' && (
                     <select
-                        className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-3 py-1.5 text-sm text-white outline-none focus:border-brand-cyan"
+                        className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none focus:border-brand-cyan"
                         value={cityFilter}
                         onChange={e => setCityFilter(e.target.value)}
                     >
@@ -233,7 +262,7 @@ const JobsList = ({ jobs, candidates, onAdd, onEdit, onToggleStatus, onViewCandi
                 )}
                 {activeTab === 'company' && (
                     <select
-                        className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-3 py-1.5 text-sm text-white outline-none focus:border-brand-cyan"
+                        className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none focus:border-brand-cyan"
                         value={companyFilter}
                         onChange={e => setCompanyFilter(e.target.value)}
                     >
@@ -245,7 +274,7 @@ const JobsList = ({ jobs, candidates, onAdd, onEdit, onToggleStatus, onViewCandi
                 )}
                 {activeTab === 'period' && (
                     <select
-                        className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-3 py-1.5 text-sm text-white outline-none focus:border-brand-cyan"
+                        className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none focus:border-brand-cyan"
                         value={periodFilter}
                         onChange={e => setPeriodFilter(e.target.value)}
                     >

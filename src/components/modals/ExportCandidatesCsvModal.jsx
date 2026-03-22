@@ -73,11 +73,11 @@ export default function ExportCandidatesCsvModal({ isOpen, onClose, candidates =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
+      <div className="bg-card rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-border">
+        <div className="p-6 border-b border-border flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
           <div>
-            <h3 className="font-bold text-xl text-gray-900 dark:text-white">Exportar candidatos</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <h3 className="font-bold text-xl text-foreground">Exportar candidatos</h3>
+            <p className="text-sm text-muted-foreground mt-1">
               {candidates.length} {candidates.length === 1 ? 'candidato' : 'candidatos'} na lista. Escolha o formato e as colunas.
             </p>
           </div>
@@ -86,13 +86,13 @@ export default function ExportCandidatesCsvModal({ isOpen, onClose, candidates =
             onClick={onClose}
             className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
-            <X className="text-gray-500 dark:text-gray-400" size={20} />
+            <X className="text-muted-foreground" size={20} />
           </button>
         </div>
 
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 space-y-3">
+        <div className="p-4 border-b border-border space-y-3">
           <div>
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-2">Formato de exportação</span>
+            <span className="text-xs font-medium text-muted-foreground block mb-2">Formato de exportação</span>
             <div className="flex flex-wrap gap-3">
               {EXPORT_FORMATS.map((f) => (
                 <label
@@ -100,7 +100,7 @@ export default function ExportCandidatesCsvModal({ isOpen, onClose, candidates =
                   className={`flex items-center gap-2 cursor-pointer rounded-lg border px-4 py-2.5 transition-colors ${
                     exportFormat === f.value
                       ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                      : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-500'
+                      : 'border-gray-200 dark:border-gray-600 bg-card hover:border-gray-300 dark:hover:border-gray-500'
                   }`}
                 >
                   <input
@@ -123,32 +123,32 @@ export default function ExportCandidatesCsvModal({ isOpen, onClose, candidates =
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-          <span className="text-xs font-medium text-gray-600 dark:text-gray-400 self-center">Atalhos colunas:</span>
+          <span className="text-xs font-medium text-muted-foreground self-center">Atalhos colunas:</span>
           <button
             type="button"
             onClick={selectContactOnly}
-            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             Apenas contato
           </button>
           <button
             type="button"
             onClick={selectDefault}
-            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             Padrão (nome, email, telefone, cidade, status)
           </button>
           <button
             type="button"
             onClick={selectAll}
-            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             Selecionar todos
           </button>
           <button
             type="button"
             onClick={selectNone}
-            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             Desmarcar todos
           </button>
@@ -158,7 +158,7 @@ export default function ExportCandidatesCsvModal({ isOpen, onClose, candidates =
         <div className="flex-1 overflow-y-auto p-4">
           {byCategory.map(({ category, fields }) => (
             <div key={category} className="mb-4">
-              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 capitalize">{category}</h4>
+              <h4 className="text-sm font-semibold text-muted-foreground mb-2 capitalize">{category}</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {fields.map(f => (
                   <label
@@ -184,8 +184,8 @@ export default function ExportCandidatesCsvModal({ isOpen, onClose, candidates =
           ))}
         </div>
 
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="p-6 border-t border-border flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
+          <p className="text-sm text-muted-foreground">
             {selectedKeys.size} {selectedKeys.size === 1 ? 'coluna' : 'colunas'} selecionada(s)
             {selectedKeys.size === 0 && (
               <span className="text-amber-600 dark:text-amber-400 ml-1">— selecione ao menos uma.</span>
@@ -195,7 +195,7 @@ export default function ExportCandidatesCsvModal({ isOpen, onClose, candidates =
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             >
               Cancelar
             </button>

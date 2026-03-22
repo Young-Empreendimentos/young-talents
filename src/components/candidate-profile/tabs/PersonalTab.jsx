@@ -21,15 +21,15 @@ export default function PersonalTab({
         }
     };
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+        <div className="bg-card rounded-lg border border-border p-6">
+            <h2 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
                 <User size={20} />
                 Informações Pessoais
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                         <Calendar size={16} className="text-gray-400" />
                         Data de Nascimento
                     </label>
@@ -38,15 +38,15 @@ export default function PersonalTab({
                             type="date"
                             value={editData.birthDate || ''}
                             onChange={(e) => handleFieldChange('birthDate', e.target.value)}
-                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full bg-background border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-foreground focus:ring-2 focus:ring-blue-500 outline-none"
                         />
                     ) : (
-                        <p className="text-gray-900 dark:text-white">{candidate.birthDate ? formatDate(candidate.birthDate) : 'Não informado'}</p>
+                        <p className="text-foreground">{candidate.birthDate ? formatDate(candidate.birthDate) : 'Não informado'}</p>
                     )}
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                         Idade
                     </label>
                     {isEditing ? (
@@ -54,17 +54,17 @@ export default function PersonalTab({
                             type="number"
                             value={editData.age || ''}
                             onChange={(e) => handleFieldChange('age', e.target.value ? parseInt(e.target.value) : null)}
-                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full bg-background border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-foreground focus:ring-2 focus:ring-blue-500 outline-none"
                             min="0"
                             max="120"
                         />
                     ) : (
-                        <p className="text-gray-900 dark:text-white">{candidate.age ? `${candidate.age} anos` : 'Não informado'}</p>
+                        <p className="text-foreground">{candidate.age ? `${candidate.age} anos` : 'Não informado'}</p>
                     )}
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                         <Car size={16} className="text-gray-400" />
                         CNH (tipo B) <span className="text-red-500">*</span>
                     </label>
@@ -72,21 +72,21 @@ export default function PersonalTab({
                         <select
                             value={editData.hasLicense || ''}
                             onChange={(e) => handleFieldChange('hasLicense', e.target.value)}
-                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full bg-background border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-foreground focus:ring-2 focus:ring-blue-500 outline-none"
                         >
                             <option value="">Selecione</option>
                             <option value="Sim">Sim</option>
                             <option value="Não">Não</option>
                         </select>
                     ) : (
-                        <p className={`font-medium ${candidate.hasLicense === 'Sim' ? 'text-green-600 dark:text-green-400' : candidate.hasLicense === 'Não' ? 'text-gray-900 dark:text-white' : 'text-amber-600 dark:text-amber-400'}`}>
+                        <p className={`font-medium ${candidate.hasLicense === 'Sim' ? 'text-green-600 dark:text-green-400' : candidate.hasLicense === 'Não' ? 'text-foreground' : 'text-amber-600 dark:text-amber-400'}`}>
                             {candidate.hasLicense === 'Sim' ? 'Sim' : candidate.hasLicense === 'Não' ? 'Não' : 'Não informado — preencha na edição'}
                         </p>
                     )}
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                         <Heart size={16} className="text-gray-400" />
                         Estado Civil
                     </label>
@@ -94,7 +94,7 @@ export default function PersonalTab({
                         <select
                             value={editData.maritalStatus || ''}
                             onChange={(e) => handleFieldChange('maritalStatus', e.target.value)}
-                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full bg-background border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-foreground focus:ring-2 focus:ring-blue-500 outline-none"
                         >
                             <option value="">Selecione</option>
                             <option value="Solteiro(a)">Solteiro(a)</option>
@@ -105,12 +105,12 @@ export default function PersonalTab({
                             <option value="Namorando">Namorando</option>
                         </select>
                     ) : (
-                        <p className="text-gray-900 dark:text-white">{candidate.maritalStatus || 'Não informado'}</p>
+                        <p className="text-foreground">{candidate.maritalStatus || 'Não informado'}</p>
                     )}
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                         <Users size={16} className="text-gray-400" />
                         Número de Filhos
                     </label>
@@ -118,18 +118,18 @@ export default function PersonalTab({
                         <select
                             value={editData.childrenCount != null && editData.childrenCount !== '' ? normalizeChildrenForStorage(editData.childrenCount) : ''}
                             onChange={(e) => handleFieldChange('childrenCount', e.target.value === '' ? '' : normalizeChildrenForStorage(e.target.value))}
-                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full bg-background border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-foreground focus:ring-2 focus:ring-blue-500 outline-none"
                         >
                             <option value="">Selecione</option>
                             {CHILDREN_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                         </select>
                     ) : (
-                        <p className="text-gray-900 dark:text-white">{formatChildrenForDisplay(candidate.childrenCount) || 'Não informado'}</p>
+                        <p className="text-foreground">{formatChildrenForDisplay(candidate.childrenCount) || 'Não informado'}</p>
                     )}
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                         <Camera size={16} className="text-gray-400" />
                         URL da Foto
                     </label>
@@ -138,7 +138,7 @@ export default function PersonalTab({
                             type="url"
                             value={editData.photoUrl || ''}
                             onChange={(e) => handleFieldChange('photoUrl', e.target.value)}
-                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full bg-background border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-foreground focus:ring-2 focus:ring-blue-500 outline-none"
                             placeholder="https://..."
                         />
                     ) : (
@@ -175,7 +175,7 @@ export default function PersonalTab({
                 </div>
 
                 <div className="md:col-span-2 pt-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                         Informações Adicionais / Bio
                     </label>
                     {isEditing ? (
@@ -183,11 +183,11 @@ export default function PersonalTab({
                             value={editData.freeField || ''}
                             onChange={(e) => handleFieldChange('freeField', e.target.value)}
                             rows={4}
-                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full bg-background border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-foreground focus:ring-2 focus:ring-blue-500 outline-none"
                             placeholder="Conte mais sobre o candidato..."
                         />
                     ) : (
-                        <p className="text-gray-900 dark:text-white whitespace-pre-wrap text-sm leading-relaxed">
+                        <p className="text-foreground whitespace-pre-wrap text-sm leading-relaxed">
                             {candidate.freeField || 'Não informado.'}
                         </p>
                     )}

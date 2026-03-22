@@ -262,10 +262,10 @@ export default function CandidateProfilePage({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-white dark:bg-gray-900">
+      <div className="flex items-center justify-center h-screen bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Carregando candidato...</p>
+          <p className="text-muted-foreground">Carregando candidato...</p>
         </div>
       </div>
     );
@@ -273,11 +273,11 @@ export default function CandidateProfilePage({
 
   if (!candidate && !loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-gray-900 p-4">
+      <div className="flex items-center justify-center min-h-screen bg-background p-4">
         <div className="text-center max-w-md">
           <AlertCircle className="h-12 w-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
-          <p className="text-gray-700 dark:text-gray-300 font-medium mb-2">Candidato não encontrado</p>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">O perfil solicitado não existe ou você não tem acesso.</p>
+          <p className="text-muted-foreground font-medium mb-2">Candidato não encontrado</p>
+          <p className="text-muted-foreground text-sm mb-6">O perfil solicitado não existe ou você não tem acesso.</p>
           <button
             onClick={() => navigate('/dashboard')}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
@@ -299,15 +299,15 @@ export default function CandidateProfilePage({
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+      <div className="bg-card border-b border-border sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate(location.state?.from || '/dashboard')}
-                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="p-2 text-muted-foreground hover:text-gray-900 dark:hover:white rounded-lg hover:bg-muted"
               >
                 <ArrowLeft size={20} />
               </button>
@@ -333,7 +333,7 @@ export default function CandidateProfilePage({
                 )}
               </div>
               <div className="flex flex-col">
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+                <h1 className="text-xl font-bold text-foreground leading-tight">
                   {candidate.fullName || 'Candidato sem nome'}
                 </h1>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -350,7 +350,7 @@ export default function CandidateProfilePage({
             <div className="flex items-center gap-3">
               {/* Botões de Ação Rápida */}
               {!isEditing && (
-                <div className="hidden md:flex items-center gap-2 mr-4 pr-4 border-r border-gray-200 dark:border-gray-700">
+                <div className="hidden md:flex items-center gap-2 mr-4 pr-4 border-r border-border">
                   {/* CV(s) */}
                   {parseCandidateUrls(candidate.cvUrl).map((url, idx, arr) => (
                     <LinkWithStatus
@@ -384,7 +384,7 @@ export default function CandidateProfilePage({
                       setEditData(candidate);
                       setIsEditing(false);
                     }}
-                    className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm font-medium"
+                    className="px-4 py-2 text-muted-foreground hover:text-gray-900 dark:hover:text-white text-sm font-medium"
                   >
                     Cancelar
                   </button>
@@ -412,7 +412,7 @@ export default function CandidateProfilePage({
       </div>
 
       {/* Tabs */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-16 z-10">
+      <div className="bg-card border-b border-border sticky top-16 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-1 overflow-x-auto scroller-hidden">
             {tabs.map(item => {
@@ -424,7 +424,7 @@ export default function CandidateProfilePage({
                   onClick={() => navigate(`/candidate/${id}/${item.id}`, { state: location.state })}
                   className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex items-center gap-2 ${isActive
                     ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
+                    : 'border-transparent text-muted-foreground hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
                     }`}
                 >
                   <Icon size={16} />

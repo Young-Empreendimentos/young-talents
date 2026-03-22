@@ -32,7 +32,7 @@ const MasterDataManager = ({ collection, title, fields, items, onSave, onDelete,
     return (
         <div className="p-6 h-full overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h2>
+                <h2 className="text-2xl font-bold text-foreground">{title}</h2>
                 <button
                     onClick={() => { setEditing({}); setFormData({}); }}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
@@ -47,27 +47,27 @@ const MasterDataManager = ({ collection, title, fields, items, onSave, onDelete,
                     placeholder="Buscar..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    className="w-full max-w-md bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-gray-900 dark:text-white"
+                    className="w-full max-w-md bg-card border border-input rounded-lg px-4 py-2 text-foreground"
                 />
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="bg-card rounded-lg border border-border overflow-hidden">
                 <table className="w-full text-sm">
                     <thead className="bg-gray-100 dark:bg-gray-900">
                         <tr>
                             {fields.map(f => (
-                                <th key={f.key} className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">
+                                <th key={f.key} className="px-4 py-3 text-left font-semibold text-muted-foreground">
                                     {f.label} {f.required && <span className="text-red-500">*</span>}
                                 </th>
                             ))}
-                            <th className="px-4 py-3 text-right font-semibold text-gray-700 dark:text-gray-300">Ações</th>
+                            <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Ações</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                         {filteredItems.map(item => (
                             <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                 {fields.map(f => (
-                                    <td key={f.key} className="px-4 py-3 text-gray-900 dark:text-white">
+                                    <td key={f.key} className="px-4 py-3 text-foreground">
                                         {f.optionsKey && options[f.optionsKey]
                                             ? (options[f.optionsKey].find(o => o.id === item[f.key])?.name ?? '-')
                                             : (item[f.key] ?? '-')}
@@ -101,23 +101,23 @@ const MasterDataManager = ({ collection, title, fields, items, onSave, onDelete,
 
             {editing && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md border border-gray-200 dark:border-gray-700">
-                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                    <div className="bg-card rounded-lg shadow-xl w-full max-w-md border border-border">
+                        <div className="p-6 border-b border-border">
+                            <h3 className="text-lg font-bold text-foreground">
                                 {editing.id ? 'Editar' : 'Novo'} {title}
                             </h3>
                         </div>
                         <div className="p-6 space-y-4">
                             {fields.map(f => (
                                 <div key={f.key}>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    <label className="block text-sm font-medium text-muted-foreground mb-1">
                                         {f.label} {f.required && <span className="text-red-500">*</span>}
                                     </label>
                                     {f.type === 'select' && f.optionsKey && options[f.optionsKey] ? (
                                         <select
                                             value={formData[f.key] || ''}
                                             onChange={e => setFormData({ ...formData, [f.key]: e.target.value || null })}
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-gray-900 dark:text-white"
+                                            className="w-full bg-background border border-input rounded-lg px-3 py-2 text-foreground"
                                         >
                                             <option value="">— Selecionar —</option>
                                             {options[f.optionsKey].map(opt => (
@@ -129,17 +129,17 @@ const MasterDataManager = ({ collection, title, fields, items, onSave, onDelete,
                                             type="text"
                                             value={formData[f.key] || ''}
                                             onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-gray-900 dark:text-white"
+                                            className="w-full bg-background border border-input rounded-lg px-3 py-2 text-foreground"
                                             required={f.required}
                                         />
                                     )}
                                 </div>
                             ))}
                         </div>
-                        <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
+                        <div className="p-6 border-t border-border flex justify-end gap-2">
                             <button
                                 onClick={() => { setEditing(null); setFormData({}); }}
-                                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                                className="px-4 py-2 text-muted-foreground hover:text-gray-800 dark:hover:text-gray-200"
                             >
                                 Cancelar
                             </button>

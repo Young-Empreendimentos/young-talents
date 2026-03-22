@@ -136,7 +136,7 @@ const AppRoutes = ({
     const navigate = useNavigate();
     const location = useLocation();
 
-    if (authLoading) return <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400"><Loader2 className="animate-spin mr-2" /> Carregando...</div>;
+    if (authLoading) return <div className="flex h-screen items-center justify-center bg-background text-muted-foreground"><Loader2 className="animate-spin mr-2" /> Carregando...</div>;
 
     return (
         <Routes>
@@ -149,7 +149,7 @@ const AppRoutes = ({
                 !user
                     ? <Navigate to="/login" replace />
                     : !authStaffReady
-                    ? <div className="flex min-h-screen items-center justify-center bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400"><Loader2 className="animate-spin mr-2" /> Verificando permissões…</div>
+                    ? <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground"><Loader2 className="animate-spin mr-2" /> Verificando permissões…</div>
                     : hasStaffRole
                     ? <Navigate to="/dashboard" replace />
                     : <Navigate to="/apply" replace />
@@ -159,7 +159,7 @@ const AppRoutes = ({
                 !user
                     ? <Navigate to="/login" replace />
                     : !authStaffReady
-                    ? <div className="flex min-h-screen items-center justify-center bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400"><Loader2 className="animate-spin mr-2" /> Verificando permissões…</div>
+                    ? <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground"><Loader2 className="animate-spin mr-2" /> Verificando permissões…</div>
                     : !hasStaffRole
                     ? <Navigate to="/apply" replace />
                     : (
@@ -183,7 +183,7 @@ const AppRoutes = ({
                 !user
                     ? <Navigate to="/login" replace />
                     : !authStaffReady
-                    ? <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400"><Loader2 className="animate-spin mr-2" /> Verificando permissões…</div>
+                    ? <div className="flex h-screen items-center justify-center bg-background text-muted-foreground"><Loader2 className="animate-spin mr-2" /> Verificando permissões…</div>
                     : !hasStaffRole
                     ? <Navigate to="/apply" replace />
                     : <AppLayout
@@ -277,7 +277,7 @@ const AppRoutes = ({
                     {activeTab === 'diagnostic' && <div className="p-6 overflow-y-auto h-full"><DiagnosticPage candidates={candidates} /></div>}
                     {activeTab === 'settings' && (currentUserRole === 'viewer'
                         ? <Navigate to="/dashboard" replace />
-                        : <div className="p-0 h-full"><SettingsPage {...optionsProps} onOpenCsvModal={openCsvModal} activeSettingsTab={route.settingsTab} onSettingsTabChange={(tab) => { const params = new URLSearchParams(location.search); params.set('settingsTab', tab); navigate(`${location.pathname}?${params.toString()}`); setRoute(prev => ({ ...prev, settingsTab: tab })); }} onShowToast={showToast} userRoles={userRoles} currentUserRole={currentUserRole} onSetUserRole={setUserRole} onRemoveUserRole={removeUserRole} onCreateUserWithPassword={createUserWithPassword} currentUserEmail={effectiveUser?.email} currentUserName={effectiveUser?.displayName} currentUserPhoto={effectiveUser?.photoURL} activityLog={activityLog} candidateFields={CANDIDATE_FIELDS} /></div>)}
+                        : <div className="p-0 h-full"><SettingsPage {...optionsProps} onOpenCsvModal={openCsvModal} activeSettingsTab={route.settingsTab} onSettingsTabChange={(tab) => { const params = new URLSearchParams(location.search); params.set('settingsTab', tab); navigate(`${location.pathname}?${params.toString()}`); setRoute(prev => ({ ...prev, settingsTab: tab })); }} onShowToast={showToast} userRoles={userRoles} currentUserRole={currentUserRole} onSetUserRole={setUserRole} onRemoveUserRole={removeUserRole} onCreateUserWithPassword={createUserWithPassword} currentUserEmail={effectiveUser?.email} currentUserName={effectiveUser?.displayName} currentUserPhoto={effectiveUser?.photoURL} activityLog={activityLog} candidateFields={CANDIDATE_FIELDS} candidates={candidates} /></div>)}
 
                     <FilterSidebar isOpen={isFilterSidebarOpen} onClose={() => setIsFilterSidebarOpen(false)} filters={filters} setFilters={setFilters} clearFilters={() => setFilters(initialFilters)} options={optionsProps} candidates={candidates} />
 
@@ -420,7 +420,7 @@ const AppRoutes = ({
                     )}
 
                     {toast && (
-                        <div className={`fixed bottom-4 right-4 z-[70] px-4 py-3 rounded-lg shadow-lg border text-sm ${toast.type === 'success' ? 'bg-emerald-500/20 text-emerald-200 border-emerald-500/40' :
+                        <div className={`fixed bottom-4 right-4 z-[70] px-4 py-3 rounded-lg shadow-sm border text-sm ${toast.type === 'success' ? 'bg-emerald-500/20 text-emerald-200 border-emerald-500/40' :
                             toast.type === 'error' ? 'bg-red-500/20 text-red-200 border-red-500/40' :
                                 'bg-slate-800 text-slate-200 border-slate-600'
                             }`}>

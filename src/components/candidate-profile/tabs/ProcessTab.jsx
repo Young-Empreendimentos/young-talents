@@ -21,14 +21,14 @@ export default function ProcessTab({
     return (
         <div className="space-y-6">
             {/* Gestão de Etapa */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <div className="bg-card rounded-lg border border-border p-6">
+                <h2 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
                     <TrendingUp size={20} />
                     Gestão de Etapa no Funil
                 </h2>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                         Status Atual do Candidato
                     </label>
                     {isEditing ? (
@@ -42,7 +42,7 @@ export default function ProcessTab({
                                 } hover:opacity-80 outline-none focus:ring-2 focus:ring-blue-500`}
                         >
                             {ALL_STATUSES.map(status => (
-                                <option key={status} value={status} className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                                <option key={status} value={status} className="bg-card text-foreground">
                                     {status}
                                 </option>
                             ))}
@@ -76,8 +76,8 @@ export default function ProcessTab({
                 {/* Candidaturas e Entrevistas */}
                 <div className="space-y-6">
                     {/* Candidaturas */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                        <h3 className="text-md font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <div className="bg-card rounded-lg border border-border p-6">
+                        <h3 className="text-md font-bold text-foreground mb-4 flex items-center gap-2">
                             <Briefcase size={18} />
                             Vínculos com Vagas ({candidateApplications.length})
                         </h3>
@@ -89,8 +89,8 @@ export default function ProcessTab({
                                         <div key={app.id} className="border border-gray-100 dark:border-gray-700 rounded-lg p-3 bg-slate-50/50 dark:bg-slate-900/30">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="font-bold text-gray-900 dark:text-white text-sm">{job?.title || 'Vaga não encontrada'}</p>
-                                                    <p className="text-xs text-gray-600 dark:text-gray-400">{job?.company || 'Empresa não informada'}</p>
+                                                    <p className="font-bold text-foreground text-sm">{job?.title || 'Vaga não encontrada'}</p>
+                                                    <p className="text-xs text-muted-foreground">{job?.company || 'Empresa não informada'}</p>
                                                 </div>
                                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${STATUS_COLORS[app.status] || 'bg-slate-600 text-white'}`}>
                                                     {app.status || 'Inscrito'}
@@ -101,15 +101,15 @@ export default function ProcessTab({
                                 })}
                             </div>
                         ) : (
-                            <p className="text-gray-500 dark:text-gray-400 text-sm italic py-4 text-center border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-lg">
+                            <p className="text-muted-foreground text-sm italic py-4 text-center border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-lg">
                                 Nenhuma candidatura vinculada
                             </p>
                         )}
                     </div>
 
                     {/* Entrevistas */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                        <h3 className="text-md font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <div className="bg-card rounded-lg border border-border p-6">
+                        <h3 className="text-md font-bold text-foreground mb-4 flex items-center gap-2">
                             <Calendar size={18} />
                             Entrevistas ({candidateInterviews.length})
                         </h3>
@@ -121,10 +121,10 @@ export default function ProcessTab({
                                         <div key={interview.id} className="border border-gray-100 dark:border-gray-700 rounded-lg p-3 bg-slate-50/50 dark:bg-slate-900/30">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="font-bold text-gray-900 dark:text-white text-sm">
+                                                    <p className="font-bold text-foreground text-sm">
                                                         {interview.date} às {interview.time}
                                                     </p>
-                                                    <p className="text-xs text-gray-600 dark:text-gray-400">{job?.title || 'Vaga não encontrada'}</p>
+                                                    <p className="text-xs text-muted-foreground">{job?.title || 'Vaga não encontrada'}</p>
                                                 </div>
                                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${interview.status === 'Realizada' ? 'bg-green-600 text-white' :
                                                     interview.status === 'Cancelada' ? 'bg-red-600 text-white' : 'bg-blue-600 text-white'
@@ -137,7 +137,7 @@ export default function ProcessTab({
                                 })}
                             </div>
                         ) : (
-                            <p className="text-gray-500 dark:text-gray-400 text-sm italic py-4 text-center border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-lg">
+                            <p className="text-muted-foreground text-sm italic py-4 text-center border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-lg">
                                 Nenhuma entrevista agendada
                             </p>
                         )}
@@ -145,8 +145,8 @@ export default function ProcessTab({
                 </div>
 
                 {/* Timeline de Movimentações */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                    <h3 className="text-md font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                <div className="bg-card rounded-lg border border-border p-6">
+                    <h3 className="text-md font-bold text-foreground mb-6 flex items-center gap-2">
                         <History size={18} />
                         Timeline do Candidato
                     </h3>
@@ -175,7 +175,7 @@ export default function ProcessTab({
                                                             {movement.newStatus}
                                                         </span>
                                                     </div>
-                                                    <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                                                    <p className="text-[10px] text-muted-foreground">
                                                         {formatTimestamp(movement.timestamp)} {movement.userName ? `· por ${movement.userName}` : ''}
                                                     </p>
                                                 </div>
@@ -185,7 +185,7 @@ export default function ProcessTab({
                             </div>
                         </div>
                     ) : (
-                        <p className="text-gray-500 dark:text-gray-400 text-sm italic py-8 text-center border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-lg">
+                        <p className="text-muted-foreground text-sm italic py-8 text-center border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-lg">
                             Sem histórico disponível
                         </p>
                     )}

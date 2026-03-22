@@ -3,7 +3,7 @@ import { Info, BookOpen, ExternalLink, Sparkles } from 'lucide-react';
 
 export default function SobrePage() {
   return (
-    <div className="p-6 overflow-y-auto h-full bg-white dark:bg-gray-900">
+    <div className="p-6 overflow-y-auto h-full bg-background">
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col items-center gap-4 mb-8">
           <img
@@ -13,28 +13,28 @@ export default function SobrePage() {
           />
           <div className="flex items-center gap-3">
             <Info size={28} className="text-blue-600 dark:text-blue-400" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Sobre o Young Talents ATS</h1>
+            <h1 className="text-2xl font-bold text-foreground">Sobre o Young Talents ATS</h1>
           </div>
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-800/50">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Visão Geral</h2>
-            <p className="text-gray-700 dark:text-gray-300">
+          <div className="rounded-lg border border-border p-6 bg-card/50">
+            <h2 className="text-lg font-semibold text-foreground mb-3">Visão Geral</h2>
+            <p className="text-muted-foreground">
               O <strong>Young Talents ATS</strong> é um sistema completo de gerenciamento de recrutamento (Applicant Tracking System) 
               que permite gerenciar candidatos, vagas e todo o processo seletivo em um único lugar. Com pipeline visual (Kanban), 
               banco de talentos, formulário público de candidatura e relatórios integrados.
             </p>
           </div>
 
-          <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-800/50">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+          <div className="rounded-lg border border-border p-6 bg-card/50">
+            <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
               <BookOpen size={20} /> Guia de Uso
             </h2>
-            <p className="text-gray-700 dark:text-gray-300 mb-4">
+            <p className="text-muted-foreground mb-4">
               Principais funcionalidades e como utilizá-las:
             </p>
-            <ul className="space-y-2 text-gray-700 dark:text-gray-300 list-disc list-inside">
+            <ul className="space-y-2 text-muted-foreground list-disc list-inside">
               <li><strong>Dashboard</strong> — Métricas e gráficos do processo de recrutamento</li>
               <li><strong>Pipeline</strong> — Visualização Kanban com arrastar e soltar entre etapas</li>
               <li><strong>Banco de Talentos</strong> — Tabela completa com busca, filtros e ordenação</li>
@@ -43,16 +43,16 @@ export default function SobrePage() {
               <li><strong>Relatórios</strong> — Exportação e análises</li>
               <li><strong>Configurações</strong> — Campos, pipeline, importação/exportação</li>
             </ul>
-            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-              Para o guia completo, consulte o arquivo <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">GUIA_USO_APP.md</code> no repositório.
+            <p className="mt-4 text-sm text-muted-foreground">
+              Para o guia completo, consulte o arquivo <code className="bg-muted px-1 rounded">GUIA_USO_APP.md</code> no repositório.
             </p>
           </div>
 
-          <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-800/50">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+          <div className="rounded-lg border border-border p-6 bg-card/50">
+            <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
               <Sparkles size={20} /> Melhorias Futuras
             </h2>
-            <ul className="space-y-3 text-gray-700 dark:text-gray-300">
+            <ul className="space-y-3 text-muted-foreground">
               <li>
                 <strong>Disparos de email na pipeline</strong> — Ao mover o card do candidato entre etapas, disparar emails automáticos 
                 (ex.: confirmação de candidatura, agendamento de entrevista, resultado)
@@ -72,9 +72,9 @@ export default function SobrePage() {
             </ul>
           </div>
 
-          <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-6 bg-blue-50 dark:bg-blue-900/20">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Documentação</h2>
-            <p className="text-gray-700 dark:text-gray-300 mb-3">
+          <div className="rounded-lg border border-border p-6 bg-blue-50 dark:bg-blue-900/20">
+            <h2 className="text-lg font-semibold text-foreground mb-3">Documentação</h2>
+            <p className="text-muted-foreground mb-3">
               Documentação técnica e guias completos estão disponíveis no repositório do projeto:
             </p>
             <a

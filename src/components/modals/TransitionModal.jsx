@@ -222,7 +222,7 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
                     </label>
                     <textarea 
                         required
-                        className="w-full bg-white dark:bg-gray-900 border-2 border-blue-300 dark:border-blue-700 rounded p-3 text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-32" 
+                        className="w-full bg-background border-2 border-blue-300 dark:border-blue-700 rounded p-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-32" 
                         placeholder="Digite o feedback do gestor sobre a primeira entrevista..."
                         value={data.managerFeedback || ''} 
                         onChange={e => setData({...data, managerFeedback: e.target.value})}
@@ -240,7 +240,7 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
                         </label>
                         <select
                             required
-                            className="w-full bg-white dark:bg-gray-900 border-2 border-red-300 dark:border-red-700 rounded p-3 text-sm text-gray-900 dark:text-white outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                            className="w-full bg-background border-2 border-red-300 dark:border-red-700 rounded p-3 text-sm text-foreground outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
                             value={data.rejectionReason || ''}
                             onChange={e => setData({...data, rejectionReason: e.target.value})}
                         >
@@ -263,7 +263,7 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className="bg-brand-card rounded-xl shadow-2xl w-full max-w-md border border-brand-orange animate-in zoom-in duration-200">
+      <div className="bg-brand-card rounded-lg shadow-2xl w-full max-w-md border border-brand-orange animate-in zoom-in duration-200">
         <div className="px-6 py-4 border-b border-brand-border flex justify-between items-center bg-brand-orange/10">
           <h3 className="font-bold text-white flex items-center gap-2">
             <AlertTriangle size={20} className="text-brand-orange" />

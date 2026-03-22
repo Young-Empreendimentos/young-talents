@@ -18,11 +18,11 @@ export default function LinkToJobModal({ linkToJobCandidate, onClose, onVincular
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 max-w-md w-full p-6">
+      <div className="bg-card rounded-lg shadow-xl border border-border max-w-md w-full p-6">
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
             <Briefcase size={24} />
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Vincular a uma vaga</h3>
+            <h3 className="text-lg font-bold text-foreground">Vincular a uma vaga</h3>
           </div>
           <button
             type="button"
@@ -33,17 +33,17 @@ export default function LinkToJobModal({ linkToJobCandidate, onClose, onVincular
             <X size={20} />
           </button>
         </div>
-        <p className="text-gray-700 dark:text-gray-300 mb-2">
+        <p className="text-muted-foreground mb-2">
           Para avançar <strong>{candidateName}</strong> para a etapa &quot;Considerado&quot;, é necessário vincular o candidato a pelo menos uma vaga.
         </p>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+        <p className="text-sm text-muted-foreground mb-6">
           Deseja abrir o perfil do candidato para vincular a uma vaga agora?
         </p>
         <div className="flex gap-3 justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="px-4 py-2 rounded-lg border border-input text-muted-foreground hover:bg-muted transition-colors"
           >
             Cancelar
           </button>

@@ -560,7 +560,7 @@ export default function CsvImportModal({ isOpen, onClose, onImportData, existing
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className="bg-brand-card rounded-xl shadow-2xl w-full max-w-2xl border border-brand-border flex flex-col max-h-[90vh]">
+      <div className="bg-brand-card rounded-lg shadow-2xl w-full max-w-2xl border border-brand-border flex flex-col max-h-[90vh]">
         <div className="p-6 border-b border-brand-border flex justify-between items-center bg-brand-dark/50">
            <h3 className="font-bold text-xl text-white">Importação em Massa (CSV)</h3>
            <button onClick={onClose}><X className="text-slate-400 hover:text-white"/></button>
@@ -570,7 +570,7 @@ export default function CsvImportModal({ isOpen, onClose, onImportData, existing
            {step === 1 && (
              <div className="space-y-6">
                {/* Botão de Download do Modelo */}
-               <div className="bg-brand-dark/50 border border-brand-border rounded-xl p-6">
+               <div className="bg-brand-dark/50 border border-brand-border rounded-lg p-6">
                  <div className="flex items-center gap-3 mb-4">
                    <FileSpreadsheet size={24} className="text-brand-cyan"/>
                    <div>
@@ -619,7 +619,7 @@ export default function CsvImportModal({ isOpen, onClose, onImportData, existing
                </div>
 
                {/* Área de Upload */}
-               <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-brand-border rounded-xl bg-brand-dark/30 hover:bg-brand-dark/50 transition-colors">
+               <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-brand-border rounded-lg bg-brand-dark/30 hover:bg-brand-dark/50 transition-colors">
                  <UploadCloud size={48} className="text-brand-cyan mb-4"/>
                  <p className="text-white font-medium mb-2">Arraste seu arquivo CSV/XLSX ou clique para selecionar</p>
                  <p className="text-slate-400 text-xs mb-4">Formatos aceitos: .csv, .xlsx</p>

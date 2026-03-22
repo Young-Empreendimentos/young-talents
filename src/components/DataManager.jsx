@@ -132,7 +132,7 @@ const CollectionManager = ({
   };
 
   return (
-    <div className="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden">
+    <div className="bg-gray-800/50 border border-gray-700 rounded-lg overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b border-gray-700 flex justify-between items-center">
         <div className="flex items-center gap-3">

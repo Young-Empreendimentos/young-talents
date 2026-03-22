@@ -175,15 +175,7 @@ export default function App() {
     }
   }, [authLoading, user, isPublicPath, location.pathname, navigate]);
 
-  // Inicializar settingsTab na URL se estiver na página de settings
-  useEffect(() => {
-    if (activeTab === 'settings' && !route.settingsTab) {
-      const params = new URLSearchParams(location.search);
-      params.set('settingsTab', 'campos');
-      navigate(`${location.pathname}?${params.toString()}`, { replace: true });
-      setRoute(prev => ({ ...prev, settingsTab: 'campos' }));
-    }
-  }, [activeTab, route.settingsTab, location.pathname, location.search, navigate]);
+  // settingsTab é agora controlado pelo SettingsPage — sem auto-redirect para 'campos'
 
   const setActiveTab = (tab) => {
     navigate(`/${tab}`, { replace: true });

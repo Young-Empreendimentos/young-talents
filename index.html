@@ -2,6 +2,21 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
+    <!-- SPA redirect: reconstrói a URL a partir do ?p= gerado pelo 404.html (GitHub Pages) -->
+    <script>
+      (function() {
+        var redirect = sessionStorage.redirect;
+        delete sessionStorage.redirect;
+        if (redirect && redirect !== location.href) {
+          history.replaceState(null, null, redirect);
+        } else {
+          var p = new URLSearchParams(location.search).get('p');
+          if (p) {
+            history.replaceState(null, null, '/' + decodeURIComponent(p));
+          }
+        }
+      })();
+    </script>
     <!-- Favicon - Logo Young -->
     <link rel="icon" type="image/png" sizes="32x32" href="/logo-young-empreendimentos-caixa.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/logo-young-empreendimentos-caixa.png" />
@@ -10,7 +25,7 @@
     <meta name="theme-color" content="#fe5009" />
     <meta name="description" content="Young Talents ATS - Sistema de Gestão de Talentos da Young Empreendimentos" />
     <title>Young Talents ATS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <script async src="https://accounts.google.com/gsi/client"></script>
   </head>
   <body>

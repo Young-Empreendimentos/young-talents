@@ -787,19 +787,19 @@ const PublicCandidateForm = () => {
   if (submitSuccess) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-gray-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4 font-young">
-        <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
+        <div className="max-w-md w-full bg-card rounded-lg shadow-sm p-8 text-center">
           <img src="/logo-young-empreendimentos.png" alt="Young Empreendimentos" className="h-12 w-auto mx-auto mb-4" />
           <CheckCircle className="w-16 h-16 text-young-orange mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             Formulário Enviado com Sucesso!
           </h2>
           <p className="text-gray-600 dark:text-gray-300 mb-6">
             Obrigado por se candidatar. Seu formulário foi recebido e será analisado pela nossa equipe.
           </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Redirecionando...
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-6">© 2025 Young Empreendimentos</p>
+          <p className="text-xs text-muted-foreground mt-6">© 2025 Young Empreendimentos</p>
         </div>
       </div>
     );
@@ -816,7 +816,7 @@ const PublicCandidateForm = () => {
                 ? 'bg-young-orange border-young-orange text-white' 
                 : step < currentStep 
                   ? 'bg-green-500 border-green-500 text-white' 
-                  : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400'
+                  : 'bg-card border-input text-muted-foreground'
             }`}>
               {step < currentStep ? <Check size={20} /> : step}
             </div>
@@ -828,7 +828,7 @@ const PublicCandidateForm = () => {
           </div>
         ))}
       </div>
-      <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+      <div className="text-center text-sm text-muted-foreground">
         Etapa {currentStep} de {totalSteps}
       </div>
     </div>
@@ -841,7 +841,7 @@ const PublicCandidateForm = () => {
     return (
       <div className="space-y-3">
         {label && (
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-muted-foreground mb-1">
             {label}
           </label>
         )}
@@ -853,8 +853,8 @@ const PublicCandidateForm = () => {
           placeholder={`Cole aqui o link público de ${type === 'photo' ? 'foto' : type === 'cv' ? 'currículo' : 'portfólio'}`}
           required={type === 'photo'}
           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange ${
-            errors[urlField] || fieldErrors[urlField] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-          } bg-white dark:bg-gray-900 text-gray-900 dark:text-white`}
+            errors[urlField] || fieldErrors[urlField] ? 'border-red-500' : 'border-input'
+          } bg-background text-foreground`}
         />
         
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
@@ -886,13 +886,13 @@ const PublicCandidateForm = () => {
           <div className="flex justify-center mb-6">
             <img src="/logo-young-empreendimentos.png" alt="Young Empreendimentos" className="h-14 w-auto" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-4xl font-bold text-foreground mb-2">
             Banco de Talentos - Young Empreendimentos
           </h1>
           <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">
             Neste prático questionário, você vai preencher algumas informações básicas para nós da Young Empreendimentos conhecermos um pouco mais de você e direcioná-lo para as vagas do seu interesse. Será um prazer conhecê-lo!
           </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Campos marcados com <span className="text-red-500">*</span> são obrigatórios
           </p>
         </div>
@@ -901,7 +901,7 @@ const PublicCandidateForm = () => {
         <ProgressBar />
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 md:p-8">
+        <form onSubmit={handleSubmit} className="bg-card rounded-lg shadow-sm p-6 md:p-8">
           {/* Erro geral */}
           {errors.submit && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-start gap-3 mb-6">
@@ -922,7 +922,7 @@ const PublicCandidateForm = () => {
           {/* Step 1: Identificação e Contato */}
           {currentStep === 1 && (
             <section>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              <h2 className="text-xl font-bold text-foreground mb-2">
                 1. Identificação e Contato
               </h2>
               <p className="text-gray-600 dark:text-gray-300 mb-2 text-sm">
@@ -930,7 +930,7 @@ const PublicCandidateForm = () => {
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Nome Completo <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -939,15 +939,15 @@ const PublicCandidateForm = () => {
                     value={formData.fullName}
                     onChange={(e) => handleChange('fullName', e.target.value)}
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange ${
-                      errors.fullName ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    } bg-white dark:bg-gray-900 text-gray-900 dark:text-white`}
+                      errors.fullName ? 'border-red-500' : 'border-input'
+                    } bg-background text-foreground`}
                     required
                   />
                   {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     E-mail Principal <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -956,8 +956,8 @@ const PublicCandidateForm = () => {
                     value={formData.email}
                     onChange={(e) => handleChange('email', e.target.value)}
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange ${
-                      errors.email || fieldErrors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    } bg-white dark:bg-gray-900 text-gray-900 dark:text-white`}
+                      errors.email || fieldErrors.email ? 'border-red-500' : 'border-input'
+                    } bg-background text-foreground`}
                     required
                   />
                   {(errors.email || fieldErrors.email) && (
@@ -966,7 +966,7 @@ const PublicCandidateForm = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     E-mail Secundário
                   </label>
                   <input
@@ -975,8 +975,8 @@ const PublicCandidateForm = () => {
                     value={formData.email_secondary}
                     onChange={(e) => handleChange('email_secondary', e.target.value)}
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange ${
-                      errors.email_secondary || fieldErrors.email_secondary ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    } bg-white dark:bg-gray-900 text-gray-900 dark:text-white`}
+                      errors.email_secondary || fieldErrors.email_secondary ? 'border-red-500' : 'border-input'
+                    } bg-background text-foreground`}
                   />
                   {(errors.email_secondary || fieldErrors.email_secondary) && (
                     <p className="text-red-500 text-xs mt-1">{errors.email_secondary || fieldErrors.email_secondary}</p>
@@ -984,7 +984,7 @@ const PublicCandidateForm = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Telefone/WhatsApp <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -994,8 +994,8 @@ const PublicCandidateForm = () => {
                     onChange={(e) => handleChange('phone', e.target.value)}
                     placeholder="(51) 99999-9999"
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange ${
-                      errors.phone || fieldErrors.phone ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    } bg-white dark:bg-gray-900 text-gray-900 dark:text-white`}
+                      errors.phone || fieldErrors.phone ? 'border-red-500' : 'border-input'
+                    } bg-background text-foreground`}
                     required
                   />
                   {(errors.phone || fieldErrors.phone) && (
@@ -1009,12 +1009,12 @@ const PublicCandidateForm = () => {
           {/* Step 2: Dados Pessoais */}
           {currentStep === 2 && (
             <section>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-foreground mb-4 pb-2 border-b border-border">
                 2. Dados Pessoais
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Data de Nascimento <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -1025,14 +1025,14 @@ const PublicCandidateForm = () => {
                     placeholder="DD/MM/AAAA"
                     maxLength="10"
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange ${
-                      errors.birthDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    } bg-white dark:bg-gray-900 text-gray-900 dark:text-white`}
+                      errors.birthDate ? 'border-red-500' : 'border-input'
+                    } bg-background text-foreground`}
                   />
                   {errors.birthDate && <p className="text-red-500 text-xs mt-1">{errors.birthDate}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Idade
                   </label>
                   <input
@@ -1040,20 +1040,20 @@ const PublicCandidateForm = () => {
                     name="age"
                     value={formData.age}
                     readOnly
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+                    className="w-full px-4 py-2 border border-input rounded-lg bg-gray-50 dark:bg-gray-700 text-muted-foreground cursor-not-allowed"
                   />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Calculada automaticamente</p>
+                  <p className="text-xs text-muted-foreground mt-1">Calculada automaticamente</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Estado Civil <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="maritalStatus"
                     value={formData.maritalStatus}
                     onChange={(e) => handleChange('maritalStatus', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
                   >
                     <option value="">Selecione...</option>
                     <option value="Solteiro(a)">Solteiro(a)</option>
@@ -1066,7 +1066,7 @@ const PublicCandidateForm = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Quantidade de Filhos <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -1074,8 +1074,8 @@ const PublicCandidateForm = () => {
                     value={formData.childrenCount}
                     onChange={(e) => handleChange('childrenCount', e.target.value)}
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange ${
-                      errors.childrenCount ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    } bg-white dark:bg-gray-900 text-gray-900 dark:text-white`}
+                      errors.childrenCount ? 'border-red-500' : 'border-input'
+                    } bg-background text-foreground`}
                   >
                     <option value="">Selecione...</option>
                     {CHILDREN_OPTIONS.map(opt => (
@@ -1086,14 +1086,14 @@ const PublicCandidateForm = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Possui CNH Tipo B? <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="hasLicense"
                     value={formData.hasLicense}
                     onChange={(e) => handleChange('hasLicense', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
                   >
                     <option value="">Selecione...</option>
                     <option value="Sim">Sim</option>
@@ -1102,7 +1102,7 @@ const PublicCandidateForm = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Cidade onde Reside <span className="text-red-500">*</span>
                   </label>
                   <div className="space-y-2">
@@ -1125,12 +1125,12 @@ const PublicCandidateForm = () => {
                           }}
                           placeholder="Digite para buscar cidade..."
                           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange ${
-                            errors.city ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                          } bg-white dark:bg-gray-900 text-gray-900 dark:text-white`}
+                            errors.city ? 'border-red-500' : 'border-input'
+                          } bg-background text-foreground`}
                           autoComplete="off"
                         />
                         {showCityDropdown && cityOptionsFiltered.length > 0 && (
-                          <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-lg py-1">
+                          <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 dark:border-gray-600 bg-card shadow-sm py-1">
                             {cityOptionsFiltered.map((city) => {
                               const cityValue = city.name?.includes('/') ? city.name : `${city.name}/RS`;
                               const cityDisplay = city.name?.includes('/') ? city.name : `${city.name}/RS`;
@@ -1138,7 +1138,7 @@ const PublicCandidateForm = () => {
                                 <li
                                   key={city.id}
                                   role="option"
-                                  className="px-4 py-2 cursor-pointer hover:bg-young-orange/20 dark:hover:bg-young-orange/30 text-gray-900 dark:text-white"
+                                  className="px-4 py-2 cursor-pointer hover:bg-young-orange/20 dark:hover:bg-young-orange/30 text-foreground"
                                   onClick={() => {
                                     handleChange('city', cityValue);
                                     setCitySearchTerm('');
@@ -1173,17 +1173,17 @@ const PublicCandidateForm = () => {
                           onChange={(e) => handleChange('cityCustom', e.target.value)}
                           placeholder="Ex: São Paulo/SP"
                           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange ${
-                            errors.cityCustom ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                          } bg-white dark:bg-gray-900 text-gray-900 dark:text-white`}
+                            errors.cityCustom ? 'border-red-500' : 'border-input'
+                          } bg-background text-foreground`}
                         />
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Formato: Cidade/UF (ex: São Paulo/SP)</p>
+                        <p className="text-xs text-muted-foreground">Formato: Cidade/UF (ex: São Paulo/SP)</p>
                         <button
                           type="button"
                           onClick={() => {
                             setShowCityCustom(false);
                             handleChange('cityCustom', '');
                           }}
-                          className="text-sm text-gray-600 dark:text-gray-400 hover:underline"
+                          className="text-sm text-muted-foreground hover:underline"
                         >
                           ← Voltar para lista
                         </button>
@@ -1203,12 +1203,12 @@ const PublicCandidateForm = () => {
           {/* Step 3: Formação e Experiência */}
           {currentStep === 3 && (
             <section>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-foreground mb-4 pb-2 border-b border-border">
                 3. Formação e Experiência
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Formação <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -1217,19 +1217,19 @@ const PublicCandidateForm = () => {
                     value={formData.education}
                     onChange={(e) => handleChange('education', e.target.value)}
                     placeholder="Ex: Engenharia de Software"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Nível de Escolaridade <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="schoolingLevel"
                     value={formData.schoolingLevel}
                     onChange={(e) => handleChange('schoolingLevel', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
                   >
                     <option value="">Selecione...</option>
                     <option value="Ensino Fundamental">Ensino Fundamental</option>
@@ -1246,7 +1246,7 @@ const PublicCandidateForm = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Instituição de Ensino <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -1255,12 +1255,12 @@ const PublicCandidateForm = () => {
                     value={formData.institution}
                     onChange={(e) => handleChange('institution', e.target.value)}
                     placeholder="Ex: Universidade Federal do Rio Grande do Sul"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Data de Formatura <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -1270,19 +1270,19 @@ const PublicCandidateForm = () => {
                     onChange={(e) => handleDateChange('graduationDate', e.target.value)}
                     placeholder="DD/MM/AAAA"
                     maxLength="10"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Está Cursando Atualmente? <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="isStudying"
                     value={formData.isStudying}
                     onChange={(e) => handleChange('isStudying', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
                   >
                     <option value="">Selecione...</option>
                     <option value="Sim">Sim</option>
@@ -1291,7 +1291,7 @@ const PublicCandidateForm = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Experiências Anteriores <span className="text-red-500">*</span>
                   </label>
                   <textarea
@@ -1300,12 +1300,12 @@ const PublicCandidateForm = () => {
                     onChange={(e) => handleChange('experience', e.target.value)}
                     rows="4"
                     placeholder="Descreva suas experiências profissionais anteriores..."
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white resize-none"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground resize-none"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Cursos e Certificações Profissionais <span className="text-red-500">*</span>
                   </label>
                   <textarea
@@ -1314,12 +1314,12 @@ const PublicCandidateForm = () => {
                     onChange={(e) => handleChange('courses', e.target.value)}
                     rows="3"
                     placeholder="Liste seus cursos e certificações..."
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white resize-none"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground resize-none"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Certificações Profissionais
                   </label>
                   <input
@@ -1328,15 +1328,15 @@ const PublicCandidateForm = () => {
                     value={formData.certifications}
                     onChange={(e) => handleChange('certifications', e.target.value)}
                     placeholder="Ex: AWS Certified Cloud Practitioner"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Áreas de Interesse Profissional <span className="text-red-500">*</span>
                   </label>
-                  <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 max-h-60 overflow-y-auto">
+                  <div className="border border-input rounded-lg p-4 max-h-60 overflow-y-auto">
                     <div className="space-y-2">
                       {mainInterestAreas.map(area => (
                         <label key={area.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded">
@@ -1353,7 +1353,7 @@ const PublicCandidateForm = () => {
                             }}
                             className="w-4 h-4 text-young-orange border-gray-300 rounded focus:ring-young-orange"
                           />
-                          <span className="text-sm text-gray-900 dark:text-white">{area.name}</span>
+                          <span className="text-sm text-foreground">{area.name}</span>
                         </label>
                       ))}
                       <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded">
@@ -1368,7 +1368,7 @@ const PublicCandidateForm = () => {
                           }}
                           className="w-4 h-4 text-young-orange border-gray-300 rounded focus:ring-young-orange"
                         />
-                        <span className="text-sm text-gray-900 dark:text-white">Outro</span>
+                        <span className="text-sm text-foreground">Outro</span>
                       </label>
                       {showInterestAreasOther && (
                         <div className="ml-6 mt-2">
@@ -1377,7 +1377,7 @@ const PublicCandidateForm = () => {
                             value={formData.interestAreasOther || ''}
                             onChange={(e) => handleChange('interestAreasOther', e.target.value)}
                             placeholder="Digite outras áreas separadas por vírgula"
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm"
+                            className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground text-sm"
                           />
                         </div>
                       )}
@@ -1387,7 +1387,7 @@ const PublicCandidateForm = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Currículo <span className="text-red-500">*</span>
                   </label>
                   {renderAttachmentField('cv', 'Currículo', 'cv')}
@@ -1400,12 +1400,12 @@ const PublicCandidateForm = () => {
           {/* Step 4: Processo e Fit Cultural */}
           {currentStep === 4 && (
             <section>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-foreground mb-4 pb-2 border-b border-border">
                 4. Processo e Fit Cultural
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Onde nos Encontrou? <span className="text-red-500">*</span>
                   </label>
                   {!showSourceCustom ? (
@@ -1421,7 +1421,7 @@ const PublicCandidateForm = () => {
                             handleChange('source', e.target.value);
                           }
                         }}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                        className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
                       >
                         <option value="">Selecione...</option>
                         {mainSources.filter(source => source.name !== 'Outros').map(source => (
@@ -1438,7 +1438,7 @@ const PublicCandidateForm = () => {
                         value={formData.sourceCustom}
                         onChange={(e) => handleChange('sourceCustom', e.target.value)}
                         placeholder="Especifique onde nos encontrou"
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                        className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
                       />
                       <button
                         type="button"
@@ -1446,7 +1446,7 @@ const PublicCandidateForm = () => {
                           setShowSourceCustom(false);
                           handleChange('sourceCustom', '');
                         }}
-                        className="text-sm text-gray-600 dark:text-gray-400 hover:underline mt-1"
+                        className="text-sm text-muted-foreground hover:underline mt-1"
                       >
                         ← Voltar para lista
                       </button>
@@ -1455,7 +1455,7 @@ const PublicCandidateForm = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Foi Indicado por Colaborador?
                   </label>
                   <input
@@ -1464,16 +1464,16 @@ const PublicCandidateForm = () => {
                     value={formData.referral}
                     onChange={(e) => handleChange('referral', e.target.value)}
                     placeholder="Nome do colaborador (se aplicável)"
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Expectativa Salarial <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">R$</span>
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">R$</span>
                     <input
                       type="text"
                       name="salaryExpectation"
@@ -1489,22 +1489,22 @@ const PublicCandidateForm = () => {
                       }}
                       placeholder="0,00"
                       className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange ${
-                        errors.salaryExpectation ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                      } bg-white dark:bg-gray-900 text-gray-900 dark:text-white`}
+                        errors.salaryExpectation ? 'border-red-500' : 'border-input'
+                      } bg-background text-foreground`}
                     />
                   </div>
                   {errors.salaryExpectation && <p className="text-red-500 text-xs mt-1">{errors.salaryExpectation}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Disponibilidade para Mudança de Cidade? <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="canRelocate"
                     value={formData.canRelocate}
                     onChange={(e) => handleChange('canRelocate', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
                   >
                     <option value="">Selecione...</option>
                     <option value="Sim">Sim</option>
@@ -1514,7 +1514,7 @@ const PublicCandidateForm = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Referências Profissionais <span className="text-red-500">*</span>
                   </label>
                   <textarea
@@ -1523,19 +1523,19 @@ const PublicCandidateForm = () => {
                     onChange={(e) => handleChange('references', e.target.value)}
                     rows="3"
                     placeholder="Nome, cargo, empresa e contato..."
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white resize-none"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground resize-none"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Tipo de Candidatura <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="typeOfApp"
                     value={formData.typeOfApp}
                     onChange={(e) => handleChange('typeOfApp', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
                   >
                     <option value="">Selecione...</option>
                     <option value="Vaga Específica">Vaga Específica</option>
@@ -1544,7 +1544,7 @@ const PublicCandidateForm = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Campo Livre - SEJA VOCÊ! <span className="text-red-500">*</span>
                   </label>
                   <textarea
@@ -1553,7 +1553,7 @@ const PublicCandidateForm = () => {
                     onChange={(e) => handleChange('freeField', e.target.value)}
                     rows="4"
                     placeholder="Conte-nos sobre você, suas paixões, objetivos e o que te motiva..."
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white resize-none"
+                    className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground resize-none"
                   />
                 </div>
               </div>
@@ -1563,12 +1563,12 @@ const PublicCandidateForm = () => {
           {/* Step 5: Anexos */}
           {currentStep === 5 && (
             <section>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-foreground mb-4 pb-2 border-b border-border">
                 5. Anexos
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Portfólio (opcional)
                   </label>
                   {renderAttachmentField('portfolio', 'Portfólio', 'portfolio')}
@@ -1578,11 +1578,11 @@ const PublicCandidateForm = () => {
           )}
 
           {/* Navegação entre etapas */}
-          <div className="flex justify-between gap-4 pt-6 mt-8 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex justify-between gap-4 pt-6 mt-8 border-t border-border">
             <button
               type="button"
               onClick={currentStep === 1 ? () => navigate('/') : handlePrevious}
-              className="px-6 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2"
+              className="px-6 py-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors flex items-center gap-2"
             >
               <ChevronLeft size={20} />
               {currentStep === 1 ? 'Cancelar' : 'Anterior'}
@@ -1622,21 +1622,21 @@ const PublicCandidateForm = () => {
         {/* Modal de Confirmação */}
         {showConfirmModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6">
+            <div className="bg-card rounded-lg shadow-xl max-w-md w-full p-6">
               <div className="flex items-center gap-3 mb-4">
                 <AlertCircle className="w-6 h-6 text-amber-500" />
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                <h3 className="text-xl font-bold text-foreground">
                   Confirmar Envio
                 </h3>
               </div>
-              <p className="text-gray-700 dark:text-gray-300 mb-6">
+              <p className="text-muted-foreground mb-6">
                 Você conferiu todas as informações e tem certeza que deseja enviar o formulário?
               </p>
               <div className="flex gap-3 justify-end">
                 <button
                   type="button"
                   onClick={() => setShowConfirmModal(false)}
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  className="px-4 py-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
                 >
                   Cancelar
                 </button>
@@ -1655,7 +1655,7 @@ const PublicCandidateForm = () => {
           </div>
         )}
 
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-8 text-center">© 2025 Young Empreendimentos</p>
+        <p className="text-xs text-muted-foreground mt-8 text-center">© 2025 Young Empreendimentos</p>
       </div>
     </div>
   );

@@ -3,32 +3,32 @@ import React from 'react';
 export default function DocRotas() {
   return (
     <>
-      <h2 id="publicas" className="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4 scroll-mt-24">Rotas públicas (sem autenticação)</h2>
+      <h2 id="publicas" className="text-xl font-bold text-foreground mt-8 mb-4 scroll-mt-24">Rotas públicas (sem autenticação)</h2>
       <div className="overflow-x-auto mb-6">
-        <table className="min-w-full border border-gray-300 dark:border-gray-600 rounded-lg">
+        <table className="min-w-full border border-input rounded-lg">
           <thead className="bg-gray-100 dark:bg-gray-800">
             <tr>
-              <th className="text-left px-4 py-2 text-gray-900 dark:text-white">Rota</th>
-              <th className="text-left px-4 py-2 text-gray-900 dark:text-white">Descrição</th>
+              <th className="text-left px-4 py-2 text-foreground">Rota</th>
+              <th className="text-left px-4 py-2 text-foreground">Descrição</th>
             </tr>
           </thead>
-          <tbody className="text-gray-700 dark:text-gray-300">
+          <tbody className="text-muted-foreground">
             <tr><td className="px-4 py-2 border-t dark:border-gray-600"><code>/apply</code></td><td>Formulário público de candidatos</td></tr>
             <tr><td className="px-4 py-2 border-t dark:border-gray-600"><code>/apply/thank-you</code></td><td>Página de agradecimento após envio</td></tr>
           </tbody>
         </table>
       </div>
 
-      <h2 id="autenticadas" className="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4 scroll-mt-24">Rotas autenticadas</h2>
+      <h2 id="autenticadas" className="text-xl font-bold text-foreground mt-8 mb-4 scroll-mt-24">Rotas autenticadas</h2>
       <div className="overflow-x-auto mb-6">
-        <table className="min-w-full border border-gray-300 dark:border-gray-600 rounded-lg">
+        <table className="min-w-full border border-input rounded-lg">
           <thead className="bg-gray-100 dark:bg-gray-800">
             <tr>
-              <th className="text-left px-4 py-2 text-gray-900 dark:text-white">Rota</th>
-              <th className="text-left px-4 py-2 text-gray-900 dark:text-white">Descrição</th>
+              <th className="text-left px-4 py-2 text-foreground">Rota</th>
+              <th className="text-left px-4 py-2 text-foreground">Descrição</th>
             </tr>
           </thead>
-          <tbody className="text-gray-700 dark:text-gray-300">
+          <tbody className="text-muted-foreground">
             <tr><td className="px-4 py-2 border-t dark:border-gray-600"><code>/</code></td><td>Redireciona para /dashboard</td></tr>
             <tr><td className="px-4 py-2 border-t dark:border-gray-600"><code>/login</code></td><td>Página de login</td></tr>
             <tr><td className="px-4 py-2 border-t dark:border-gray-600"><code>/dashboard</code></td><td>Dashboard com KPIs e gráficos</td></tr>
@@ -45,11 +45,11 @@ export default function DocRotas() {
         </table>
       </div>
 
-      <h2 id="query-params" className="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4 scroll-mt-24">Query parameters</h2>
-      <p className="text-gray-700 dark:text-gray-300 mb-2">
+      <h2 id="query-params" className="text-xl font-bold text-foreground mt-8 mb-4 scroll-mt-24">Query parameters</h2>
+      <p className="text-muted-foreground mb-2">
         Modais e abas são controlados via query params:
       </p>
-      <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300 mb-4">
+      <ul className="list-disc list-inside space-y-1 text-muted-foreground mb-4">
         <li><code>modal=job</code> – Modal de vaga</li>
         <li><code>modal=job-candidates&id=xxx</code> – Candidatos da vaga</li>
         <li><code>modal=csv</code> – Importação CSV</li>

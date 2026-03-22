@@ -202,10 +202,10 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
     return (
         <>
             <div className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm" onClick={onClose} />
-            <div className="fixed inset-y-0 right-0 w-96 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 z-50 p-6 shadow-2xl transform transition-transform duration-300 overflow-y-auto flex flex-col">
+            <div className="fixed inset-y-0 right-0 w-96 bg-card border-l border-border z-50 p-6 shadow-2xl transform transition-transform duration-300 overflow-y-auto flex flex-col">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold text-gray-900 dark:text-white text-lg flex items-center gap-2"><Filter size={20} /> Filtros Avançados</h3>
-                    <button onClick={onClose}><X className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white" /></button>
+                    <h3 className="font-bold text-foreground text-lg flex items-center gap-2"><Filter size={20} /> Filtros Avançados</h3>
+                    <button onClick={onClose}><X className="text-muted-foreground hover:text-gray-900 dark:hover:text-white" /></button>
                 </div>
 
                 {/* Filtros Ativos - Badges */}
@@ -232,8 +232,8 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                     if (activeFilters.length === 0) return null;
 
                     return (
-                        <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-                            <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">Filtros Ativos:</div>
+                        <div className="mb-4 pb-4 border-b border-border">
+                            <div className="text-xs font-semibold text-muted-foreground mb-2">Filtros Ativos:</div>
                             <div className="flex flex-wrap gap-2">
                                 {activeFilters.map((filter, idx) => (
                                     <div key={idx} className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full text-xs">
@@ -262,7 +262,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase">Período (Data Cadastro Original)</label>
                         <select
-                            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-3 text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            className="w-full bg-background border border-border rounded p-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                             value={filters.createdAtPreset || 'all'}
                             onChange={e => {
                                 const value = e.target.value;
@@ -281,19 +281,19 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                         {showCustomPeriod && (
                             <div className="space-y-2 mt-2">
                                 <div>
-                                    <label className="text-xs text-gray-700 dark:text-gray-300 mb-1 block">Data inicial</label>
+                                    <label className="text-xs text-muted-foreground mb-1 block">Data inicial</label>
                                     <input
                                         type="date"
-                                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-2 text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                        className="w-full bg-background border border-border rounded p-2 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                         value={filters.customDateStart || ''}
                                         onChange={e => setFilters({ ...filters, customDateStart: e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs text-gray-700 dark:text-gray-300 mb-1 block">Data final</label>
+                                    <label className="text-xs text-muted-foreground mb-1 block">Data final</label>
                                     <input
                                         type="date"
-                                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-2 text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                        className="w-full bg-background border border-border rounded p-2 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                         value={filters.customDateEnd || ''}
                                         onChange={e => setFilters({ ...filters, customDateEnd: e.target.value })}
                                     />
@@ -316,24 +316,24 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                 <label className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase">Vaga</label>
                                 <button
                                     onClick={() => toggleExpanded('jobId')}
-                                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                    className="text-xs text-muted-foreground hover:text-gray-900 dark:hover:text-white transition-colors"
                                 >
                                     {expandedFilters.jobId ? 'Recolher' : 'Expandir'}
                                 </button>
                             </div>
                             {expandedFilters.jobId ? (
-                                <div className="max-h-48 overflow-y-auto bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-2 space-y-1">
-                                    <label className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer transition-colors">
+                                <div className="max-h-48 overflow-y-auto bg-gray-50 dark:bg-gray-900 border border-border rounded p-2 space-y-1">
+                                    <label className="flex items-center gap-2 p-2 hover:bg-muted rounded cursor-pointer transition-colors">
                                         <input
                                             type="checkbox"
                                             checked={filters.jobId === 'all' || !filters.jobId || (Array.isArray(filters.jobId) && filters.jobId.length === 0)}
                                             onChange={() => setFilters({ ...filters, jobId: 'all' })}
                                             className="accent-blue-600 dark:accent-blue-500"
                                         />
-                                        <span className="text-sm text-gray-900 dark:text-white">Todas as Vagas</span>
+                                        <span className="text-sm text-foreground">Todas as Vagas</span>
                                     </label>
                                     {options.jobs.map(j => (
-                                        <label key={j.id} className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer transition-colors">
+                                        <label key={j.id} className="flex items-center gap-2 p-2 hover:bg-muted rounded cursor-pointer transition-colors">
                                             <input
                                                 type="checkbox"
                                                 checked={isSelected('jobId', j.id)}
@@ -345,7 +345,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                     ))}
                                 </div>
                             ) : (
-                                <select className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-3 text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={Array.isArray(filters.jobId) ? filters.jobId[0] || 'all' : (filters.jobId || 'all')} onChange={e => setFilters({ ...filters, jobId: e.target.value === 'all' ? 'all' : [e.target.value] })}>
+                                <select className="w-full bg-background border border-border rounded p-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={Array.isArray(filters.jobId) ? filters.jobId[0] || 'all' : (filters.jobId || 'all')} onChange={e => setFilters({ ...filters, jobId: e.target.value === 'all' ? 'all' : [e.target.value] })}>
                                     <option value="all">Todas as Vagas</option>{options.jobs.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
                                 </select>
                             )}
@@ -365,24 +365,24 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                 <label className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase">Status (Etapa)</label>
                                 <button
                                     onClick={() => toggleExpanded('status')}
-                                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                    className="text-xs text-muted-foreground hover:text-gray-900 dark:hover:text-white transition-colors"
                                 >
                                     {expandedFilters.status ? 'Recolher' : 'Expandir'}
                                 </button>
                             </div>
                             {expandedFilters.status ? (
-                                <div className="max-h-48 overflow-y-auto bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-2 space-y-1">
-                                    <label className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer transition-colors">
+                                <div className="max-h-48 overflow-y-auto bg-gray-50 dark:bg-gray-900 border border-border rounded p-2 space-y-1">
+                                    <label className="flex items-center gap-2 p-2 hover:bg-muted rounded cursor-pointer transition-colors">
                                         <input
                                             type="checkbox"
                                             checked={filters.status === 'all' || !filters.status || (Array.isArray(filters.status) && filters.status.length === 0)}
                                             onChange={() => setFilters({ ...filters, status: 'all' })}
                                             className="accent-blue-600 dark:accent-blue-500"
                                         />
-                                        <span className="text-sm text-gray-900 dark:text-white">Todas as etapas</span>
+                                        <span className="text-sm text-foreground">Todas as etapas</span>
                                     </label>
                                     {PIPELINE_STAGES.map(stage => (
-                                        <label key={stage} className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer transition-colors">
+                                        <label key={stage} className="flex items-center gap-2 p-2 hover:bg-muted rounded cursor-pointer transition-colors">
                                             <input
                                                 type="checkbox"
                                                 checked={isSelected('status', stage)}
@@ -393,7 +393,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                         </label>
                                     ))}
                                     {CLOSING_STATUSES.map(status => (
-                                        <label key={status} className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer">
+                                        <label key={status} className="flex items-center gap-2 p-2 hover:bg-muted rounded cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 checked={isSelected('status', status)}
@@ -406,7 +406,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                 </div>
                             ) : (
                                 <select
-                                    className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-3 text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                    className="w-full bg-background border border-border rounded p-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                     value={Array.isArray(filters.status) ? filters.status[0] || 'all' : (filters.status || 'all')}
                                     onChange={e => setFilters({ ...filters, status: e.target.value === 'all' ? 'all' : [e.target.value] })}
                                 >
@@ -425,14 +425,14 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                 <label className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase">Vaga Vinculada</label>
                                 <button
                                     onClick={() => toggleExpanded('jobId')}
-                                    className="text-xs text-gray-600 dark:text-gray-400 hover:text-white"
+                                    className="text-xs text-muted-foreground hover:text-white"
                                 >
                                     {expandedFilters.jobId ? 'Recolher' : 'Expandir'}
                                 </button>
                             </div>
                             {expandedFilters.jobId ? (
-                                <div className="max-h-48 overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-2 space-y-1">
-                                    <label className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer">
+                                <div className="max-h-48 overflow-y-auto bg-background border border-border rounded p-2 space-y-1">
+                                    <label className="flex items-center gap-2 p-2 hover:bg-muted rounded cursor-pointer">
                                         <input
                                             type="checkbox"
                                             checked={filters.jobId === 'all' || !filters.jobId || (Array.isArray(filters.jobId) && filters.jobId.length === 0)}
@@ -442,7 +442,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                         <span className="text-sm text-white">Todas as Vagas</span>
                                     </label>
                                     {options.jobs.map(j => (
-                                        <label key={j.id} className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer">
+                                        <label key={j.id} className="flex items-center gap-2 p-2 hover:bg-muted rounded cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 checked={isSelected('jobId', j.id)}
@@ -454,41 +454,41 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                     ))}
                                 </div>
                             ) : (
-                                <select className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-3 text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={Array.isArray(filters.jobId) ? filters.jobId[0] || 'all' : (filters.jobId || 'all')} onChange={e => setFilters({ ...filters, jobId: e.target.value === 'all' ? 'all' : [e.target.value] })}>
+                                <select className="w-full bg-background border border-border rounded p-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={Array.isArray(filters.jobId) ? filters.jobId[0] || 'all' : (filters.jobId || 'all')} onChange={e => setFilters({ ...filters, jobId: e.target.value === 'all' ? 'all' : [e.target.value] })}>
                                     <option value="all">Todas as Vagas</option>{options.jobs.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
                                 </select>
                             )}
                         </div>
 
-                        <div className="space-y-3 pt-2 border-t border-dashed border-gray-300 dark:border-gray-600">
+                        <div className="space-y-3 pt-2 border-t border-dashed border-input">
                             <label className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase">Idade (anos)</label>
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <span className="text-[10px] text-gray-500 dark:text-gray-400 block mb-1">Mínima</span>
+                                    <span className="text-[10px] text-muted-foreground block mb-1">Mínima</span>
                                     <input
                                         type="number"
                                         min={0}
                                         max={120}
                                         placeholder="ex: 18"
-                                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-2 text-sm text-gray-900 dark:text-white"
+                                        className="w-full bg-background border border-border rounded p-2 text-sm text-foreground"
                                         value={filters.ageMin === 'all' || filters.ageMin == null ? '' : filters.ageMin}
                                         onChange={e => setFilters({ ...filters, ageMin: e.target.value === '' ? 'all' : e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <span className="text-[10px] text-gray-500 dark:text-gray-400 block mb-1">Máxima</span>
+                                    <span className="text-[10px] text-muted-foreground block mb-1">Máxima</span>
                                     <input
                                         type="number"
                                         min={0}
                                         max={120}
                                         placeholder="ex: 45"
-                                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-2 text-sm text-gray-900 dark:text-white"
+                                        className="w-full bg-background border border-border rounded p-2 text-sm text-foreground"
                                         value={filters.ageMax === 'all' || filters.ageMax == null ? '' : filters.ageMax}
                                         onChange={e => setFilters({ ...filters, ageMax: e.target.value === '' ? 'all' : e.target.value })}
                                     />
                                 </div>
                             </div>
-                            <p className="text-[10px] text-gray-500 dark:text-gray-400">Calculada pela idade cadastrada ou pela data de nascimento.</p>
+                            <p className="text-[10px] text-muted-foreground">Calculada pela idade cadastrada ou pela data de nascimento.</p>
                         </div>
 
                         {dynamicFilters.map(field => {
@@ -548,15 +548,15 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                             const needsSearch = ['city', 'interestAreas', 'source', 'schoolingLevel'].includes(field.value);
 
                             return (
-                                <div key={field.value} className="space-y-3 pb-4 border-b border-gray-200 dark:border-gray-700">
-                                    <label className="text-sm font-semibold text-gray-900 dark:text-white block">{field.label.replace(':', '')}</label>
+                                <div key={field.value} className="space-y-3 pb-4 border-b border-border">
+                                    <label className="text-sm font-semibold text-foreground block">{field.label.replace(':', '')}</label>
 
                                     {needsSearch ? (
                                         <>
                                             <div className="relative">
                                                 <input
                                                     type="text"
-                                                    className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                                    className="w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                                                     placeholder={`Digite para buscar ${field.label.replace(':', '').toLowerCase()}...`}
                                                     value={searchTexts[field.value] || ''}
                                                     onChange={e => {
@@ -594,13 +594,13 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeselectAllFiltered(field.value, optionsList)}
-                                                            className="px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-lg transition-colors"
+                                                            className="px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-muted-foreground text-xs font-medium rounded-lg transition-colors"
                                                         >
                                                             Desmarcar
                                                         </button>
                                                     </div>
 
-                                                    <div className="max-h-64 overflow-y-auto bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-2 space-y-1">
+                                                    <div className="max-h-64 overflow-y-auto bg-gray-50 dark:bg-gray-900/50 border border-border rounded-lg p-2 space-y-1">
                                                         <label className="flex items-center gap-2 p-2 hover:bg-white dark:hover:bg-gray-800 rounded cursor-pointer transition-colors">
                                                             <input
                                                                 type="checkbox"
@@ -608,7 +608,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                                                 onChange={() => setFilters({ ...filters, [field.value]: 'all' })}
                                                                 className="accent-blue-600 dark:accent-blue-500 w-4 h-4"
                                                             />
-                                                            <span className="text-sm text-gray-900 dark:text-white font-medium">Todos</span>
+                                                            <span className="text-sm text-foreground font-medium">Todos</span>
                                                         </label>
                                                         {optionsList.map(o => (
                                                             <label key={o.id || o.name} className="flex items-center gap-2 p-2 hover:bg-white dark:hover:bg-gray-800 rounded cursor-pointer transition-colors">
@@ -618,18 +618,18 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                                                     onChange={() => handleMultiSelect(field.value, o.name)}
                                                                     className="accent-blue-600 dark:accent-blue-500 w-4 h-4"
                                                                 />
-                                                                <span className="text-sm text-gray-900 dark:text-white">{o.name}</span>
+                                                                <span className="text-sm text-foreground">{o.name}</span>
                                                             </label>
                                                         ))}
                                                     </div>
                                                 </>
                                             )}
                                             {searchTexts[field.value] && optionsList.length === 0 && (
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 italic">Nenhum resultado encontrado</p>
+                                                <p className="text-xs text-muted-foreground italic">Nenhum resultado encontrado</p>
                                             )}
                                         </>
                                     ) : hasOptions ? (
-                                        <div className="max-h-64 overflow-y-auto bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-2 space-y-1">
+                                        <div className="max-h-64 overflow-y-auto bg-gray-50 dark:bg-gray-900/50 border border-border rounded-lg p-2 space-y-1">
                                             <label className="flex items-center gap-2 p-2 hover:bg-white dark:hover:bg-gray-800 rounded cursor-pointer transition-colors">
                                                 <input
                                                     type="checkbox"
@@ -637,7 +637,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                                     onChange={() => setFilters({ ...filters, [field.value]: 'all' })}
                                                     className="accent-blue-600 dark:accent-blue-500 w-4 h-4"
                                                 />
-                                                <span className="text-sm text-gray-900 dark:text-white font-medium">Todos</span>
+                                                <span className="text-sm text-foreground font-medium">Todos</span>
                                             </label>
                                             {optionsList.map(o => (
                                                 <label key={o.id || o.name} className="flex items-center gap-2 p-2 hover:bg-white dark:hover:bg-gray-800 rounded cursor-pointer transition-colors">
@@ -647,7 +647,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                                         onChange={() => handleMultiSelect(field.value, o.name)}
                                                         className="accent-blue-600 dark:accent-blue-500 w-4 h-4"
                                                     />
-                                                    <span className="text-sm text-gray-900 dark:text-white">{o.name}</span>
+                                                    <span className="text-sm text-foreground">{o.name}</span>
                                                 </label>
                                             ))}
                                         </div>
@@ -660,7 +660,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                                     onChange={() => setFilters({ ...filters, [field.value]: 'all' })}
                                                     className="accent-blue-600 dark:accent-blue-500 w-4 h-4"
                                                 />
-                                                <span className="text-sm text-gray-900 dark:text-white font-medium">Todos</span>
+                                                <span className="text-sm text-foreground font-medium">Todos</span>
                                             </label>
                                             <label className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded cursor-pointer transition-colors">
                                                 <input
@@ -669,7 +669,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                                     onChange={() => handleMultiSelect(field.value, 'Sim')}
                                                     className="accent-blue-600 dark:accent-blue-500 w-4 h-4"
                                                 />
-                                                <span className="text-sm text-gray-900 dark:text-white">Sim</span>
+                                                <span className="text-sm text-foreground">Sim</span>
                                             </label>
                                             <label className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded cursor-pointer transition-colors">
                                                 <input
@@ -678,13 +678,13 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                                     onChange={() => handleMultiSelect(field.value, 'Não')}
                                                     className="accent-blue-600 dark:accent-blue-500 w-4 h-4"
                                                 />
-                                                <span className="text-sm text-gray-900 dark:text-white">Não</span>
+                                                <span className="text-sm text-foreground">Não</span>
                                             </label>
                                         </div>
                                     ) : (
                                         <input
                                             type="text"
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                            className="w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                                             placeholder={`Filtrar...`}
                                             value={filters[field.value] || ''}
                                             onChange={e => setFilters({ ...filters, [field.value]: e.target.value })}
@@ -710,12 +710,12 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                             if (tagsList.length === 0) return null;
 
                             return (
-                                <div className="space-y-3 pb-4 border-b border-gray-200 dark:border-gray-700">
-                                    <label className="text-sm font-semibold text-gray-900 dark:text-white block">Tags</label>
+                                <div className="space-y-3 pb-4 border-b border-border">
+                                    <label className="text-sm font-semibold text-foreground block">Tags</label>
                                     <div className="relative">
                                         <input
                                             type="text"
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                            className="w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                                             placeholder="Digite para buscar tags..."
                                             value={searchTexts.tags || ''}
                                             onChange={e => {
@@ -757,12 +757,12 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeselectAllFiltered('tags', filteredTags)}
-                                                    className="px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-lg transition-colors"
+                                                    className="px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-muted-foreground text-xs font-medium rounded-lg transition-colors"
                                                 >
                                                     Desmarcar
                                                 </button>
                                             </div>
-                                            <div className="max-h-64 overflow-y-auto bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-2 space-y-1">
+                                            <div className="max-h-64 overflow-y-auto bg-gray-50 dark:bg-gray-900/50 border border-border rounded-lg p-2 space-y-1">
                                                 <label className="flex items-center gap-2 p-2 hover:bg-white dark:hover:bg-gray-800 rounded cursor-pointer transition-colors">
                                                     <input
                                                         type="checkbox"
@@ -770,7 +770,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                                         onChange={() => setFilters({ ...filters, tags: 'all' })}
                                                         className="accent-blue-600 dark:accent-blue-500 w-4 h-4"
                                                     />
-                                                    <span className="text-sm text-gray-900 dark:text-white font-medium">Todas as Tags</span>
+                                                    <span className="text-sm text-foreground font-medium">Todas as Tags</span>
                                                 </label>
                                                 {filteredTags.map(t => (
                                                     <label key={t.id || t.name} className="flex items-center gap-2 p-2 hover:bg-white dark:hover:bg-gray-800 rounded cursor-pointer transition-colors">
@@ -780,14 +780,14 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                                             onChange={() => handleMultiSelect('tags', t.name)}
                                                             className="accent-blue-600 dark:accent-blue-500 w-4 h-4"
                                                         />
-                                                        <span className="text-sm text-gray-900 dark:text-white">{t.name}</span>
+                                                        <span className="text-sm text-foreground">{t.name}</span>
                                                     </label>
                                                 ))}
                                             </div>
                                         </>
                                     )}
                                     {searchTexts.tags && filteredTags.length === 0 && (
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 italic">Nenhum resultado encontrado</p>
+                                        <p className="text-xs text-muted-foreground italic">Nenhum resultado encontrado</p>
                                     )}
                                 </div>
                             );
@@ -796,14 +796,14 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                 </div>
 
                 {/* Filtros salvos (presets nomeados) */}
-                <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
-                    <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <div className="mt-6 pt-4 border-t border-border space-y-3">
+                    <h4 className="text-sm font-bold text-muted-foreground flex items-center gap-2">
                         <Bookmark size={16} /> Filtros salvos
                     </h4>
                     <div className="flex gap-2">
                         <input
                             type="text"
-                            className="flex-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 outline-none focus:border-blue-500"
+                            className="flex-1 bg-background border border-border rounded px-3 py-2 text-sm text-foreground placeholder-gray-500 outline-none focus:border-blue-500"
                             placeholder="Ex.: Cidade Porto Alegre"
                             value={presetName}
                             onChange={e => setPresetName(e.target.value)}
@@ -832,8 +832,8 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                     {savedPresets.length > 0 && (
                         <ul className="space-y-2 max-h-40 overflow-y-auto">
                             {savedPresets.map(p => (
-                                <li key={p.id} className="flex items-center justify-between gap-2 bg-gray-50 dark:bg-gray-900/50 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-700">
-                                    <span className="text-sm text-gray-900 dark:text-white truncate flex-1">{p.name}</span>
+                                <li key={p.id} className="flex items-center justify-between gap-2 bg-gray-50 dark:bg-gray-900/50 rounded-lg px-3 py-2 border border-border">
+                                    <span className="text-sm text-foreground truncate flex-1">{p.name}</span>
                                     <div className="flex gap-1 flex-shrink-0">
                                         <button
                                             type="button"
@@ -865,7 +865,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                     )}
                 </div>
 
-                <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-col gap-3">
+                <div className="mt-8 pt-4 border-t border-border flex flex-col gap-3">
                     <button onClick={onClose} className="w-full bg-blue-600 text-white py-3 rounded font-medium hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors">Aplicar Filtros</button>
                     <div className="flex gap-2">
                         <button onClick={clearFilters} className="flex-1 text-slate-400 hover:text-white py-2 text-sm">Limpar Tudo</button>
@@ -877,7 +877,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                     console.warn('Erro ao salvar filtros', e);
                                 }
                             }}
-                            className="flex-1 text-gray-600 dark:text-gray-400 hover:text-white py-2 text-sm"
+                            className="flex-1 text-muted-foreground hover:text-white py-2 text-sm"
                         >
                             Salvar Filtros
                         </button>

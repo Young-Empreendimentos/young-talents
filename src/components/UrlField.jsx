@@ -37,7 +37,7 @@ const UrlField = ({ label, field, value, onChange, placeholder = "Cole a URL aqu
                 <div className="flex gap-2">
                     <input
                         type="url"
-                        className="flex-1 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 bg-gray-50 dark:bg-gray-900 border border-input p-2.5 rounded-lg text-sm text-foreground outline-none focus:ring-2 focus:ring-blue-500"
                         value={editValue}
                         onChange={e => setEditValue(e.target.value)}
                         placeholder={placeholder}
@@ -55,7 +55,7 @@ const UrlField = ({ label, field, value, onChange, placeholder = "Cole a URL aqu
                     </button>
                     <button
                         onClick={handleCancel}
-                        className="px-4 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors"
+                        className="px-4 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-muted-foreground rounded-lg text-sm font-medium transition-colors"
                         title="Cancelar"
                     >
                         <X size={16} />
@@ -87,17 +87,17 @@ const UrlField = ({ label, field, value, onChange, placeholder = "Cole a URL aqu
                         </span>
                     </a>
                 ) : value ? (
-                    <div className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-600 dark:text-gray-400 truncate">
+                    <div className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 border border-input rounded-lg text-sm text-muted-foreground truncate">
                         {value.length > 50 ? value.substring(0, 50) + '...' : value}
                     </div>
                 ) : (
-                    <div className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-400 dark:text-gray-500 italic">
+                    <div className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-input rounded-lg text-sm text-gray-400 dark:text-gray-500 italic">
                         Nenhum link cadastrado
                     </div>
                 )}
                 <button
                     onClick={() => setIsEditing(true)}
-                    className="px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors"
+                    className="px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-muted-foreground rounded-lg text-sm font-medium transition-colors"
                     title="Editar URL"
                 >
                     <Edit3 size={16} />
@@ -112,16 +112,16 @@ const UrlField = ({ label, field, value, onChange, placeholder = "Cole a URL aqu
                                 const btn = e.currentTarget;
                                 const originalText = btn.title;
                                 btn.title = 'URL copiada!';
-                                btn.className = btn.className.replace('bg-gray-200 dark:bg-gray-700', 'bg-green-500 dark:bg-green-600').replace('text-gray-700 dark:text-gray-300', 'text-white');
+                                btn.className = btn.className.replace('bg-gray-200 dark:bg-gray-700', 'bg-green-500 dark:bg-green-600').replace('text-muted-foreground', 'text-white');
                                 setTimeout(() => {
                                     btn.title = originalText;
-                                    btn.className = btn.className.replace('bg-green-500 dark:bg-green-600', 'bg-gray-200 dark:bg-gray-700').replace('text-white', 'text-gray-700 dark:text-gray-300');
+                                    btn.className = btn.className.replace('bg-green-500 dark:bg-green-600', 'bg-gray-200 dark:bg-gray-700').replace('text-white', 'text-muted-foreground');
                                 }, 2000);
                             } catch (err) {
                                 alert('Erro ao copiar URL. Use o botão direito do mouse no link.');
                             }
                         }}
-                        className="px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors"
+                        className="px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-muted-foreground rounded-lg text-sm font-medium transition-colors"
                         title="Copiar URL"
                     >
                         <FileText size={16} />

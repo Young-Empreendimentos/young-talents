@@ -79,11 +79,11 @@ const ChangePasswordModal = ({ onClose, onSuccess }) => {
   if (success) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+        <div className="bg-card rounded-lg shadow-xl max-w-md w-full p-6">
           <div className="flex items-center justify-center mb-4">
             <CheckCircle className="w-12 h-12 text-green-500" />
           </div>
-          <h2 className="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">
+          <h2 className="text-xl font-bold text-center text-foreground mb-2">
             Senha Alterada com Sucesso!
           </h2>
           <p className="text-center text-gray-600 dark:text-gray-300 mb-4">
@@ -96,11 +96,11 @@ const ChangePasswordModal = ({ onClose, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+      <div className="bg-card rounded-lg shadow-xl max-w-md w-full p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Lock className="w-5 h-5 text-young-orange" />
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-xl font-bold text-foreground">
               Alterar Senha
             </h2>
           </div>
@@ -128,45 +128,45 @@ const ChangePasswordModal = ({ onClose, onSuccess }) => {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-muted-foreground mb-1">
               Senha Atual
             </label>
             <input
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+              className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
               required
               autoFocus
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-muted-foreground mb-1">
               Nova Senha
             </label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+              className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
               required
               minLength={6}
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Mínimo de 6 caracteres
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-muted-foreground mb-1">
               Confirmar Nova Senha
             </label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+              className="w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-young-orange focus:border-young-orange bg-background text-foreground"
               required
               minLength={6}
             />
@@ -176,7 +176,7 @@ const ChangePasswordModal = ({ onClose, onSuccess }) => {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="flex-1 px-4 py-2 border border-input rounded-lg text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               disabled={loading}
             >
               Cancelar

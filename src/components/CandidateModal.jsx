@@ -164,8 +164,8 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 dark:bg-black/80 p-4 backdrop-blur-sm">
-            <div className="bg-brand-card dark:bg-brand-card rounded-xl w-full max-w-4xl h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between bg-brand-card dark:bg-brand-card">
+            <div className="bg-brand-card dark:bg-brand-card rounded-lg w-full max-w-4xl h-[90vh] flex flex-col border border-border text-foreground">
+                <div className="px-6 py-4 border-b border-border flex justify-between bg-brand-card dark:bg-brand-card">
                     <div><h3 className="font-bold text-xl text-white">{d.id ? 'Editar' : 'Novo'} Candidato</h3></div>
                     <button onClick={onClose}><X /></button>
                 </div>
@@ -196,14 +196,14 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                     </div>
                 )}
 
-                <div className="flex border-b border-gray-200 dark:border-gray-700 dark:border-gray-200 dark:border-gray-700">
+                <div className="flex border-b border-border dark:border-border">
                     {['pessoal', 'profissional', 'processo', 'etapas', 'histórico', 'adicional'].map(tab => (
                         <button key={tab} onClick={() => setActiveSection(tab)} className={`flex-1 py-3 px-4 text-sm font-bold uppercase ${activeSection === tab ? 'text-blue-600 dark:text-blue-400 border-b-2 border-brand-orange' : 'text-slate-500 dark:text-slate-500'}`}>
                             {tab}
                         </button>
                     ))}
                 </div>
-                <div className="p-8 overflow-y-auto flex-1 bg-white dark:bg-gray-900">
+                <div className="p-8 overflow-y-auto flex-1 bg-background">
                     {activeSection === 'pessoal' && (
                         <>
                             {/* Menu de Avanço de Etapa - Destaque */}
@@ -214,7 +214,7 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                                     </label>
                                     <div className="flex gap-2">
                                         <select
-                                            className="flex-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                                            className="flex-1 bg-card border border-input p-2.5 rounded-lg text-sm text-foreground outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                                             value=""
                                             onChange={(e) => {
                                                 if (e.target.value && onAdvanceStage) {
@@ -243,8 +243,8 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                                 <InputField label="Email Secundário" field="email_secondary" value={d.email_secondary} onChange={handleInputChange} />
                                 <InputField label="Telefone/Celular" field="phone" value={d.phone} onChange={handleInputChange} />
                                 <div className="mb-3">
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Cidade</label>
-                                    <select className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 p-2.5 rounded text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.city || ''} onChange={e => handleInputChange('city', e.target.value)}>
+                                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Cidade</label>
+                                    <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.city || ''} onChange={e => handleInputChange('city', e.target.value)}>
                                         <option value="">Selecione...</option>
                                         <optgroup label="Cidades Principais">
                                             {getMainCitiesOptions().map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
@@ -260,23 +260,23 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                                 <InputField label="Data de Nascimento" field="birthDate" type="date" value={d.birthDate} onChange={handleInputChange} />
                                 <InputField label="Idade" field="age" type="number" value={d.age} onChange={handleInputChange} />
                                 <div className="mb-3">
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Estado Civil</label>
-                                    <select className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 p-2.5 rounded text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.maritalStatus || ''} onChange={e => setD({ ...d, maritalStatus: e.target.value })}>
+                                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Estado Civil</label>
+                                    <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.maritalStatus || ''} onChange={e => setD({ ...d, maritalStatus: e.target.value })}>
                                         <option value="">Selecione...</option>
                                         {options.marital && options.marital.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
                                     </select>
                                 </div>
                                 <div className="mb-3">
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Quantidade de Filhos</label>
-                                    <select className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 p-2.5 rounded text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.childrenCount != null && d.childrenCount !== '' ? normalizeChildrenForStorage(d.childrenCount) : ''} onChange={e => handleInputChange('childrenCount', e.target.value === '' ? '' : normalizeChildrenForStorage(e.target.value))}>
+                                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Quantidade de Filhos</label>
+                                    <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.childrenCount != null && d.childrenCount !== '' ? normalizeChildrenForStorage(d.childrenCount) : ''} onChange={e => handleInputChange('childrenCount', e.target.value === '' ? '' : normalizeChildrenForStorage(e.target.value))}>
                                         <option value="">Selecione...</option>
                                         {CHILDREN_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                                     </select>
                                 </div>
                                 <UrlField label="URL da Foto" field="photoUrl" value={d.photoUrl} onChange={handleInputChange} placeholder="Cole a URL da foto aqui..." />
                                 <div className="mb-3">
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Possui CNH Tipo B?</label>
-                                    <select className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 p-2.5 rounded text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.hasLicense || ''} onChange={e => setD({ ...d, hasLicense: e.target.value })}>
+                                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Possui CNH Tipo B?</label>
+                                    <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.hasLicense || ''} onChange={e => setD({ ...d, hasLicense: e.target.value })}>
                                         <option value="">Selecione...</option>
                                         <option value="Sim">Sim</option>
                                         <option value="Não">Não</option>
@@ -289,8 +289,8 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                         <div className="grid grid-cols-2 gap-6">
                             <InputField label="Formação" field="education" value={d.education} onChange={handleInputChange} />
                             <div className="mb-3">
-                                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Nível de Escolaridade</label>
-                                <select className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 p-2.5 rounded text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.schoolingLevel || ''} onChange={e => setD({ ...d, schoolingLevel: e.target.value })}>
+                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Nível de Escolaridade</label>
+                                <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.schoolingLevel || ''} onChange={e => setD({ ...d, schoolingLevel: e.target.value })}>
                                     <option value="">Selecione...</option>
                                     {options.schooling && options.schooling.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                                 </select>
@@ -298,16 +298,16 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                             <InputField label="Instituição de Ensino" field="institution" value={d.institution} onChange={handleInputChange} />
                             <InputField label="Data de Formatura" field="graduationDate" type="date" value={d.graduationDate} onChange={handleInputChange} />
                             <div className="mb-3">
-                                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Está Cursando Atualmente?</label>
-                                <select className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 p-2.5 rounded text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.isStudying || ''} onChange={e => setD({ ...d, isStudying: e.target.value })}>
+                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Está Cursando Atualmente?</label>
+                                <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.isStudying || ''} onChange={e => setD({ ...d, isStudying: e.target.value })}>
                                     <option value="">Selecione...</option>
                                     <option value="Sim">Sim</option>
                                     <option value="Não">Não</option>
                                 </select>
                             </div>
                             <div className="mb-3">
-                                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Área de Interesse</label>
-                                <select className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 p-2.5 rounded text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.interestAreas || ''} onChange={e => handleInputChange('interestAreas', e.target.value)}>
+                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Área de Interesse</label>
+                                <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.interestAreas || ''} onChange={e => handleInputChange('interestAreas', e.target.value)}>
                                     <option value="">Selecione...</option>
                                     <optgroup label="Áreas Principais">
                                         {getMainInterestAreasOptions().map(i => <option key={i.id} value={i.name}>{i.name}</option>)}
@@ -321,12 +321,12 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                                 <p className="text-xs text-slate-400 mt-1">Digite ou selecione - será normalizado automaticamente</p>
                             </div>
                             <div className="mb-3 col-span-2">
-                                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Experiências Anteriores</label>
-                                <textarea className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 p-2.5 rounded text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-24" value={d.experience || ''} onChange={e => setD({ ...d, experience: e.target.value })} placeholder="Descreva as experiências profissionais..." />
+                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Experiências Anteriores</label>
+                                <textarea className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-24" value={d.experience || ''} onChange={e => setD({ ...d, experience: e.target.value })} placeholder="Descreva as experiências profissionais..." />
                             </div>
                             <div className="mb-3 col-span-2">
-                                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Cursos e Certificações</label>
-                                <textarea className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 p-2.5 rounded text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20" value={d.courses || ''} onChange={e => setD({ ...d, courses: e.target.value })} placeholder="Liste cursos e certificações..." />
+                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Cursos e Certificações</label>
+                                <textarea className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20" value={d.courses || ''} onChange={e => setD({ ...d, courses: e.target.value })} placeholder="Liste cursos e certificações..." />
                             </div>
                             <UrlField label="Link CV" field="cvUrl" value={d.cvUrl} onChange={handleInputChange} placeholder="Cole a URL do currículo aqui..." />
                             <UrlField label="Link Portfolio" field="portfolioUrl" value={d.portfolioUrl} onChange={handleInputChange} placeholder="Cole a URL do portfólio aqui..." />
@@ -338,7 +338,7 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                             <div className="mb-3 col-span-2">
                                 <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg p-4">
                                     <div className="flex items-center justify-between mb-3">
-                                        <label className="block text-sm font-bold text-gray-900 dark:text-white uppercase">Candidaturas Vinculadas</label>
+                                        <label className="block text-sm font-bold text-foreground uppercase">Candidaturas Vinculadas</label>
                                         {onCreateApplication && (() => {
                                             const availableJobs = (options.jobs || jobs || []).filter(j => j.status === 'Aberta');
                                             if (availableJobs.length === 0) return null;
@@ -358,12 +358,12 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                                         const alreadyLinkedIds = (applications || []).filter(a => a.candidateId === candidate.id).map(a => a.jobId);
                                         const jobsToShow = availableJobs.filter(j => !alreadyLinkedIds.includes(j.id));
                                         return (
-                                            <div className="mt-3 p-3 bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 rounded-lg space-y-2">
-                                                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">Selecione a vaga e confirme</label>
+                                            <div className="mt-3 p-3 bg-card border border-blue-200 dark:border-blue-700 rounded-lg space-y-2">
+                                                <label className="block text-xs font-semibold text-muted-foreground">Selecione a vaga e confirme</label>
                                                 <select
                                                     value={linkJobSelectedId}
                                                     onChange={e => setLinkJobSelectedId(e.target.value)}
-                                                    className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                                    className="w-full bg-background border border-input p-2.5 rounded-lg text-sm text-foreground outline-none focus:ring-2 focus:ring-blue-500"
                                                 >
                                                     <option value="">Selecione uma vaga...</option>
                                                     {jobsToShow.map(j => (
@@ -390,7 +390,7 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                                                     <button
                                                         type="button"
                                                         onClick={() => { setShowLinkJobDropdown(false); setLinkJobSelectedId(''); }}
-                                                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                        className="px-4 py-2 border border-input text-muted-foreground rounded-lg text-sm font-medium hover:bg-muted"
                                                     >
                                                         Cancelar
                                                     </button>
@@ -402,7 +402,7 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                                         const candidateApplications = applications.filter(a => a.candidateId === candidate?.id);
                                         if (candidateApplications.length === 0) {
                                             return (
-                                                <div className="text-center py-4 text-gray-600 dark:text-gray-400 text-sm">
+                                                <div className="text-center py-4 text-muted-foreground text-sm">
                                                     <p>Nenhuma candidatura vinculada ainda.</p>
                                                     <p className="text-xs mt-1">Clique em "Vincular a Nova Vaga" para criar uma candidatura.</p>
                                                 </div>
@@ -413,13 +413,13 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                                                 {candidateApplications.map(app => {
                                                     const job = (options.jobs || jobs || []).find(j => j.id === app.jobId);
                                                     return (
-                                                        <div key={app.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                                                        <div key={app.id} className="bg-card border border-border rounded-lg p-3">
                                                             <div className="flex items-center justify-between">
                                                                 <div className="flex-1">
-                                                                    <h5 className="font-semibold text-gray-900 dark:text-white text-sm">
+                                                                    <h5 className="font-semibold text-foreground text-sm">
                                                                         {job?.title || app.jobTitle || 'Vaga não encontrada'}
                                                                     </h5>
-                                                                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                                                    <p className="text-xs text-muted-foreground mt-1">
                                                                         {job?.company || app.jobCompany || ''} {job?.city ? `• ${job.city}` : ''}
                                                                     </p>
                                                                     <span className={`inline-block mt-2 px-2 py-0.5 rounded text-xs border ${STATUS_COLORS[app.status] || 'bg-slate-700 text-slate-200 border-slate-600'}`}>
@@ -436,8 +436,8 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                                 </div>
                             </div>
                             <div className="mb-3">
-                                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Onde encontrou (Fonte)</label>
-                                <select className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 p-2.5 rounded text-gray-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.source || ''} onChange={e => handleInputChange('source', e.target.value)}>
+                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Onde encontrou (Fonte)</label>
+                                <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.source || ''} onChange={e => handleInputChange('source', e.target.value)}>
                                     <option value="">Selecione...</option>
                                     <optgroup label="Origens Principais">
                                         {getMainSourcesOptions().map(o => <option key={o.id} value={o.name}>{o.name}</option>)}
@@ -453,20 +453,20 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                             <InputField label="Indicação (Quem indicou?)" field="referral" value={d.referral} onChange={handleInputChange} />
                             <InputField label="Expectativa Salarial" field="salaryExpectation" value={d.salaryExpectation} onChange={handleInputChange} />
                             <div className="mb-3">
-                                <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Disponibilidade para Mudança de Cidade?</label>
-                                <select className="w-full bg-white dark:bg-gray-900 dark:bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 dark:border-gray-200 dark:border-gray-700 p-2.5 rounded text-white dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.canRelocate || ''} onChange={e => setD({ ...d, canRelocate: e.target.value })}>
+                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Disponibilidade para Mudança de Cidade?</label>
+                                <select className="w-full bg-background dark:bg-background border border-border dark:border-border p-2.5 rounded text-white dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.canRelocate || ''} onChange={e => setD({ ...d, canRelocate: e.target.value })}>
                                     <option value="">Selecione...</option>
                                     <option value="Sim">Sim</option>
                                     <option value="Não">Não</option>
                                 </select>
                             </div>
                             <div className="mb-3 col-span-2">
-                                <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Referências Profissionais</label>
-                                <textarea className="w-full bg-white dark:bg-gray-900 dark:bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 dark:border-gray-200 dark:border-gray-700 p-2.5 rounded text-white dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20" value={d.references || ''} onChange={e => setD({ ...d, references: e.target.value })} placeholder="Liste referências profissionais..." />
+                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Referências Profissionais</label>
+                                <textarea className="w-full bg-background dark:bg-background border border-border dark:border-border p-2.5 rounded text-white dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20" value={d.references || ''} onChange={e => setD({ ...d, references: e.target.value })} placeholder="Liste referências profissionais..." />
                             </div>
 
                             {/* Entrevistas Agendadas */}
-                            <div className="col-span-2 bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+                            <div className="col-span-2 bg-gray-800/50 rounded-lg p-4 border border-gray-700">
                                 <div className="flex justify-between items-center mb-3">
                                     <h4 className="font-bold text-white flex items-center gap-2">
                                         <CalendarCheck size={18} className="text-purple-400" /> Entrevistas Agendadas
@@ -560,25 +560,25 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                             </div>
 
                             {/* 1ª Entrevista */}
-                            <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
                                 <h4 className="font-bold text-white mb-4 flex items-center gap-2">
                                     <span className="w-6 h-6 bg-cyan-600 rounded-full flex items-center justify-center text-xs">1</span>
                                     1ª Entrevista (RH)
                                 </h4>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Data e Hora</label>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Data e Hora</label>
                                         <input
                                             type="datetime-local"
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                             value={d.interview1Date || ''}
                                             onChange={e => setD({ ...d, interview1Date: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Status</label>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Status</label>
                                         <select
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                             value={d.interview1Status || ''}
                                             onChange={e => setD({ ...d, interview1Status: e.target.value })}
                                         >
@@ -590,9 +590,9 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                                         </select>
                                     </div>
                                     <div className="col-span-2">
-                                        <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Observações</label>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Observações</label>
                                         <textarea
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20"
+                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20"
                                             value={d.interview1Notes || ''}
                                             onChange={e => setD({ ...d, interview1Notes: e.target.value })}
                                             placeholder="Anotações sobre a entrevista..."
@@ -602,16 +602,16 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                             </div>
 
                             {/* Testes */}
-                            <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
                                 <h4 className="font-bold text-white mb-4 flex items-center gap-2">
                                     <span className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-xs">T</span>
                                     Testes
                                 </h4>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Resultado</label>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Resultado</label>
                                         <select
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                             value={d.testResults || ''}
                                             onChange={e => setD({ ...d, testResults: e.target.value })}
                                         >
@@ -623,18 +623,18 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Data do Teste</label>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Data do Teste</label>
                                         <input
                                             type="date"
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                             value={d.testDate || ''}
                                             onChange={e => setD({ ...d, testDate: e.target.value })}
                                         />
                                     </div>
                                     <div className="col-span-2">
-                                        <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Observações dos Testes</label>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Observações dos Testes</label>
                                         <textarea
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20"
+                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20"
                                             value={d.testNotes || ''}
                                             onChange={e => setD({ ...d, testNotes: e.target.value })}
                                             placeholder="Detalhes sobre os testes realizados..."
@@ -644,25 +644,25 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                             </div>
 
                             {/* 2ª Entrevista */}
-                            <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
                                 <h4 className="font-bold text-white mb-4 flex items-center gap-2">
                                     <span className="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center text-xs">2</span>
                                     2ª Entrevista (Gestor)
                                 </h4>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Data e Hora</label>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Data e Hora</label>
                                         <input
                                             type="datetime-local"
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                             value={d.interview2Date || ''}
                                             onChange={e => setD({ ...d, interview2Date: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Status</label>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Status</label>
                                         <select
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                             value={d.interview2Status || ''}
                                             onChange={e => setD({ ...d, interview2Status: e.target.value })}
                                         >
@@ -674,9 +674,9 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                                         </select>
                                     </div>
                                     <div className="col-span-2">
-                                        <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Observações</label>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Observações</label>
                                         <textarea
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20"
+                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20"
                                             value={d.interview2Notes || ''}
                                             onChange={e => setD({ ...d, interview2Notes: e.target.value })}
                                             placeholder="Anotações sobre a entrevista com gestor..."
@@ -686,16 +686,16 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                             </div>
 
                             {/* Retorno */}
-                            <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
                                 <h4 className="font-bold text-white mb-4 flex items-center gap-2">
                                     <span className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-xs">✓</span>
                                     Retorno ao Candidato
                                 </h4>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Retorno Dado?</label>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Retorno Dado?</label>
                                         <select
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                             value={d.returnSent || ''}
                                             onChange={e => setD({ ...d, returnSent: e.target.value })}
                                         >
@@ -706,18 +706,18 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Data do Retorno</label>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Data do Retorno</label>
                                         <input
                                             type="date"
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                             value={d.returnDate || ''}
                                             onChange={e => setD({ ...d, returnDate: e.target.value })}
                                         />
                                     </div>
                                     <div className="col-span-2">
-                                        <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Observações do Retorno</label>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Observações do Retorno</label>
                                         <textarea
-                                            className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20"
+                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20"
                                             value={d.returnNotes || ''}
                                             onChange={e => setD({ ...d, returnNotes: e.target.value })}
                                             placeholder="Detalhes sobre o retorno dado ao candidato..."
@@ -730,7 +730,7 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                     {activeSection === 'histórico' && (
                         <div className="space-y-6">
                             {/* Seção de Notas/Comentários */}
-                            <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
                                 <h4 className="font-bold text-white mb-3 flex items-center gap-2">
                                     <MessageSquare size={18} className="text-blue-400" /> Notas e Comentários
                                 </h4>
@@ -772,7 +772,7 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                             </div>
 
                             {/* Timeline de Movimentações */}
-                            <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
                                 <h4 className="font-bold text-white mb-3 flex items-center gap-2">
                                     <History size={18} className="text-green-400" /> Histórico de Movimentações
                                 </h4>
@@ -847,15 +847,15 @@ const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvan
                         <div className="grid grid-cols-2 gap-6">
                             <InputField label="Tipo de Candidatura" field="typeOfApp" value={d.typeOfApp} onChange={handleInputChange} />
                             <div className="mb-3 col-span-2">
-                                <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1.5">Campo Livre</label>
-                                <textarea className="w-full bg-white dark:bg-gray-900 dark:bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 dark:border-gray-200 dark:border-gray-700 p-2.5 rounded text-white dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-32" value={d.freeField || ''} onChange={e => setD({ ...d, freeField: e.target.value })} placeholder="Informações adicionais..." />
+                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Campo Livre</label>
+                                <textarea className="w-full bg-background dark:bg-background border border-border dark:border-border p-2.5 rounded text-white dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-32" value={d.freeField || ''} onChange={e => setD({ ...d, freeField: e.target.value })} placeholder="Informações adicionais..." />
                             </div>
                             <InputField label="ID Externo" field="external_id" value={d.external_id} onChange={handleInputChange} />
                             <InputField label="Timestamp Original" field="original_timestamp" value={d.original_timestamp} onChange={handleInputChange} />
                         </div>
                     )}
                 </div>
-                <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 dark:border-gray-200 dark:border-gray-700 flex justify-end gap-2">
+                <div className="px-6 py-4 border-t border-border dark:border-border flex justify-end gap-2">
                     <button onClick={onClose} className="px-6 py-2 text-slate-400 dark:text-slate-400">Cancelar</button>
                     <button onClick={handleSave} disabled={isSaving} className="bg-brand-orange text-white px-8 py-2 rounded">Salvar</button>
                 </div>

@@ -109,19 +109,19 @@ export const ValidatedInput = ({
 
   const inputClasses = `
     w-full px-3 py-2 rounded-lg border text-sm transition-all outline-none
-    ${disabled ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-60' : 'bg-white dark:bg-gray-900'}
+    ${disabled ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-60' : 'bg-background'}
     ${showError ? 'border-red-500 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-900' : ''}
     ${showWarning ? 'border-yellow-500 focus:ring-2 focus:ring-yellow-200 dark:focus:ring-yellow-900' : ''}
     ${showSuccess ? 'border-green-500 focus:ring-2 focus:ring-green-200 dark:focus:ring-green-900' : ''}
-    ${!showError && !showWarning && !showSuccess ? 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900' : ''}
-    text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500
+    ${!showError && !showWarning && !showSuccess ? 'border-input focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900' : ''}
+    text-foreground placeholder-gray-400 dark:placeholder-gray-500
     ${className}
   `.trim();
 
   return (
     <div className="space-y-1">
       {label && (
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+        <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -161,7 +161,7 @@ export const ValidatedInput = ({
         </p>
       )}
       {hint && !showError && !showWarning && (
-        <p className="text-xs text-gray-500 dark:text-gray-400">{hint}</p>
+        <p className="text-xs text-muted-foreground">{hint}</p>
       )}
     </div>
   );
@@ -211,7 +211,7 @@ export const ValidatedTextarea = ({
   return (
     <div className="space-y-1">
       {label && (
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+        <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -227,9 +227,9 @@ export const ValidatedTextarea = ({
         maxLength={maxLength}
         className={`
           w-full px-3 py-2 rounded-lg border text-sm transition-all outline-none resize-none
-          ${disabled ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-60' : 'bg-white dark:bg-gray-900'}
-          ${showError ? 'border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'}
-          text-gray-900 dark:text-white placeholder-gray-400
+          ${disabled ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-60' : 'bg-background'}
+          ${showError ? 'border-red-500 focus:ring-2 focus:ring-red-200' : 'border-input focus:border-blue-500 focus:ring-2 focus:ring-blue-200'}
+          text-foreground placeholder-gray-400
           ${className}
         `}
         {...props}
@@ -287,7 +287,7 @@ export const ValidatedSelect = ({
   return (
     <div className="space-y-1">
       {label && (
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+        <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wide">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -300,9 +300,9 @@ export const ValidatedSelect = ({
         disabled={disabled}
         className={`
           w-full px-3 py-2 rounded-lg border text-sm transition-all outline-none
-          ${disabled ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-60' : 'bg-white dark:bg-gray-900'}
-          ${showError ? 'border-red-500 focus:ring-2 focus:ring-red-200' : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'}
-          text-gray-900 dark:text-white
+          ${disabled ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-60' : 'bg-background'}
+          ${showError ? 'border-red-500 focus:ring-2 focus:ring-red-200' : 'border-input focus:border-blue-500 focus:ring-2 focus:ring-blue-200'}
+          text-foreground
           ${className}
         `}
         {...props}

@@ -202,12 +202,12 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
   };
 
   return (
-    <div className="p-6 overflow-y-auto h-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+    <div className="p-6 overflow-y-auto h-full bg-background text-foreground">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-wrap justify-between items-center gap-4">
           <h1 className="text-2xl font-bold">Relatórios</h1>
           <div className="flex items-center gap-3 flex-wrap">
-            <label className="text-sm text-gray-600 dark:text-gray-400">Período:</label>
+            <label className="text-sm text-muted-foreground">Período:</label>
             <select
               value={periodFilter}
               onChange={e => {
@@ -219,7 +219,7 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
                   setCustomDateEnd('');
                 }
               }}
-              className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-1 focus:ring-blue-500"
+              className="px-3 py-2 bg-card border border-input rounded-lg text-sm outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="all">Todo o período</option>
               <option value="today">Hoje</option>
@@ -230,9 +230,9 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
             </select>
             {showCustomPeriod && (
               <div className="flex items-center gap-2">
-                <input type="date" value={customDateStart} onChange={e => setCustomDateStart(e.target.value)} className="px-3 py-2 bg-white dark:bg-gray-800 border rounded-lg text-sm" />
+                <input type="date" value={customDateStart} onChange={e => setCustomDateStart(e.target.value)} className="px-3 py-2 bg-card border rounded-lg text-sm" />
                 <span className="text-gray-500">até</span>
-                <input type="date" value={customDateEnd} onChange={e => setCustomDateEnd(e.target.value)} className="px-3 py-2 bg-white dark:bg-gray-800 border rounded-lg text-sm" />
+                <input type="date" value={customDateEnd} onChange={e => setCustomDateEnd(e.target.value)} className="px-3 py-2 bg-card border rounded-lg text-sm" />
               </div>
             )}
             <button onClick={handleExport} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
@@ -241,7 +241,7 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
             <button
               type="button"
               onClick={() => setIsExportCsvModalOpen(true)}
-              className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+              className="bg-card hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border border-input px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
             >
               <FileDown size={18} /> Exportar candidatos (CSV)
             </button>
@@ -250,26 +250,26 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total de Candidatos</div>
+            <div className="text-sm text-muted-foreground mb-1">Total de Candidatos</div>
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{filteredByPeriod.length}</div>
           </div>
           <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total de Vagas</div>
+            <div className="text-sm text-muted-foreground mb-1">Total de Vagas</div>
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">{jobs.length}</div>
           </div>
           <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Candidaturas</div>
+            <div className="text-sm text-muted-foreground mb-1">Candidaturas</div>
             <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{applications.length}</div>
           </div>
           <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg border border-orange-200 dark:border-orange-800">
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Movimentações</div>
+            <div className="text-sm text-muted-foreground mb-1">Movimentações</div>
             <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{statusMovements.length}</div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6">
           {/* Distribuição por Status */}
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
+          <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
             <h3 className="font-bold text-lg mb-4">Distribuição por Status</h3>
             {statusData.some(d => d.value > 0) ? (
               <ResponsiveContainer width="100%" height={380}>
@@ -293,7 +293,7 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
           </div>
 
           {/* Inscritos por dia */}
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
+          <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
             <h3 className="font-bold text-lg mb-4">Candidatos inscritos por dia</h3>
             {inscriptionsPerDayData.length > 0 ? (
               <ResponsiveContainer width="100%" height={280}>
@@ -311,7 +311,7 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
           </div>
 
           {/* Áreas de Interesse */}
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
+          <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
             <h3 className="font-bold text-lg mb-4">Principais Áreas de Interesse</h3>
             {areaData.length > 0 && areaData.some(d => d.value > 0) ? (
               <ResponsiveContainer width="100%" height={300}>
@@ -346,7 +346,7 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
           </div>
 
           {/* Origem */}
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
+          <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
             <h3 className="font-bold text-lg mb-4">Origem dos Candidatos</h3>
             {originData.length > 0 && originData.some(d => d.value > 0) ? (
               <ResponsiveContainer width="100%" height={300}>
@@ -381,7 +381,7 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
           </div>
 
           {/* Cidades Top 5 */}
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
+          <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
             <h3 className="font-bold text-lg mb-4">Candidatos por Cidade (Top 5)</h3>
             {cityData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
@@ -399,7 +399,7 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
           </div>
 
           {/* Status das Vagas */}
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
+          <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
             <h3 className="font-bold text-lg mb-4">Status das Vagas</h3>
             {jobStats.open > 0 || jobStats.filled > 0 || jobStats.closed > 0 ? (
               <ResponsiveContainer width="100%" height={280}>

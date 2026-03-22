@@ -11,45 +11,45 @@ export default function AdminTab({
     return (
         <div className="space-y-6">
             {/* Metadados do Sistema */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <div className="bg-card rounded-lg border border-border p-6">
+                <h2 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
                     <Database size={20} />
                     Informações Administrativas
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                             <Clock size={16} className="text-gray-400" />
                             Cadastro Original (Timestamp)
                         </label>
-                        <p className="text-gray-900 dark:text-white text-sm font-medium">
+                        <p className="text-foreground text-sm font-medium">
                             {formatTimestamp(candidate.original_timestamp || candidate.createdAt)}
                         </p>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                             <Database size={16} className="text-gray-400" />
                             Data de Importação
                         </label>
-                        <p className="text-gray-900 dark:text-white text-sm">
+                        <p className="text-foreground text-sm">
                             {formatTimestamp(candidate.createdAt)}
                         </p>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                             <UserPlus size={16} className="text-gray-400" />
                             Criado Por
                         </label>
-                        <p className="text-gray-900 dark:text-white text-sm">
+                        <p className="text-foreground text-sm">
                             {candidate.createdBy || 'Sistema / Automático'}
                         </p>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                             <Tag size={16} className="text-gray-400" />
                             Tags do Sistema
                         </label>
@@ -69,7 +69,7 @@ export default function AdminTab({
 
                 {/* Histórico de Envios */}
                 <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4">
+                    <h3 className="text-sm font-bold text-foreground mb-4">
                         Outros envios deste e-mail ({submissionsByEmail.length})
                     </h3>
                     <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4">
@@ -88,8 +88,8 @@ export default function AdminTab({
             </div>
 
             {/* Log de movimentações (activity_log) */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <div className="bg-card rounded-lg border border-border p-6">
+                <h2 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
                     <History size={20} />
                     Log de movimentações
                 </h2>
@@ -97,21 +97,21 @@ export default function AdminTab({
                     <div className="space-y-3">
                         {activityLog.map((log) => (
                             <div key={log.id} className="border-l-2 border-blue-200 dark:border-blue-800 pl-4 py-2">
-                                <p className="text-sm text-gray-900 dark:text-white font-medium">{log.description || log.type}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <p className="text-sm text-foreground font-medium">{log.description || log.type}</p>
+                                <p className="text-xs text-muted-foreground mt-1">
                                     {formatTimestamp(log.timestamp)} · {log.userName || log.userEmail || 'Sistema'}
                                 </p>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">Nenhuma movimentação registrada.</p>
+                    <p className="text-muted-foreground text-sm">Nenhuma movimentação registrada.</p>
                 )}
             </div>
 
             {/* Log Técnico de Alterações */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <div className="bg-card rounded-lg border border-border p-6">
+                <h2 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
                     <History size={20} />
                     Histórico Técnico de Alterações
                 </h2>
@@ -119,10 +119,10 @@ export default function AdminTab({
                     <div className="space-y-4">
                         {changeLog.map((log, idx) => (
                             <div key={log.id || idx} className="border-l-2 border-slate-200 dark:border-slate-700 pl-4 py-1">
-                                <p className="text-xs text-gray-900 dark:text-white">
+                                <p className="text-xs text-foreground">
                                     Campo <span className="font-bold text-blue-500">{log.field}</span>:
                                     <span className="text-gray-400 italic mx-2">{log.oldValue || '(nada)'}</span> →
-                                    <span className="text-gray-900 dark:text-white font-medium ml-2">{log.newValue || '(nada)'}</span>
+                                    <span className="text-foreground font-medium ml-2">{log.newValue || '(nada)'}</span>
                                 </p>
                                 <p className="text-[10px] text-gray-400 mt-1">
                                     {formatTimestamp(log.timestamp)} · {log.userName || log.userId}
@@ -132,7 +132,7 @@ export default function AdminTab({
                     </div>
                 ) : (
                     <div className="text-center py-8">
-                        <p className="text-gray-500 dark:text-gray-400 text-sm">Nenhuma alteração manual registrada.</p>
+                        <p className="text-muted-foreground text-sm">Nenhuma alteração manual registrada.</p>
                     </div>
                 )}
             </div>

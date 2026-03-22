@@ -60,15 +60,15 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+      <div className="w-full max-w-md bg-card rounded-2xl shadow-xl p-8 border border-border">
         <div className="text-center mb-8">
           <img
             src="/logo-young-empreendimentos-caixa.png"
             alt="Young"
             className="h-14 w-14 mx-auto rounded-lg mb-4"
           />
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Young Talents</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Entre para continuar</p>
+          <h1 className="text-2xl font-bold text-foreground">Young Talents</h1>
+          <p className="text-sm text-muted-foreground mt-1">Entre para continuar</p>
         </div>
 
         {error && (
@@ -80,7 +80,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleEmailLogin} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">E-mail</label>
+            <label className="block text-sm font-medium text-muted-foreground mb-1">E-mail</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
@@ -88,13 +88,13 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com"
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Senha</label>
+            <label className="block text-sm font-medium text-muted-foreground mb-1">Senha</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
@@ -102,7 +102,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
             </div>
@@ -122,7 +122,7 @@ export default function LoginPage() {
             <div className="w-full border-t border-gray-200 dark:border-gray-600" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">ou</span>
+            <span className="px-2 bg-card text-gray-500">ou</span>
           </div>
         </div>
 
@@ -130,7 +130,7 @@ export default function LoginPage() {
           type="button"
           onClick={handleGoogleLogin}
           disabled={loading}
-          className="w-full py-2.5 px-4 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full py-2.5 px-4 rounded-lg border border-input bg-background text-muted-foreground font-medium hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center gap-2"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -141,7 +141,7 @@ export default function LoginPage() {
           Entrar com Google
         </button>
 
-        <p className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
+        <p className="mt-6 text-center text-xs text-muted-foreground">
           Candidatos: use o <a href="/apply" className="text-blue-600 dark:text-blue-400 hover:underline">formulário de inscrição</a>.
         </p>
       </div>

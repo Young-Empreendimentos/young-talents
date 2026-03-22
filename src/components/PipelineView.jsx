@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Kanban, List, Briefcase, Building2, MapPin, Mail, Clock, Edit3, Check, Ban, ChevronLeft, ChevronRight, Star, Info } from 'lucide-react';
+import { Kanban, List, Briefcase, Building2, MapPin, Mail, Clock, Edit3, Check, Ban, ChevronLeft, ChevronRight, Star, ChevronsLeft } from 'lucide-react';
 import { PIPELINE_STAGES, ALL_STATUSES, STATUS_COLORS } from '../constants';
 import { getCandidateTimestamp } from '../utils/timestampUtils';
 import { normalizeCity } from '../utils/cityNormalizer';
@@ -17,6 +17,15 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
     const [statusFilter, setStatusFilter] = useState('active'); // active, hired, rejected
     const [pipelineStatusFilter, setPipelineStatusFilter] = useState('all'); // Filtro específico por etapa
     const [jobFilter, setJobFilter] = useState('all');
+    const [collapsedColumns, setCollapsedColumns] = useState(new Set());
+
+    const toggleColumn = (stage) => setCollapsedColumns(prev => {
+        const next = new Set(prev);
+        next.has(stage) ? next.delete(stage) : next.add(stage);
+        return next;
+    });
+    const collapseAll = () => setCollapsedColumns(new Set(PIPELINE_STAGES));
+    const expandAll = () => setCollapsedColumns(new Set());
 
     // Scroll para o candidato destacado quando ele aparecer
     useEffect(() => {
@@ -171,14 +180,14 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
 
     if (candidatesLoading) {
         return (
-            <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
+            <div className="flex items-center justify-center h-64 text-muted-foreground">
                 <span>Carregando candidatos...</span>
             </div>
         );
     }
     if (processedData.length === 0 && candidatesTotal > 0 && typeof onClearFilters === 'function') {
         return (
-            <div className="p-6 flex flex-col items-center justify-center min-h-[200px] text-gray-600 dark:text-gray-400">
+            <div className="p-6 flex flex-col items-center justify-center min-h-[200px] text-muted-foreground">
                 <p className="mb-3">Nenhum candidato corresponde aos filtros atuais.</p>
                 <button type="button" onClick={onClearFilters} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
                     Limpar filtros
@@ -188,7 +197,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
     }
     if (processedData.length === 0 && candidatesTotal === 0) {
         return (
-            <div className="p-6 flex items-center justify-center min-h-[200px] text-gray-500 dark:text-gray-400">
+            <div className="p-6 flex items-center justify-center min-h-[200px] text-muted-foreground">
                 <span>Nenhum candidato cadastrado. Os dados aparecerão após o carregamento ou envio de formulários.</span>
             </div>
         );
@@ -196,55 +205,55 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
 
     return (
         <div className="flex flex-col h-full relative">
-            <div className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-4 justify-between items-center bg-white dark:bg-gray-900">
+            <div className="px-6 py-3 border-b border-border flex flex-wrap gap-4 justify-between items-center bg-background">
                 <div className="flex gap-3 items-center flex-wrap">
                     {!forceViewMode && (
-                        <div className="flex bg-brand-card p-1 rounded-lg border border-gray-200 dark:border-gray-700">
-                            <button onClick={() => setViewMode('kanban')} className={`p-2 rounded ${viewMode === 'kanban' ? 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400' : 'text-slate-400'}`}><Kanban size={16} /></button>
-                            <button onClick={() => setViewMode('list')} className={`p-2 rounded ${viewMode === 'list' ? 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400' : 'text-slate-400'}`}><List size={16} /></button>
+                        <div className="flex bg-brand-card p-1 rounded-lg border border-border">
+                            <button onClick={() => setViewMode('kanban')} className={`p-2 rounded ${viewMode === 'kanban' ? 'bg-background text-muted-foreground' : 'text-slate-400'}`}><Kanban size={16} /></button>
+                            <button onClick={() => setViewMode('list')} className={`p-2 rounded ${viewMode === 'list' ? 'bg-background text-muted-foreground' : 'text-slate-400'}`}><List size={16} /></button>
                         </div>
                     )}
                     {setFilters && (() => {
                         const activeStar = filters.starredFilter ?? (filters.starred === true ? 'starred' : 'all');
                         return (
-                        <div className="flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-brand-card p-0.5" role="group" aria-label="Filtro por estrela">
-                            <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'starred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'starred' ? 'bg-white dark:bg-gray-800 shadow-sm' : 'hover:bg-white/10'}`} title="Somente com estrela (em consideração)">
+                        <div className="flex items-center rounded-lg border border-border bg-brand-card p-0.5" role="group" aria-label="Filtro por estrela">
+                            <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'starred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'starred' ? 'bg-card shadow-sm' : 'hover:bg-white/10'}`} title="Somente com estrela (em consideração)">
                                 <Star size={16} className="text-amber-400 fill-amber-400" />
                             </button>
-                            <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'unstarred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'unstarred' ? 'bg-white dark:bg-gray-800 shadow-sm' : 'hover:bg-white/10'}`} title="Somente sem estrela">
+                            <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'unstarred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'unstarred' ? 'bg-card shadow-sm' : 'hover:bg-white/10'}`} title="Somente sem estrela">
                                 <Star size={16} className="text-slate-400" />
                             </button>
-                            <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'all' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'all' ? 'bg-white dark:bg-gray-800 shadow-sm' : 'hover:bg-white/10'}`} title="Todos">
+                            <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'all' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'all' ? 'bg-card shadow-sm' : 'hover:bg-white/10'}`} title="Todos">
                                 <Star size={16} className="text-amber-400" />
                             </button>
                         </div>
                         );
                     })()}
-                    <input className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-3 py-1.5 text-sm text-white outline-none focus:border-brand-cyan w-48" placeholder="Buscar..." value={localSearch} onChange={e => setLocalSearch(e.target.value)} />
-                    <select className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-3 py-1.5 text-sm text-white outline-none" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+                    <input className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none focus:border-brand-cyan w-48" placeholder="Buscar..." value={localSearch} onChange={e => setLocalSearch(e.target.value)} />
+                    <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
                         <option value="active">Em Andamento</option><option value="hired">Contratados</option><option value="rejected">Reprovados</option><option value="withdrawn">Desistências</option><option value="all">Todos</option>
                     </select>
                     {viewMode === 'list' && (
                         <>
-                            <select className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-3 py-1.5 text-sm text-white outline-none" value={pipelineStatusFilter} onChange={e => setPipelineStatusFilter(e.target.value)}>
+                            <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none" value={pipelineStatusFilter} onChange={e => setPipelineStatusFilter(e.target.value)}>
                                 <option value="all">Todas as Etapas</option>
                                 {PIPELINE_STAGES.map(stage => <option key={stage} value={stage}>{stage}</option>)}
                             </select>
-                            <select className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-3 py-1.5 text-sm text-white outline-none" value={jobFilter} onChange={e => setJobFilter(e.target.value)}>
+                            <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none" value={jobFilter} onChange={e => setJobFilter(e.target.value)}>
                                 <option value="all">Todas as Vagas</option>
                                 {jobs.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
                             </select>
-                            <select className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-3 py-1.5 text-sm text-white outline-none" value={companyFilter} onChange={e => setCompanyFilter(e.target.value)}>
+                            <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none" value={companyFilter} onChange={e => setCompanyFilter(e.target.value)}>
                                 <option value="all">Todas as Empresas</option>
                                 {companies.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                             </select>
-                            <select className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-3 py-1.5 text-sm text-white outline-none" value={cityFilter} onChange={e => setCityFilter(e.target.value)}>
+                            <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none" value={cityFilter} onChange={e => setCityFilter(e.target.value)}>
                                 <option value="all">Todas as Cidades</option>
                                 {Array.from(new Set(candidates.map(c => c.city).filter(Boolean))).sort().map(city => <option key={city} value={city}>{city}</option>)}
                             </select>
                         </>
                     )}
-                    <select className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-3 py-1.5 text-sm text-white outline-none" value={localSort} onChange={e => setLocalSort(e.target.value)}>
+                    <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none" value={localSort} onChange={e => setLocalSort(e.target.value)}>
                         <option value="recent">Mais Recentes</option>
                         <option value="oldest">Mais Antigos</option>
                         <option value="az">A-Z</option>
@@ -259,7 +268,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                     <div className="text-xs text-slate-500">{processedData.length} talentos</div>
                     {viewMode === 'list' && (
                         <select
-                            className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-2 py-1 text-xs text-white outline-none focus:border-brand-cyan"
+                            className="bg-brand-card border border-border rounded px-2 py-1 text-xs text-white outline-none focus:border-brand-cyan"
                             value={itemsPerPage}
                             onChange={e => {
                                 setItemsPerPage(Number(e.target.value));
@@ -275,7 +284,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                     {viewMode === 'kanban' && (
                         <>
                             <select
-                                className="bg-brand-card border border-gray-200 dark:border-gray-700 rounded px-2 py-1 text-xs text-white outline-none focus:border-brand-cyan"
+                                className="bg-brand-card border border-border rounded px-2 py-1 text-xs text-white outline-none focus:border-brand-cyan"
                                 value={kanbanItemsPerPage}
                                 onChange={e => {
                                     setKanbanItemsPerPage(Number(e.target.value));
@@ -291,19 +300,32 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                 onClick={() => setShowColorPicker(!showColorPicker)}
                                 className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded border transition-colors ${showColorPicker
                                     ? 'bg-brand-orange text-white border-brand-orange'
-                                    : 'bg-brand-card border-gray-200 dark:border-gray-700 text-slate-400 hover:text-white hover:border-brand-cyan'
+                                    : 'bg-brand-card border-border text-slate-400 hover:text-white hover:border-brand-cyan'
                                     }`}
                                 title="Personalizar cores das colunas"
                             >
                                 🎨 Cores
                             </button>
+                            {collapsedColumns.size > 0 ? (
+                                <button
+                                    onClick={expandAll}
+                                    className="flex items-center gap-1 px-3 py-1.5 text-xs rounded border bg-brand-card border-border text-slate-400 hover:text-white hover:border-brand-cyan transition-colors"
+                                    title="Expandir todas as colunas"
+                                >
+                                    <ChevronsLeft size={14} className="rotate-180" /> Expandir todas
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={collapseAll}
+                                    className="flex items-center gap-1 px-3 py-1.5 text-xs rounded border bg-brand-card border-border text-slate-400 hover:text-white hover:border-brand-cyan transition-colors"
+                                    title="Colapsar todas as colunas"
+                                >
+                                    <ChevronsLeft size={14} /> Colapsar todas
+                                </button>
+                            )}
                         </>
                     )}
                 </div>
-            </div>
-            <div className="px-6 py-2 bg-blue-500/10 border-b border-blue-500/20 flex items-center gap-2 text-sm text-blue-200">
-                <Info size={16} className="flex-shrink-0" />
-                <span>Cada etapa do processo representa uma etapa concluída; o lead na etapa vigente está em processo de avançar para a próxima etapa.</span>
             </div>
             <div className="flex-1 overflow-hidden flex flex-col">
                 {viewMode === 'kanban' ? (
@@ -330,6 +352,8 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                     onReset={() => resetStageCount(stage)}
                                     kanbanItemsPerPage={kanbanItemsPerPage}
                                     onToggleStar={onToggleStar}
+                                    collapsed={collapsedColumns.has(stage)}
+                                    onToggleCollapse={() => toggleColumn(stage)}
                                 />
                             ))}
                         </div>
@@ -368,7 +392,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                     const needsApplication = !isInscrito && !hasApplication; // A partir de Considerado precisa ter candidatura
 
                                     return (
-                                        <tr key={c.id} className={`hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors ${needsApplication ? 'bg-yellow-50 dark:bg-yellow-900/10 border-l-4 border-yellow-500' : ''} ${!needsApplication ? getRecencyRowClass(recency) : ''}`}>
+                                        <tr key={c.id} className={`hover:bg-muted/50 transition-colors ${needsApplication ? 'bg-yellow-50 dark:bg-yellow-900/10 border-l-4 border-yellow-500' : ''} ${!needsApplication ? getRecencyRowClass(recency) : ''}`}>
                                             <td className="p-4"><input type="checkbox" className="accent-blue-600 dark:accent-blue-500" checked={selectedIds.includes(c.id)} onChange={() => handleSelect(c.id)} /></td>
                                             <td className="p-4">
                                                 {onToggleStar ? (
@@ -393,7 +417,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
                                                         {ALL_STATUSES.map(status => (
-                                                            <option key={status} value={status} className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                                                            <option key={status} value={status} className="bg-card text-foreground">
                                                                 {status}
                                                             </option>
                                                         ))}
@@ -409,11 +433,11 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                                             ✓ {candidateApplications.length > 1 ? `${candidateApplications.length} candidaturas` : 'Vinculado'}
                                                         </span>
                                                         {primaryApplication && (
-                                                            <span className="text-xs text-gray-700 dark:text-gray-300">{primaryApplication.jobTitle}</span>
+                                                            <span className="text-xs text-muted-foreground">{primaryApplication.jobTitle}</span>
                                                         )}
                                                     </div>
                                                 ) : isInscrito ? (
-                                                    <span className="text-xs text-gray-600 dark:text-gray-400">Sem candidatura</span>
+                                                    <span className="text-xs text-muted-foreground">Sem candidatura</span>
                                                 ) : (
                                                     <span className="text-xs text-red-700 dark:text-red-300 font-medium">⚠ Precisa vincular</span>
                                                 )}
@@ -421,19 +445,19 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                             <td className="p-4 text-xs break-words">{primaryApplication?.jobTitle || 'N/A'}</td>
                                             <td className="p-4 text-xs break-words">{primaryApplication?.jobCompany || 'N/A'}</td>
                                             <td className="p-4 text-xs break-words">{c.city || 'N/A'}</td>
-                                            <td className="p-4 text-xs break-words truncate max-w-[200px] text-gray-700 dark:text-gray-300" title={c.email}>{c.email || 'N/A'}</td>
-                                            <td className="p-4 text-xs break-words text-gray-700 dark:text-gray-300">{c.phone || 'N/A'}</td>
-                                            <td className="p-4 text-xs break-words truncate max-w-[150px] text-gray-700 dark:text-gray-300" title={c.interestAreas}>{c.interestAreas || 'N/A'}</td>
+                                            <td className="p-4 text-xs break-words truncate max-w-[200px] text-muted-foreground" title={c.email}>{c.email || 'N/A'}</td>
+                                            <td className="p-4 text-xs break-words text-muted-foreground">{c.phone || 'N/A'}</td>
+                                            <td className="p-4 text-xs break-words truncate max-w-[150px] text-muted-foreground" title={c.interestAreas}>{c.interestAreas || 'N/A'}</td>
                                             <td className="p-4 text-xs font-medium">{c.hasLicense === 'Sim' ? <span className="text-green-600 dark:text-green-400">✓ Sim</span> : c.hasLicense === 'Não' ? <span className="text-red-600 dark:text-red-400">✗ Não</span> : <span className="text-gray-500">N/A</span>}</td>
-                                            <td className="p-4 text-xs break-words truncate max-w-[120px] text-gray-700 dark:text-gray-300" title={c.source}>{c.source || 'N/A'}</td>
-                                            <td className="p-4 text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                            <td className="p-4 text-xs break-words truncate max-w-[120px] text-muted-foreground" title={c.source}>{c.source || 'N/A'}</td>
+                                            <td className="p-4 text-xs text-muted-foreground whitespace-nowrap">
                                                 {(() => {
                                                     const ts = getCandidateTimestamp(c);
                                                     if (!ts) return 'N/A';
                                                     return new Date(ts * 1000).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                                                 })()}
                                             </td>
-                                            <td className="p-4"><button onClick={() => onEdit(c)} className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"><Edit3 size={16} /></button></td>
+                                            <td className="p-4"><button onClick={() => onEdit(c)} className="text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 transition-colors"><Edit3 size={16} /></button></td>
                                         </tr>
                                     );
                                 })}
@@ -444,7 +468,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
 
                 {/* Paginação */}
                 {processedData.length > 0 && (
-                    <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-brand-card flex items-center justify-between">
+                    <div className="border-t border-border px-6 py-4 bg-brand-card flex items-center justify-between">
                         <div className="text-xs text-slate-400">
                             Mostrando {viewMode === 'list'
                                 ? `${(currentPage - 1) * itemsPerPage + 1} - ${Math.min(currentPage * itemsPerPage, processedData.length)} de ${processedData.length} talentos`
@@ -457,7 +481,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                 disabled={currentPage === 1}
                                 className={`px-3 py-1.5 rounded text-sm font-bold transition-colors ${currentPage === 1
                                     ? 'bg-brand-card text-slate-600 cursor-not-allowed'
-                                    : 'bg-white dark:bg-gray-900 text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                                    : 'bg-background text-white hover:bg-muted'
                                     }`}
                             >
                                 <ChevronLeft size={16} className="inline" />
@@ -470,7 +494,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                 disabled={currentPage >= (viewMode === 'list' ? totalPages : kanbanTotalPages)}
                                 className={`px-3 py-1.5 rounded text-sm font-bold transition-colors ${currentPage >= (viewMode === 'list' ? totalPages : kanbanTotalPages)
                                     ? 'bg-brand-card text-slate-600 cursor-not-allowed'
-                                    : 'bg-white dark:bg-gray-900 text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                                    : 'bg-background text-white hover:bg-muted'
                                     }`}
                             >
                                 <ChevronRight size={16} className="inline" />
@@ -483,7 +507,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
     );
 };
 
-const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displayCount, jobs, applications = [], onDragEnd, onEdit, onCloseStatus, selectedIds, onSelect, showColorPicker, onLoadMore, onReset, highlightedCandidateId = null, allJobs = [], kanbanItemsPerPage = 10, onToggleStar }) => {
+const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displayCount, jobs, applications = [], onDragEnd, onEdit, onCloseStatus, selectedIds, onSelect, showColorPicker, onLoadMore, onReset, highlightedCandidateId = null, allJobs = [], kanbanItemsPerPage = 10, onToggleStar, collapsed = false, onToggleCollapse }) => {
     const [columnColor, setColumnColor] = useState(() => {
         const saved = localStorage.getItem(`kanban-color-${stage}`);
         return saved || STATUS_COLORS[stage];
@@ -510,13 +534,22 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
     ];
 
     return (
-        <div className="w-[320px] flex-shrink-0 flex flex-col bg-brand-card/40 border border-gray-200 dark:border-gray-700 rounded-xl h-full backdrop-blur-sm" onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}>
-            <div className={`p-2 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center rounded-t-xl ${columnColor} relative`}>
-                <span className="font-bold text-xs uppercase break-words">{stage}</span>
-                <span className="bg-black/20 px-2 py-0.5 rounded text-xs font-mono">{total}</span>
+        <div className={`flex-shrink-0 flex flex-col bg-brand-card/40 border border-border rounded-lg h-full backdrop-blur-sm transition-all ${collapsed ? 'w-[48px]' : 'w-[320px]'}`} onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}>
+            <div className={`p-2 border-b border-border flex justify-between items-center rounded-t-xl ${collapsed ? 'rounded-b-xl' : ''} ${columnColor} relative cursor-pointer`} onClick={onToggleCollapse} title={collapsed ? `Expandir ${stage}` : `Colapsar ${stage}`}>
+                {collapsed ? (
+                    <div className="flex flex-col items-center gap-1 w-full py-1">
+                        <span className="font-bold text-[10px] uppercase writing-vertical select-none" style={{writingMode:'vertical-rl', transform:'rotate(180deg)', lineHeight:1}}>{stage}</span>
+                        <span className="bg-black/20 px-1.5 py-0.5 rounded text-xs font-mono">{total}</span>
+                    </div>
+                ) : (
+                    <>
+                    <span className="font-bold text-xs uppercase break-words">{stage}</span>
+                    <span className="bg-black/20 px-2 py-0.5 rounded text-xs font-mono">{total}</span>
+                    </>
+                )}
                 {/* Seletor de cor só aparece quando o botão "Cores" está ativo */}
                 {showColorPicker && (
-                    <div className="absolute top-full left-0 right-0 bg-brand-card border border-gray-200 dark:border-gray-700 rounded-b-lg p-2 z-50 shadow-lg">
+                    <div className="absolute top-full left-0 right-0 bg-brand-card border border-border rounded-b-lg p-2 z-50 shadow-sm">
                         <div className="text-xs text-slate-400 mb-1">Cor da coluna:</div>
                         <div className="grid grid-cols-5 gap-1">
                             {presetColors.map((color, idx) => (
@@ -531,7 +564,7 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                     </div>
                 )}
             </div>
-            <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
+            {!collapsed && <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
                 {displayedCandidates.length > 0 ? displayedCandidates.map(c => {
                     // USAR APENAS applications como fonte de verdade
                     const candidateApplications = applications.filter(a => a.candidateId === c.id);
@@ -545,18 +578,18 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                     const ts = getCandidateTimestamp(c);
                     const recency = getCandidateRecency(c);
                     return (
-                        <div key={c.id} id={`candidate-${c.id}`} draggable onDragStart={(e) => handleDragStart(e, c.id)} onClick={() => onEdit(c)} className={`bg-brand-card p-3 rounded-lg border hover:border-brand-cyan cursor-grab shadow-sm group relative ${selectedIds.includes(c.id) ? 'border-brand-orange bg-brand-orange/5' : 'border-gray-200 dark:border-gray-700'} ${getRecencyRowClass(recency)} ${highlightedCandidateId === c.id ? 'ring-4 ring-yellow-400 ring-opacity-75 animate-pulse border-yellow-400' : ''}`}>
+                        <div key={c.id} id={`candidate-${c.id}`} draggable onDragStart={(e) => handleDragStart(e, c.id)} onClick={() => onEdit(c)} className={`bg-brand-card p-3 rounded-lg border hover:border-brand-cyan cursor-grab shadow-sm group relative ${selectedIds.includes(c.id) ? 'border-brand-orange bg-brand-orange/5' : 'border-border'} ${getRecencyRowClass(recency)} ${highlightedCandidateId === c.id ? 'ring-4 ring-yellow-400 ring-opacity-75 animate-pulse border-yellow-400' : ''}`}>
                             <div className={`absolute top-2 left-2 z-20 ${selectedIds.includes(c.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} onClick={e => e.stopPropagation()}><input type="checkbox" className="accent-blue-600 dark:accent-blue-500" checked={selectedIds.includes(c.id)} onChange={() => onSelect(c.id)} /></div>
 
                             {/* Cabeçalho com resumo: estrela à esquerda (sempre clicável) + nome e demais */}
-                            <div className="mb-2 border-b border-gray-200 dark:border-gray-700/50 pb-2 flex items-start gap-2 pl-6">
+                            <div className="mb-2 border-b border-border/50 pb-2 flex items-start gap-2 pl-6">
                                 {onToggleStar && (
                                     <button type="button" onClick={e => { e.stopPropagation(); onToggleStar(c); }} className="shrink-0 mt-0.5 p-1 rounded hover:bg-white/10 focus:outline-none z-30 relative" title={c.starred ? 'Remover de em consideração' : 'Marcar em consideração'}>
                                         <Star size={18} className={c.starred ? 'text-amber-400 fill-amber-400' : 'text-slate-400 hover:text-amber-300'} />
                                     </button>
                                 )}
                                 <div className="min-w-0 flex-1">
-                                <h4 className="font-bold text-gray-900 dark:text-white text-sm break-words mb-1">{c.fullName}</h4>
+                                <h4 className="font-bold text-foreground text-sm break-words mb-1">{c.fullName}</h4>
                                 <div className="text-xs space-y-0.5">
                                     {primaryJob && (
                                         <div className="text-blue-700 dark:text-blue-300 flex items-center gap-1 font-medium">
@@ -580,7 +613,7 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                                                 className={`px-1.5 py-0.5 rounded text-xs border font-medium cursor-pointer transition-colors text-white ${STATUS_COLORS[c.status] || 'bg-slate-700 border-slate-600'} hover:opacity-80`}
                                             >
                                                 {ALL_STATUSES.map(status => (
-                                                    <option key={status} value={status} className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                                                    <option key={status} value={status} className="bg-card text-foreground">
                                                         {status}
                                                     </option>
                                                 ))}
@@ -595,17 +628,17 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                                         )}
                                     </div>
                                     {c.city && (
-                                        <div className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                                        <div className="text-muted-foreground flex items-center gap-1">
                                             <MapPin size={10} /> <span className="break-words">{c.city}</span>
                                         </div>
                                     )}
                                     {c.interestAreas && (
-                                        <div className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                                        <div className="text-muted-foreground flex items-center gap-1">
                                             <Building2 size={10} /> <span className="break-words">{c.interestAreas}</span>
                                         </div>
                                     )}
                                     {primaryJob && primaryJob.company && (
-                                        <div className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                                        <div className="text-muted-foreground flex items-center gap-1">
                                             <Building2 size={10} /> <span className="break-words">{primaryJob.company}</span>
                                         </div>
                                     )}
@@ -629,7 +662,7 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                                     );
                                 })()}
                             </div>
-                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-brand-card shadow-lg rounded border border-gray-200 dark:border-gray-700 z-30">
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-brand-card shadow-sm rounded border border-border z-30">
                                 <button onClick={(e) => { e.stopPropagation(); onEdit(c) }} className="p-1.5 hover:text-blue-400 hover:bg-blue-500/20" title="Editar">
                                     <Edit3 size={14} />
                                 </button>
@@ -645,17 +678,17 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                 }) : (
                     <div className="text-center py-8 text-slate-500 text-xs">Nenhum candidato nesta etapa</div>
                 )}
-            </div>
+            </div>}
             {/* Botões de paginação */}
-            {displayedCandidates.length < total && (
-                <div className="p-2 border-t border-gray-200 dark:border-gray-700 space-y-1">
+            {!collapsed && displayedCandidates.length < total && (
+                <div className="p-2 border-t border-border space-y-1">
                     <div className="flex gap-1">
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onLoadMore(10);
                             }}
-                            className="flex-1 px-2 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                            className="flex-1 px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
                         >
                             +10
                         </button>
@@ -664,7 +697,7 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                                 e.stopPropagation();
                                 onLoadMore(25);
                             }}
-                            className="flex-1 px-2 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                            className="flex-1 px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
                         >
                             +25
                         </button>
@@ -673,7 +706,7 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                                 e.stopPropagation();
                                 onLoadMore(50);
                             }}
-                            className="flex-1 px-2 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                            className="flex-1 px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
                         >
                             +50
                         </button>
@@ -690,14 +723,14 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                 </div>
             )}
             {/* Botão "Mostrar menos" se houver mais itens exibidos que o padrão */}
-            {displayCount > (kanbanItemsPerPage || 10) && displayedCandidates.length >= displayCount && (
-                <div className="p-2 border-t border-gray-200 dark:border-gray-700">
+            {!collapsed && displayCount > (kanbanItemsPerPage || 10) && displayedCandidates.length >= displayCount && (
+                <div className="p-2 border-t border-border">
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
                             onReset();
                         }}
-                        className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                        className="w-full px-3 py-2 text-xs font-semibold text-muted-foreground bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
                     >
                         Mostrar menos
                     </button>

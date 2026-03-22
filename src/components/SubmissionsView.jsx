@@ -31,15 +31,15 @@ const SubmissionsView = ({ candidatesLoading = false, candidates, onEdit }) => {
     };
     if (candidatesLoading) {
         return (
-            <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
+            <div className="flex items-center justify-center h-64 text-muted-foreground">
                 <span>Carregando formulários...</span>
             </div>
         );
     }
     return (
-        <div className="flex flex-col h-full p-6 overflow-hidden bg-white dark:bg-gray-900">
+        <div className="flex flex-col h-full p-6 overflow-hidden bg-background">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Formulários recebidos</h2>
+                <h2 className="text-2xl font-bold text-foreground">Formulários recebidos</h2>
                 <div className="flex items-center gap-3">
                     <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium">
                         {filtered.length} envios
@@ -51,13 +51,13 @@ const SubmissionsView = ({ candidatesLoading = false, candidates, onEdit }) => {
                             placeholder="Buscar por nome, e-mail ou cidade..."
                             value={search}
                             onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-                            className="pl-10 pr-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="pl-10 pr-3 py-1.5 text-sm border border-border rounded-lg bg-card text-foreground w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
                     <select
                         value={itemsPerPage}
                         onChange={e => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                        className="px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                        className="px-3 py-1.5 text-sm border border-border rounded-lg bg-card text-foreground"
                     >
                         <option value={10}>10 por página</option>
                         <option value={25}>25 por página</option>
@@ -67,17 +67,17 @@ const SubmissionsView = ({ candidatesLoading = false, candidates, onEdit }) => {
                     </select>
                 </div>
             </div>
-            <div className="flex-1 overflow-auto rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex-1 overflow-auto rounded-lg border border-border">
                 <table className="w-full text-left text-sm">
-                    <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
+                    <thead className="bg-muted/50 sticky top-0 z-10">
                         <tr>
-                            <th className="p-3 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">Data do envio</th>
-                            <th className="p-3 font-semibold text-gray-700 dark:text-gray-300">Nome</th>
-                            <th className="p-3 font-semibold text-gray-700 dark:text-gray-300">E-mail</th>
-                            <th className="p-3 font-semibold text-gray-700 dark:text-gray-300">Cidade</th>
-                            <th className="p-3 font-semibold text-gray-700 dark:text-gray-300">Origem</th>
-                            <th className="p-3 font-semibold text-gray-700 dark:text-gray-300">Status</th>
-                            <th className="p-3 font-semibold text-gray-700 dark:text-gray-300 w-24">Ação</th>
+                            <th className="p-3 font-semibold text-muted-foreground whitespace-nowrap">Data do envio</th>
+                            <th className="p-3 font-semibold text-muted-foreground">Nome</th>
+                            <th className="p-3 font-semibold text-muted-foreground">E-mail</th>
+                            <th className="p-3 font-semibold text-muted-foreground">Cidade</th>
+                            <th className="p-3 font-semibold text-muted-foreground">Origem</th>
+                            <th className="p-3 font-semibold text-muted-foreground">Status</th>
+                            <th className="p-3 font-semibold text-muted-foreground w-24">Ação</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -87,12 +87,12 @@ const SubmissionsView = ({ candidatesLoading = false, candidates, onEdit }) => {
                                 className="hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer"
                                 onClick={() => onEdit(c)}
                             >
-                                <td className="p-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">{formatEnvio(c)}</td>
-                                <td className="p-3 text-gray-900 dark:text-white font-medium">{c.fullName || '—'}</td>
-                                <td className="p-3 text-gray-700 dark:text-gray-300">{c.email || '—'}</td>
-                                <td className="p-3 text-gray-700 dark:text-gray-300">{c.city || '—'}</td>
-                                <td className="p-3 text-gray-700 dark:text-gray-300">{c.origin || c.source || '—'}</td>
-                                <td className="p-3 text-gray-700 dark:text-gray-300">{c.status || '—'}</td>
+                                <td className="p-3 text-muted-foreground whitespace-nowrap">{formatEnvio(c)}</td>
+                                <td className="p-3 text-foreground font-medium">{c.fullName || '—'}</td>
+                                <td className="p-3 text-muted-foreground">{c.email || '—'}</td>
+                                <td className="p-3 text-muted-foreground">{c.city || '—'}</td>
+                                <td className="p-3 text-muted-foreground">{c.origin || c.source || '—'}</td>
+                                <td className="p-3 text-muted-foreground">{c.status || '—'}</td>
                                 <td className="p-3" onClick={e => e.stopPropagation()}>
                                     <button onClick={() => onEdit(c)} className="text-blue-600 dark:text-blue-400 hover:underline text-xs font-medium">Ver perfil</button>
                                 </td>
@@ -103,13 +103,13 @@ const SubmissionsView = ({ candidatesLoading = false, candidates, onEdit }) => {
             </div>
             {totalPages > 1 && (
                 <div className="mt-4 flex justify-between items-center">
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-sm text-muted-foreground">
                         Mostrando {(currentPage - 1) * itemsPerPage + 1} a {Math.min(currentPage * itemsPerPage, filtered.length)} de {filtered.length} envios
                     </div>
                     <div className="flex gap-2">
-                        <button type="button" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-sm disabled:opacity-50">Anterior</button>
-                        <span className="px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300">Página {currentPage} de {totalPages}</span>
-                        <button type="button" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-sm disabled:opacity-50">Próxima</button>
+                        <button type="button" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1.5 bg-card border border-border rounded text-sm disabled:opacity-50">Anterior</button>
+                        <span className="px-3 py-1.5 text-sm text-muted-foreground">Página {currentPage} de {totalPages}</span>
+                        <button type="button" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-3 py-1.5 bg-card border border-border rounded text-sm disabled:opacity-50">Próxima</button>
                     </div>
                 </div>
             )}

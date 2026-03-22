@@ -84,26 +84,26 @@ export default function JobCandidatesModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700">
+      <div className="bg-card rounded-lg shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col border border-border">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
+        <div className="p-6 border-b border-border flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
           <div>
-            <h3 className="font-bold text-xl text-gray-900 dark:text-white">{job.title}</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{job.company} {job.city && `• ${job.city}`}</p>
+            <h3 className="font-bold text-xl text-foreground">{job.title}</h3>
+            <p className="text-sm text-muted-foreground">{job.company} {job.city && `• ${job.city}`}</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
               <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">{jobApplications.length}</span>
-              <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">candidaturas</span>
+              <span className="text-sm text-muted-foreground ml-1">candidaturas</span>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
-              <X className="text-gray-500 dark:text-gray-400"/>
+              <X className="text-muted-foreground"/>
             </button>
           </div>
         </div>
 
         {/* Stats Bar */}
-        <div className="px-6 py-3 bg-gray-100 dark:bg-gray-900/30 border-b border-gray-200 dark:border-gray-700 flex gap-3 flex-wrap">
+        <div className="px-6 py-3 bg-gray-100 dark:bg-gray-900/30 border-b border-border flex gap-3 flex-wrap">
           {Object.entries(stats).filter(([_, count]) => count > 0).map(([status, count]) => (
             <div key={status} className={`px-3 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[status] || 'bg-gray-200 text-gray-700'}`}>
               {status}: {count}
@@ -112,7 +112,7 @@ export default function JobCandidatesModal({
         </div>
 
         {/* Add Candidate Button/Section */}
-        <div className="px-6 py-3 border-b border-gray-200 dark:border-gray-700">
+        <div className="px-6 py-3 border-b border-border">
           {!showAddCandidate ? (
             <button
               onClick={() => setShowAddCandidate(true)}
@@ -135,7 +135,7 @@ export default function JobCandidatesModal({
                   placeholder="Buscar por nome ou email..."
                   value={searchCandidate}
                   onChange={e => setSearchCandidate(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-10 pr-4 py-2 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               {searchCandidate && (
@@ -144,14 +144,14 @@ export default function JobCandidatesModal({
                     <div 
                       key={c.id} 
                       onClick={() => handleAddCandidate(c.id)}
-                      className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-500 cursor-pointer transition-colors"
+                      className="flex items-center justify-between p-3 bg-card rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-500 cursor-pointer transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
                           {c.photoUrl ? <img src={c.photoUrl} className="w-full h-full object-cover rounded-full"/> : <User size={16}/>}
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900 dark:text-white text-sm">{c.fullName}</div>
+                          <div className="font-medium text-foreground text-sm">{c.fullName}</div>
                           <div className="text-xs text-gray-500">{c.email}</div>
                         </div>
                       </div>
@@ -172,7 +172,7 @@ export default function JobCandidatesModal({
         {/* Applications List */}
         <div className="flex-1 overflow-y-auto p-6 space-y-3">
           {jobApplications.length === 0 ? (
-            <div className="text-center text-gray-500 dark:text-gray-400 py-16">
+            <div className="text-center text-muted-foreground py-16">
               <UserPlus size={48} className="mx-auto mb-4 opacity-30"/>
               <p>Nenhum candidato vinculado a esta vaga ainda.</p>
               <p className="text-sm mt-2">Clique em "Vincular candidato" para adicionar.</p>
@@ -183,7 +183,7 @@ export default function JobCandidatesModal({
               const isExpanded = expandedApp === app.id;
               
               return (
-                <div key={app.id} className="bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div key={app.id} className="bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-border overflow-hidden">
                   {/* Main Row */}
                   <div className="p-4 flex items-center gap-4">
                     {/* Avatar */}
@@ -199,14 +199,14 @@ export default function JobCandidatesModal({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h4 
-                          className="font-bold text-gray-900 dark:text-white truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                          className="font-bold text-foreground truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
                           onClick={() => onEditCandidate && onEditCandidate(candidate)}
                         >
                           {app.candidateName}
                         </h4>
                         <span className="text-xs text-gray-500">Candidatou em {formatDate(app.appliedAt)}</span>
                       </div>
-                      <div className="flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mt-1">
                         {candidate?.email && <span className="flex items-center gap-1"><Mail size={12}/> {candidate.email}</span>}
                         {candidate?.phone && <span className="flex items-center gap-1"><Phone size={12}/> {candidate.phone}</span>}
                         {candidate?.city && <span className="flex items-center gap-1"><MapPin size={12}/> {candidate.city}</span>}
@@ -248,10 +248,10 @@ export default function JobCandidatesModal({
                   
                   {/* Expanded Section */}
                   {isExpanded && (
-                    <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800/50">
+                    <div className="border-t border-border p-4 bg-card/50">
                       {/* Notas */}
                       <div className="mb-4">
-                        <h5 className="font-medium text-gray-700 dark:text-gray-300 text-sm mb-2 flex items-center gap-2">
+                        <h5 className="font-medium text-muted-foreground text-sm mb-2 flex items-center gap-2">
                           <MessageSquare size={14}/> Notas da Candidatura
                         </h5>
                         <div className="flex gap-2 mb-3">
@@ -261,7 +261,7 @@ export default function JobCandidatesModal({
                             value={newNote}
                             onChange={e => setNewNote(e.target.value)}
                             onKeyPress={e => e.key === 'Enter' && handleAddNote(app.id)}
-                            className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                           />
                           <button
                             onClick={() => handleAddNote(app.id)}
@@ -274,7 +274,7 @@ export default function JobCandidatesModal({
                         <div className="space-y-2 max-h-32 overflow-y-auto">
                           {(app.notes || []).map((note, idx) => (
                             <div key={idx} className="bg-gray-100 dark:bg-gray-900 rounded-lg p-2 text-sm">
-                              <p className="text-gray-700 dark:text-gray-300">{note.text}</p>
+                              <p className="text-muted-foreground">{note.text}</p>
                               <p className="text-xs text-gray-500 mt-1">{note.userName} • {formatDate(note.timestamp)}</p>
                             </div>
                           ))}
@@ -290,13 +290,13 @@ export default function JobCandidatesModal({
                           {candidate.interestAreas && (
                             <div>
                               <span className="text-gray-500">Área:</span>
-                              <span className="ml-2 text-gray-900 dark:text-white">{candidate.interestAreas}</span>
+                              <span className="ml-2 text-foreground">{candidate.interestAreas}</span>
                             </div>
                           )}
                           {candidate.experience && (
                             <div className="col-span-2">
                               <span className="text-gray-500">Experiência:</span>
-                              <div className="mt-1 text-gray-900 dark:text-white whitespace-pre-wrap break-words max-h-32 overflow-y-auto text-sm">
+                              <div className="mt-1 text-foreground whitespace-pre-wrap break-words max-h-32 overflow-y-auto text-sm">
                                 {candidate.experience}
                               </div>
                             </div>
@@ -304,13 +304,13 @@ export default function JobCandidatesModal({
                           {candidate.schoolingLevel && (
                             <div>
                               <span className="text-gray-500">Escolaridade:</span>
-                              <span className="ml-2 text-gray-900 dark:text-white">{candidate.schoolingLevel}</span>
+                              <span className="ml-2 text-foreground">{candidate.schoolingLevel}</span>
                             </div>
                           )}
                           {candidate.salaryExpectation && (
                             <div>
                               <span className="text-gray-500">Expectativa Salarial:</span>
-                              <span className="ml-2 text-gray-900 dark:text-white">{candidate.salaryExpectation}</span>
+                              <span className="ml-2 text-foreground">{candidate.salaryExpectation}</span>
                             </div>
                           )}
                         </div>
@@ -324,7 +324,7 @@ export default function JobCandidatesModal({
         </div>
         
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-between items-center">
+        <div className="p-4 border-t border-border bg-gray-50 dark:bg-gray-900/50 flex justify-between items-center">
           <div className="text-sm text-gray-500">
             {stats['Contratado'] > 0 && (
               <span className="text-green-600 font-medium">{stats['Contratado']} contratado(s)</span>

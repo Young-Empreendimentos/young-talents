@@ -106,9 +106,9 @@ export default function FormSubmitTestPage() {
   if (!supabase) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-gray-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
+        <div className="max-w-md w-full bg-card rounded-lg shadow-sm p-8 text-center">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Supabase não configurado</h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Supabase não configurado</h2>
           <p className="text-gray-600 dark:text-gray-300 text-sm">Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.</p>
           <Link to="/apply" className="inline-flex items-center gap-2 mt-6 text-young-orange hover:underline">
             <ArrowLeft size={18} /> Voltar ao formulário
@@ -124,14 +124,14 @@ export default function FormSubmitTestPage() {
         <div className="flex justify-center mb-6">
           <img src="/logo-young-empreendimentos.png" alt="Young Empreendimentos" className="h-12 w-auto" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 text-center">
+        <h1 className="text-2xl font-bold text-foreground mb-2 text-center">
           Teste de envio do formulário
         </h1>
         <p className="text-gray-600 dark:text-gray-300 text-center mb-8 text-sm">
           Envia um cadastro realista para o Supabase e mostra o payload e a resposta. Use para validar se os dados chegam ao banco e se aparecem corretamente no frontend.
         </p>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+        <div className="bg-card rounded-lg shadow-sm p-6 mb-6">
           <button
             type="button"
             onClick={runTest}
@@ -155,7 +155,7 @@ export default function FormSubmitTestPage() {
         {result && (
           <div className="space-y-6">
             {/* Resultado geral */}
-            <div className={`rounded-xl shadow-lg p-6 ${result.success ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'}`}>
+            <div className={`rounded-lg shadow-sm p-6 ${result.success ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'}`}>
               <div className="flex items-center gap-3 mb-2">
                 {result.success ? (
                   <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400 flex-shrink-0" />
@@ -163,11 +163,11 @@ export default function FormSubmitTestPage() {
                   <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400 flex-shrink-0" />
                 )}
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  <h2 className="text-lg font-bold text-foreground">
                     {result.success ? 'Enviado com sucesso' : 'Erro no envio'}
                   </h2>
                   {result.success && result.data?.id && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                       ID no Supabase: <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">{result.data.id}</code>
                       {' · '}
                       <Link to={`/candidate/${result.data.id}`} className="text-young-orange hover:underline inline-flex items-center gap-1">
@@ -183,9 +183,9 @@ export default function FormSubmitTestPage() {
             </div>
 
             {/* Payload enviado */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <div className="bg-card rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300">Payload enviado ao Supabase</h3>
+                <h3 className="text-sm font-bold text-muted-foreground">Payload enviado ao Supabase</h3>
                 <button
                   type="button"
                   onClick={() => copyToClipboard(JSON.stringify(result.payload, null, 2))}
@@ -202,12 +202,12 @@ export default function FormSubmitTestPage() {
 
             {/* Resposta do Supabase (quando sucesso) */}
             {result.success && result.data && (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Registro retornado pelo Supabase</h3>
+              <div className="bg-card rounded-lg shadow-sm p-6">
+                <h3 className="text-sm font-bold text-muted-foreground mb-3">Registro retornado pelo Supabase</h3>
                 <pre className="text-xs bg-gray-100 dark:bg-gray-900 p-4 rounded-lg overflow-auto max-h-64 text-gray-800 dark:text-gray-200">
                   {JSON.stringify(result.data, null, 2)}
                 </pre>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                <p className="text-xs text-muted-foreground mt-3">
                   Se o app carregar candidatos do Supabase, este registro deve aparecer no Banco de Talentos e no Pipeline. Verifique também no painel do Supabase (Table Editor → candidates).
                 </p>
               </div>
@@ -216,14 +216,14 @@ export default function FormSubmitTestPage() {
         )}
 
         <div className="mt-8 flex flex-wrap gap-4 justify-center">
-          <Link to="/apply" className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-young-orange">
+          <Link to="/apply" className="inline-flex items-center gap-2 text-muted-foreground hover:text-young-orange">
             <ArrowLeft size={18} /> Formulário público
           </Link>
-          <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-young-orange">
+          <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-muted-foreground hover:text-young-orange">
             Supabase Dashboard <ExternalLink size={16} />
           </a>
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-6 text-center">© 2025 Young Empreendimentos</p>
+        <p className="text-xs text-muted-foreground mt-6 text-center">© 2025 Young Empreendimentos</p>
       </div>
     </div>
   );

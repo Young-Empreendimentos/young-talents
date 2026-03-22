@@ -7,14 +7,14 @@ const AppLayout = ({
     children
 }) => {
     return (
-        <div className="flex min-h-screen bg-white dark:bg-gray-900 font-sans text-slate-200 overflow-hidden">
+        <div className="flex min-h-screen bg-background font-sans text-foreground overflow-hidden">
             {SidebarComponent}
 
             {/* CONTEÚDO PRINCIPAL */}
-            <div className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 ${!isSidebarCollapsed ? 'lg:pl-64' : 'lg:pl-0'}`}>
+            <div className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-200 ${!isSidebarCollapsed ? 'lg:pl-60' : 'lg:pl-0'}`}>
                 {HeaderComponent}
 
-                <div className="flex-1 overflow-hidden bg-white dark:bg-gray-900 relative">
+                <div className="flex-1 overflow-hidden bg-background relative">
                     {children}
                 </div>
             </div>

@@ -78,30 +78,30 @@ export default function DiagnosticPage({ candidates = [] }) {
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <div className="mb-4 px-4 py-3 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 text-sm">
+      <div className="mb-4 px-4 py-3 bg-gray-100 dark:bg-gray-800 border border-input rounded-lg text-muted-foreground text-sm">
         <strong>Funcionalidade em desenvolvimento.</strong> Esta página ainda não foi totalmente implementada.
       </div>
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+        <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
           <AlertCircle size={24} /> Diagnóstico da Integração
         </h1>
         <button
           onClick={doRefresh}
           disabled={refreshing}
-          className="flex items-center gap-2 px-3 py-1.5 rounded border border-gray-300 dark:border-gray-600 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
+          className="flex items-center gap-2 px-3 py-1.5 rounded border border-input text-sm text-muted-foreground hover:bg-muted disabled:opacity-50"
         >
           <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Atualizar
         </button>
       </div>
 
       {/* 1. Status da conexão com o banco */}
-      <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-3">
+      <section className="rounded-lg border border-border bg-card p-4">
+        <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2 mb-3">
           <Database size={18} /> Conexão com o banco (Supabase)
         </h2>
         <div className="flex items-center gap-2">
           <Check size={20} className="text-green-500" />
-          <span className="text-gray-700 dark:text-gray-300">
+          <span className="text-muted-foreground">
             {hasCandidates
               ? `Dados carregados do Supabase (${candidates.length} candidato(s) nesta sessão).`
               : 'Nenhum candidato carregado. Os dados vêm do Supabase (schema young_talents).'}
@@ -110,29 +110,29 @@ export default function DiagnosticPage({ candidates = [] }) {
       </section>
 
       {/* 2. Estatísticas de timestamps */}
-      <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-3">
+      <section className="rounded-lg border border-border bg-card p-4">
+        <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2 mb-3">
           <Clock size={18} /> Timestamps (original_timestamp vs createdAt)
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
           <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-            <div className="text-gray-500 dark:text-gray-400">Total candidatos</div>
-            <div className="font-semibold text-gray-900 dark:text-white">{stats.total}</div>
+            <div className="text-muted-foreground">Total candidatos</div>
+            <div className="font-semibold text-foreground">{stats.total}</div>
           </div>
           <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-            <div className="text-gray-500 dark:text-gray-400">Com original_timestamp</div>
-            <div className="font-semibold text-gray-900 dark:text-white">{stats.withOriginal}</div>
+            <div className="text-muted-foreground">Com original_timestamp</div>
+            <div className="font-semibold text-foreground">{stats.withOriginal}</div>
           </div>
           <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-            <div className="text-gray-500 dark:text-gray-400">Com createdAt</div>
-            <div className="font-semibold text-gray-900 dark:text-white">{stats.withCreatedAt}</div>
+            <div className="text-muted-foreground">Com createdAt</div>
+            <div className="font-semibold text-foreground">{stats.withCreatedAt}</div>
           </div>
           <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-            <div className="text-gray-500 dark:text-gray-400">Apenas createdAt</div>
+            <div className="text-muted-foreground">Apenas createdAt</div>
             <div className="font-semibold text-amber-600 dark:text-amber-400">{stats.onlyCreated}</div>
           </div>
         </div>
-        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+        <p className="mt-2 text-xs text-muted-foreground">
           original_timestamp = data/hora do formulário de inscrição. createdAt = quando o registro foi criado/importado no banco.
           Para &quot;Data de cadastro&quot; o frontend prioriza original_timestamp.
         </p>
@@ -145,22 +145,22 @@ export default function DiagnosticPage({ candidates = [] }) {
       </section>
 
       {/* 3. Mapeamento de campos */}
-      <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-3">
+      <section className="rounded-lg border border-border bg-card p-4">
+        <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2 mb-3">
           <FileText size={18} /> Mapeamento de campos
         </h2>
         <div className="text-sm space-y-1">
           <div>Campos obrigatórios (CANDIDATE_FIELDS) ausentes nos dados: {mappingOk.missing.length === 0 ? 'nenhum' : mappingOk.missing.join(', ')}</div>
           <div>Campos esperados (formulário/importação) ausentes: {mappingOk.fromFormsMissing.length === 0 ? 'nenhum' : mappingOk.fromFormsMissing.join(', ')}</div>
         </div>
-        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+        <p className="mt-2 text-xs text-muted-foreground">
           Lista de campos em src/constants.js (CANDIDATE_FIELDS).
         </p>
       </section>
 
       {/* 4. Últimos candidatos */}
-      <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-3">
+      <section className="rounded-lg border border-border bg-card p-4">
+        <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2 mb-3">
           <Users size={18} /> Últimos 10 candidatos (por data de cadastro)
         </h2>
         <div className="overflow-x-auto">
@@ -190,7 +190,7 @@ export default function DiagnosticPage({ candidates = [] }) {
         </div>
       </section>
 
-      <p className="text-xs text-gray-500 dark:text-gray-400">
+      <p className="text-xs text-muted-foreground">
         Os dados acima vêm do Supabase. Use o painel do Supabase (Table Editor) para verificar a conexão e o schema.
       </p>
     </div>

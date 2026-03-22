@@ -42,14 +42,14 @@ const JobsManagementPage = ({
     ];
     return (
         <div className="p-6 overflow-y-auto h-full flex flex-col">
-            <div className="flex border-b border-gray-200 dark:border-gray-700 mb-4 gap-1">
+            <div className="flex border-b border-border mb-4 gap-1">
                 {tabs.map(({ id, label, icon: Icon }) => (
                     <button
                         key={id}
                         onClick={() => setJobsPageTab(id)}
                         className={`flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-t-lg transition-colors ${jobsPageTab === id
                             ? 'bg-blue-600 text-white dark:bg-blue-500'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                            : 'text-muted-foreground hover:bg-muted hover:text-gray-900 dark:hover:text-white'
                             }`}
                     >
                         <Icon size={18} />

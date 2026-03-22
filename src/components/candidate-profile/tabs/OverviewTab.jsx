@@ -18,7 +18,7 @@ function CvLinkRow({ url, idx, total, copiedUrl, onCopy }) {
             <LinkStatusBadge status={status} label="CV" />
             <button
                 onClick={() => onCopy(url)}
-                className="px-2 py-1.5 bg-white dark:bg-gray-800 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-r-lg border border-blue-200 dark:border-blue-800 transition-colors"
+                className="px-2 py-1.5 bg-card text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-r-lg border border-blue-200 dark:border-blue-800 transition-colors"
                 title="Copiar URL"
             >
                 {copiedUrl === url ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
@@ -38,7 +38,7 @@ function PortfolioLinkRow({ url, idx, total, copiedUrl, onCopy }) {
             <LinkStatusBadge status={status} label="Portfólio" />
             <button
                 onClick={() => onCopy(url)}
-                className="px-2 py-1.5 bg-white dark:bg-gray-800 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 rounded-r-lg border border-purple-200 dark:border-purple-800 transition-colors"
+                className="px-2 py-1.5 bg-card text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 rounded-r-lg border border-purple-200 dark:border-purple-800 transition-colors"
                 title="Copiar URL"
             >
                 {copiedUrl === url ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
@@ -74,7 +74,7 @@ export default function OverviewTab({
                     return (
                         <div
                             key={idx}
-                            className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6"
+                            className="bg-card rounded-lg border border-border p-6"
                         >
                             <div className="flex items-center justify-between mb-4">
                                 <div className={`p-3 rounded-lg ${card.color} text-white`}>
@@ -84,10 +84,10 @@ export default function OverviewTab({
                                     {card.subtitle}
                                 </span>
                             </div>
-                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                            <h3 className="text-sm font-medium text-muted-foreground mb-1">
                                 {card.title}
                             </h3>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <p className="text-2xl font-bold text-foreground">
                                 {card.value}
                             </p>
                         </div>
@@ -97,8 +97,8 @@ export default function OverviewTab({
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Contato e Essenciais */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <div className="bg-card rounded-lg border border-border p-6">
+                    <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                         <Mail size={20} />
                         Informações de Contato
                     </h2>
@@ -106,8 +106,8 @@ export default function OverviewTab({
                         <div className="flex items-center gap-3">
                             <Mail size={16} className="text-gray-400" />
                             <div>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">E-mail Principal</p>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                <p className="text-xs text-muted-foreground">E-mail Principal</p>
+                                <p className="text-sm font-medium text-foreground">
                                     {candidate.email || 'Não informado'}
                                 </p>
                             </div>
@@ -116,8 +116,8 @@ export default function OverviewTab({
                             <div className="flex items-center gap-3">
                                 <Phone size={16} className="text-gray-400" />
                                 <div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Telefone</p>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                    <p className="text-xs text-muted-foreground">Telefone</p>
+                                    <p className="text-sm font-medium text-foreground">
                                         {candidate.phone}
                                     </p>
                                 </div>
@@ -127,8 +127,8 @@ export default function OverviewTab({
                             <div className="flex items-center gap-3">
                                 <MapPin size={16} className="text-gray-400" />
                                 <div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Cidade</p>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                    <p className="text-xs text-muted-foreground">Cidade</p>
+                                    <p className="text-sm font-medium text-foreground">
                                         {candidate.city}
                                     </p>
                                 </div>
@@ -137,8 +137,8 @@ export default function OverviewTab({
                         <div className="flex items-center gap-3">
                             <Car size={16} className="text-gray-400" />
                             <div>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">CNH (tipo B)</p>
-                                <p className={`text-sm font-medium ${candidate.hasLicense ? 'text-gray-900 dark:text-white' : 'text-amber-600 dark:text-amber-400'}`}>
+                                <p className="text-xs text-muted-foreground">CNH (tipo B)</p>
+                                <p className={`text-sm font-medium ${candidate.hasLicense ? 'text-foreground' : 'text-amber-600 dark:text-amber-400'}`}>
                                     {candidate.hasLicense === 'Sim' ? 'Sim' : candidate.hasLicense === 'Não' ? 'Não' : 'Não informado'}
                                 </p>
                             </div>
@@ -146,8 +146,8 @@ export default function OverviewTab({
                         <div className="flex items-center gap-3">
                             <ClockIcon size={16} className="text-gray-400" />
                             <div>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">Idade</p>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                <p className="text-xs text-muted-foreground">Idade</p>
+                                <p className="text-sm font-medium text-foreground">
                                     {(() => {
                                         const a = getCandidateAge(candidate);
                                         return a != null ? `${a} anos` : 'Não informado';
@@ -161,24 +161,24 @@ export default function OverviewTab({
                                 <div className="flex items-start gap-2">
                                     <Tag size={16} className="text-gray-400 shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Áreas de interesse</p>
-                                        <p className="text-sm font-medium text-gray-900 dark:text-white">{candidate.interestAreas || 'N/A'}</p>
+                                        <p className="text-xs text-muted-foreground">Áreas de interesse</p>
+                                        <p className="text-sm font-medium text-foreground">{candidate.interestAreas || 'N/A'}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-2">
                                     <GraduationCap size={16} className="text-gray-400 shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Escolaridade</p>
-                                        <p className="text-sm font-medium text-gray-900 dark:text-white">{candidate.schoolingLevel || 'N/A'}</p>
+                                        <p className="text-xs text-muted-foreground">Escolaridade</p>
+                                        <p className="text-sm font-medium text-foreground">{candidate.schoolingLevel || 'N/A'}</p>
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Pretensão Salarial</p>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white">{candidate.salaryExpectation || 'N/A'}</p>
+                                    <p className="text-xs text-muted-foreground">Pretensão Salarial</p>
+                                    <p className="text-sm font-medium text-foreground">{candidate.salaryExpectation || 'N/A'}</p>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Disponibilidade mudança</p>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white">{candidate.canRelocate || 'N/A'}</p>
+                                    <p className="text-xs text-muted-foreground">Disponibilidade mudança</p>
+                                    <p className="text-sm font-medium text-foreground">{candidate.canRelocate || 'N/A'}</p>
                                 </div>
                             </div>
                         </div>
@@ -186,14 +186,14 @@ export default function OverviewTab({
                 </div>
 
                 {/* Status e Perfil Rápido */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <div className="bg-card rounded-lg border border-border p-6">
+                    <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                         <TrendingUp size={20} />
                         Status e Links
                     </h2>
                     <div className="space-y-4">
                         <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Status Atual no Funil</p>
+                            <p className="text-xs text-muted-foreground mb-2">Status Atual no Funil</p>
                             <span className={`inline-block px-3 py-1 rounded text-sm font-medium ${STATUS_COLORS[candidate.status] || 'bg-slate-600 text-white'}`}>
                                 {candidate.status || 'Inscrito'}
                             </span>
@@ -248,7 +248,7 @@ export default function OverviewTab({
 
                         <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
                             <h3 className="text-xs font-bold text-gray-400 uppercase mb-1">Bio/Campo Livre</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 italic">
+                            <p className="text-sm text-muted-foreground italic">
                                 {candidate.freeField ? `"${candidate.freeField.substring(0, 150)}${candidate.freeField.length > 150 ? '...' : ''}"` : 'Nenhuma observação adicional.'}
                             </p>
                         </div>

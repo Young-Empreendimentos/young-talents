@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Users, Mail, History, Database, Layout, UploadCloud, Download, 
-  Plus, Trash2, Edit3, Save, Search, FileText, CheckSquare, X
+import {
+  Users, Mail, History, Database, Layout, UploadCloud, Download,
+  Plus, Trash2, Edit3, Save, Search, FileText, CheckSquare, X, Info, HelpCircle, BookOpen, ExternalLink, Sparkles, AlertCircle, ChevronRight
 } from 'lucide-react';
-import { CSV_FIELD_MAPPING_OPTIONS, PIPELINE_STAGES } from '../constants';
+import { CSV_FIELD_MAPPING_OPTIONS, PIPELINE_STAGES, CANDIDATE_FIELDS } from '../constants';
+import { getTimestampSeconds, getCandidateTimestamp } from '../utils/timestampUtils';
 import DataManager from './DataManager';
 import * as XLSX from 'xlsx';
 
@@ -27,13 +28,14 @@ export default function SettingsPage({
   currentUserName,
   currentUserPhoto,
   activityLog = [],
-  candidateFields = []
+  candidateFields = [],
+  candidates = []
 }) {
   // Usar toast do App se disponível
   if (onShowToast) showToast = onShowToast;
   const navigate = useNavigate();
   
-  const activeTab = activeSettingsTab || 'campos';
+  const activeTab = activeSettingsTab || null;
   const setActiveTab = (tab) => {
     if (onSettingsTabChange) onSettingsTabChange(tab);
   };
@@ -48,48 +50,45 @@ export default function SettingsPage({
     { id: 'emails', label: 'Modelos de Email', icon: Mail },
     { id: 'history', label: 'Histórico de Ações', icon: History },
     ...(isAdmin ? [{ id: 'activity', label: 'Log de Atividades', icon: FileText }] : []),
+    ...(isAdmin ? [{ id: 'diagnostic', label: 'Diagnóstico', icon: AlertCircle }] : []),
+    { id: 'sobre', label: 'Sobre', icon: Info },
+    { id: 'ajuda', label: 'Ajuda', icon: HelpCircle },
   ];
+
+  const currentTab = tabs.find(t => t.id === activeTab);
 
   return (
     <div className="flex flex-col h-full bg-brand-dark text-slate-200">
-      {/* Header e Navegação */}
-      <div className="p-6 border-b border-brand-border bg-brand-card">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Configurações do Sistema</h2>
-          {/* Perfil do usuário atual */}
-          <div className="flex items-center gap-3 bg-gray-800/50 rounded-lg px-4 py-2">
-            {currentUserPhoto ? (
-              <img src={currentUserPhoto} alt="" className="w-8 h-8 rounded-full"/>
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
-                <Users size={16}/>
-              </div>
-            )}
-            <div className="text-sm">
-              <div className="font-medium text-gray-900 dark:text-white">{currentUserName || currentUserEmail}</div>
-              <div className="text-xs text-gray-400">{currentUserRole === 'admin' ? 'Administrador' : currentUserRole === 'editor' ? 'Recrutador' : 'Visualizador'}</div>
-            </div>
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
+      {/* Se nenhuma aba selecionada ou aba não encontrada, mostra grid de botões */}
+      {!currentTab ? (
+        <div className="p-6 space-y-6">
+          <h2 className="text-2xl font-bold text-foreground">Configurações</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="flex flex-col items-center gap-3 p-6 rounded-lg border border-border bg-card/50 hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-sm transition-all text-center group"
+              >
+                <tab.icon size={24} className="text-muted-foreground group-hover:text-blue-500 transition-colors" />
+                <span className="text-sm font-medium text-muted-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400">{tab.label}</span>
+              </button>
+            ))}
           </div>
         </div>
-        <div className="flex gap-1 overflow-x-auto custom-scrollbar pb-1">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-3 rounded-t-lg font-bold text-sm transition-all border-b-2 whitespace-nowrap ${
-                activeTab === tab.id 
-                  ? 'bg-brand-dark text-brand-orange border-brand-orange' 
-                  : 'text-slate-500 border-transparent hover:text-slate-300 hover:bg-brand-dark/50'
-              }`}
-            >
-              <tab.icon size={16} /> {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Conteúdo das Abas */}
-      <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
+      ) : (
+        <div className="p-6 space-y-4">
+          <button
+            onClick={() => setActiveTab(null)}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
+            <ChevronRight size={16} className="rotate-180" /> Configurações
+          </button>
+          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+            <currentTab.icon size={20} /> {currentTab.label}
+          </h2>
+          <div>
         {activeTab === 'campos' && <FieldsManager candidateFields={candidateFields} />}
         {activeTab === 'pipeline' && <PipelineManager />}
         {activeTab === 'companies' && <CompaniesManager onShowToast={onShowToast} />}
@@ -112,6 +111,70 @@ export default function SettingsPage({
           </>
         )}
         {activeTab === 'activity' && isAdmin && <ActivityLog activityLog={activityLog} />}
+        {activeTab === 'diagnostic' && isAdmin && <DiagnosticTab candidates={candidates} />}
+        {activeTab === 'sobre' && (
+          <div className="max-w-3xl space-y-6">
+            <div className="flex items-center gap-3 mb-2">
+              <img src="/logo-young-empreendimentos-caixa.png" alt="Young" className="h-12 w-12 rounded-lg" />
+              <h2 className="text-xl font-bold text-foreground">Sobre o Young Talents ATS</h2>
+            </div>
+            <div className="rounded-lg border border-border p-5 bg-card/50">
+              <h3 className="text-base font-semibold text-foreground mb-2">Visão Geral</h3>
+              <p className="text-muted-foreground text-sm">
+                O <strong>Young Talents ATS</strong> é um sistema completo de gerenciamento de recrutamento (Applicant Tracking System)
+                que permite gerenciar candidatos, vagas e todo o processo seletivo em um único lugar. Com pipeline visual (Kanban),
+                banco de talentos, formulário público de candidatura e relatórios integrados.
+              </p>
+            </div>
+            <div className="rounded-lg border border-border p-5 bg-card/50">
+              <h3 className="text-base font-semibold text-foreground mb-2 flex items-center gap-2"><Sparkles size={18} /> Melhorias Futuras</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                <li><strong>Disparos de email na pipeline</strong> — Ao mover o candidato entre etapas, enviar emails automáticos</li>
+                <li><strong>Módulo Diagnóstico</strong> — Em desenvolvimento</li>
+                <li><strong>Notificações in-app</strong> — Alertas para novas candidaturas ou mudanças relevantes</li>
+              </ul>
+            </div>
+            <div className="rounded-lg border border-border p-5 bg-blue-50 dark:bg-blue-900/20">
+              <h3 className="text-base font-semibold text-foreground mb-2">Documentação</h3>
+              <a
+                href="https://github.com/Young-Empreendimentos/young-talents"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline font-medium text-sm"
+              >
+                <ExternalLink size={14} /> Repositório no GitHub
+              </a>
+            </div>
+          </div>
+        )}
+        {activeTab === 'ajuda' && (
+          <div className="max-w-3xl space-y-6">
+            <div className="flex items-center gap-2 mb-2">
+              <HelpCircle size={24} className="text-blue-500" />
+              <h2 className="text-xl font-bold text-foreground">Ajuda</h2>
+            </div>
+            <div className="rounded-lg border border-border p-5 bg-card/50">
+              <h3 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2"><BookOpen size={18} /> Guia de Uso</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                <li><strong>Dashboard</strong> — Métricas e gráficos do processo de recrutamento</li>
+                <li><strong>Pipeline</strong> — Visualização Kanban com arrastar e soltar entre etapas</li>
+                <li><strong>Banco de Talentos</strong> — Tabela completa com busca, filtros e ordenação</li>
+                <li><strong>Vagas</strong> — Cadastro e gestão de vagas e empresas</li>
+                <li><strong>Relatórios</strong> — Exportação e análises</li>
+                <li><strong>Configurações</strong> — Campos, pipeline, importação/exportação e usuários</li>
+              </ul>
+            </div>
+            <div className="rounded-lg border border-border p-5 bg-card/50">
+              <h3 className="text-base font-semibold text-foreground mb-2">Suporte</h3>
+              <p className="text-sm text-muted-foreground">
+                Para dúvidas ou problemas, entre em contato com o administrador do sistema ou abra uma issue no repositório do projeto.
+              </p>
+            </div>
+          </div>
+        )}
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
@@ -224,7 +287,7 @@ const FieldsManager = ({ candidateFields = [] }) => {
         <div className="relative w-64">
           <Search className="absolute left-3 top-2.5 text-slate-500" size={16} />
           <input 
-            className="w-full bg-brand-card border border-brand-border rounded-lg pl-9 pr-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand-cyan outline-none"
+            className="w-full bg-brand-card border border-brand-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand-cyan outline-none"
             placeholder="Buscar campo..."
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -245,12 +308,12 @@ const FieldsManager = ({ candidateFields = [] }) => {
       </div>
 
       {/* Legenda */}
-      <div className="flex gap-4 text-xs text-gray-500 dark:text-gray-400">
-        <span><strong className="text-gray-900 dark:text-white">Nome Visual:</strong> Exibido nas tabelas e formulários</span>
+      <div className="flex gap-4 text-xs text-muted-foreground">
+        <span><strong className="text-foreground">Nome Visual:</strong> Exibido nas tabelas e formulários</span>
         <span><strong className="text-cyan-400">Nome do Campo (CSV/Forms):</strong> Nome original da planilha/formulário</span>
       </div>
 
-      <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden shadow-lg">
+      <div className="bg-brand-card border border-brand-border rounded-lg overflow-hidden shadow-sm">
         <table className="w-full text-left text-sm">
           <thead className="bg-brand-dark/50 text-slate-400 font-bold uppercase text-xs">
             <tr>
@@ -397,7 +460,7 @@ const PipelineManager = () => {
         </div>
         )}
 
-        <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
+        <div className="bg-brand-card border border-brand-border rounded-lg overflow-hidden">
            {stages.map((stage, index) => (
              <div key={stage} className="p-4 border-b border-brand-border last:border-0 flex justify-between items-center hover:bg-brand-dark/30 group">
                 <div className="flex items-center gap-3 flex-1">
@@ -440,7 +503,7 @@ const PipelineManager = () => {
       <div className="space-y-8">
         <div className="space-y-4">
           <h3 className="text-lg font-bold text-white">Gatilhos de Fechamento</h3>
-          <div className="bg-brand-card border border-brand-border rounded-xl p-4 space-y-2">
+          <div className="bg-brand-card border border-brand-border rounded-lg p-4 space-y-2">
              {['Contratado', 'Reprovado', 'Desistiu da Vaga'].map(status => (
                <div key={status} className="flex items-center justify-between p-3 bg-brand-dark/30 rounded-lg border border-transparent hover:border-brand-border">
                   <span className="text-sm font-bold text-slate-200">{status}</span>
@@ -469,7 +532,7 @@ const PipelineManager = () => {
                <Plus size={14}/> Novo Motivo
              </button>
            </div>
-           <div className="bg-brand-card border border-brand-border rounded-xl p-4 space-y-2">
+           <div className="bg-brand-card border border-brand-border rounded-lg p-4 space-y-2">
               {rejectionReasons.map((m, idx) => (
                 <div key={idx} className="text-sm text-slate-300 p-2 border-b border-brand-border last:border-0 flex justify-between items-center">
                   <span>{m}</span>
@@ -576,7 +639,7 @@ const ImportExportManager = ({ onOpenCsvModal, onShowToast }) => {
     <div className="max-w-4xl mx-auto animate-in fade-in space-y-6">
       <div className="grid md:grid-cols-2 gap-6">
         {/* Importação */}
-     <div className="bg-brand-card p-8 rounded-xl border border-brand-border flex flex-col items-center text-center hover:border-brand-cyan/50 transition-colors">
+     <div className="bg-brand-card p-8 rounded-lg border border-brand-border flex flex-col items-center text-center hover:border-brand-cyan/50 transition-colors">
         <div className="w-16 h-16 bg-brand-cyan/10 rounded-full flex items-center justify-center mb-4 text-brand-cyan">
            <UploadCloud size={32}/>
         </div>
@@ -588,7 +651,7 @@ const ImportExportManager = ({ onOpenCsvModal, onShowToast }) => {
      </div>
 
         {/* Exportação */}
-     <div className="bg-brand-card p-8 rounded-xl border border-brand-border flex flex-col items-center text-center hover:border-brand-orange/50 transition-colors">
+     <div className="bg-brand-card p-8 rounded-lg border border-brand-border flex flex-col items-center text-center hover:border-brand-orange/50 transition-colors">
         <div className="w-16 h-16 bg-brand-orange/10 rounded-full flex items-center justify-center mb-4 text-brand-orange">
            <Download size={32}/>
         </div>
@@ -707,8 +770,8 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
   <div className="max-w-4xl mx-auto animate-in fade-in space-y-6">
      <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Usuários do Sistema</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <h3 className="text-lg font-bold text-foreground">Usuários do Sistema</h3>
+          <p className="text-sm text-muted-foreground mt-1">
             Seu perfil: <span className={`px-2 py-0.5 rounded text-xs border ${getRoleInfo(currentUserRole).color}`}>{getRoleInfo(currentUserRole).label}</span>
           </p>
      </div>
@@ -724,20 +787,20 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
 
       {/* Formulário de adicionar usuário */}
       {showAddUser && isAdmin && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 space-y-4">
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 space-y-4">
           <h4 className="font-medium text-blue-800 dark:text-blue-300">Novo Usuário</h4>
           <div className="flex gap-2 mb-2">
             <button
               type="button"
               onClick={() => setAddUserMode('google')}
-              className={`px-3 py-1.5 rounded text-sm font-medium ${addUserMode === 'google' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+              className={`px-3 py-1.5 rounded text-sm font-medium ${addUserMode === 'google' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-muted-foreground'}`}
             >
               Login com Google
             </button>
             <button
               type="button"
               onClick={() => setAddUserMode('password')}
-              className={`px-3 py-1.5 rounded text-sm font-medium ${addUserMode === 'password' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+              className={`px-3 py-1.5 rounded text-sm font-medium ${addUserMode === 'password' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-muted-foreground'}`}
             >
               Email e senha
             </button>
@@ -749,43 +812,43 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
           </p>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Email *</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Email *</label>
               <input
                 type="email"
                 placeholder={addUserMode === 'google' ? 'usuario@gmail.com' : 'usuario@empresa.com'}
                 value={newUserEmail}
                 onChange={e => setNewUserEmail(e.target.value)}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             {addUserMode === 'password' && (
               <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Senha * (mín. 6 caracteres)</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Senha * (mín. 6 caracteres)</label>
                 <input
                   type="password"
                   placeholder="••••••••"
                   value={newUserPassword}
                   onChange={e => setNewUserPassword(e.target.value)}
-                  className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             )}
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Nome (opcional)</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Nome (opcional)</label>
               <input
                 type="text"
                 placeholder="João Silva"
                 value={newUserName}
                 onChange={e => setNewUserName(e.target.value)}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Perfil</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Perfil</label>
               <select
                 value={newUserRole}
                 onChange={e => setNewUserRole(e.target.value)}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {ROLES.map(r => (
                   <option key={r.value} value={r.value}>{r.label}</option>
@@ -794,7 +857,7 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <button onClick={() => { setShowAddUser(false); setNewUserEmail(''); setNewUserName(''); setNewUserPassword(''); }} className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+            <button onClick={() => { setShowAddUser(false); setNewUserEmail(''); setNewUserName(''); setNewUserPassword(''); }} className="px-4 py-2 text-muted-foreground hover:text-gray-900 dark:hover:text-white">
               Cancelar
             </button>
             <button onClick={handleAddUser} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700">
@@ -807,17 +870,17 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
       {/* Descrição dos perfis */}
       <div className="grid grid-cols-3 gap-4">
         {ROLES.map(role => (
-          <div key={role.value} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+          <div key={role.value} className="bg-muted/50/50 rounded-lg p-3 border border-border">
             <span className={`inline-block px-2 py-0.5 rounded text-xs border ${role.color} mb-2`}>{role.label}</span>
-            <p className="text-xs text-gray-600 dark:text-gray-400">{role.desc}</p>
+            <p className="text-xs text-muted-foreground">{role.desc}</p>
           </div>
         ))}
      </div>
 
       {/* Lista de usuários */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow">
+      <div className="bg-card border border-border rounded-lg overflow-hidden shadow">
         <table className="w-full text-left text-sm">
-          <thead className="bg-gray-100 dark:bg-gray-900/50 text-gray-700 dark:text-gray-300 uppercase text-xs font-bold">
+          <thead className="bg-gray-100 dark:bg-gray-900/50 text-muted-foreground uppercase text-xs font-bold">
             <tr>
               <th className="p-4">Usuário</th>
               <th className="p-4">Perfil</th>
@@ -839,7 +902,7 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
                       </div>
                     )}
                     <div>
-                      <div className="font-medium text-gray-900 dark:text-white">
+                      <div className="font-medium text-foreground">
                         {currentUserName || currentUserEmail}
                         <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">(você)</span>
                       </div>
@@ -852,7 +915,7 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
                     Administrador
                   </span>
                 </td>
-                <td className="p-4 text-gray-500 dark:text-gray-400 text-xs">Primeiro acesso</td>
+                <td className="p-4 text-muted-foreground text-xs">Primeiro acesso</td>
                 {isAdmin && <td className="p-4 text-right text-gray-400 text-xs">-</td>}
               </tr>
             )}
@@ -868,7 +931,7 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
                       </div>
                     )}
                     <div>
-                      <div className="font-medium text-gray-900 dark:text-white">
+                      <div className="font-medium text-foreground">
                         {userRole.name || userRole.email}
                         {userRole.email === currentUserEmail && <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">(você)</span>}
                       </div>
@@ -893,7 +956,7 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
                     </span>
                   )}
                 </td>
-                <td className="p-4 text-gray-500 dark:text-gray-400 text-xs">
+                <td className="p-4 text-muted-foreground text-xs">
                   {userRole.createdAt?.toDate ? userRole.createdAt.toDate().toLocaleDateString('pt-BR') : 'N/A'}
                 </td>
                 {isAdmin && (
@@ -913,7 +976,7 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
             ))}
             {userRoles.length === 0 && !currentUserEmail && (
               <tr>
-                <td colSpan={isAdmin ? 4 : 3} className="p-8 text-center text-gray-500 dark:text-gray-400">
+                <td colSpan={isAdmin ? 4 : 3} className="p-8 text-center text-muted-foreground">
                   Nenhum usuário cadastrado
                 </td>
               </tr>
@@ -948,7 +1011,7 @@ const EmailTemplateManager = () => (
             { title: 'Feedback Negativo', trigger: 'Ao mover para Reprovado', subject: 'Update sobre sua candidatura' },
             { title: 'Aprovação Final', trigger: 'Ao mover para Contratado', subject: 'Parabéns! Você foi aprovado' },
          ].map((t, i) => (
-            <div key={i} className="bg-brand-card p-5 rounded-xl border border-brand-border hover:border-brand-orange transition-colors cursor-pointer group">
+            <div key={i} className="bg-brand-card p-5 rounded-lg border border-brand-border hover:border-brand-orange transition-colors cursor-pointer group">
                <div className="flex justify-between items-start mb-3">
                   <h4 className="font-bold text-white">{t.title}</h4>
                   <Edit3 size={16} className="text-slate-500 group-hover:text-white"/>
@@ -1047,7 +1110,7 @@ const CompaniesManager = ({ onShowToast }) => {
   return (
    <div className="max-w-5xl mx-auto animate-in fade-in space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Empresas e Unidades</h3>
+        <h3 className="text-lg font-bold text-foreground">Empresas e Unidades</h3>
         <button
           onClick={() => {
             setEditingCompany(null);
@@ -1061,23 +1124,23 @@ const CompaniesManager = ({ onShowToast }) => {
       </div>
 
       {showAddForm && (
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 space-y-4 shadow-lg">
-          <h4 className="font-bold text-gray-900 dark:text-white text-lg">{editingCompany ? 'Editar' : 'Nova'} Empresa/Unidade</h4>
+        <div className="bg-card border border-border rounded-lg p-6 space-y-4 shadow-sm">
+          <h4 className="font-bold text-foreground text-lg">{editingCompany ? 'Editar' : 'Nova'} Empresa/Unidade</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Nome *</label>
+              <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Nome *</label>
               <input
                 type="text"
-                className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-gray-50 dark:bg-gray-900 border border-input p-2.5 rounded-lg text-sm text-foreground outline-none focus:ring-2 focus:ring-blue-500"
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
                 placeholder="Nome da empresa/unidade"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Cidade</label>
+              <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Cidade</label>
               <select
-                className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-gray-50 dark:bg-gray-900 border border-input p-2.5 rounded-lg text-sm text-foreground outline-none focus:ring-2 focus:ring-blue-500"
                 value={formData.city}
                 onChange={e => setFormData({...formData, city: e.target.value})}
               >
@@ -1088,9 +1151,9 @@ const CompaniesManager = ({ onShowToast }) => {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Área de Interesse</label>
+              <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Área de Interesse</label>
               <select
-                className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-gray-50 dark:bg-gray-900 border border-input p-2.5 rounded-lg text-sm text-foreground outline-none focus:ring-2 focus:ring-blue-500"
                 value={formData.interestArea}
                 onChange={e => setFormData({...formData, interestArea: e.target.value})}
               >
@@ -1101,30 +1164,30 @@ const CompaniesManager = ({ onShowToast }) => {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Endereço</label>
+              <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Endereço</label>
               <input
                 type="text"
-                className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-gray-50 dark:bg-gray-900 border border-input p-2.5 rounded-lg text-sm text-foreground outline-none focus:ring-2 focus:ring-blue-500"
                 value={formData.address}
                 onChange={e => setFormData({...formData, address: e.target.value})}
                 placeholder="Endereço completo"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Telefone</label>
+              <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Telefone</label>
               <input
                 type="text"
-                className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-gray-50 dark:bg-gray-900 border border-input p-2.5 rounded-lg text-sm text-foreground outline-none focus:ring-2 focus:ring-blue-500"
                 value={formData.phone}
                 onChange={e => setFormData({...formData, phone: e.target.value})}
                 placeholder="(51) 99999-9999"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-1.5">Email</label>
+              <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Email</label>
               <input
                 type="email"
-                className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-gray-50 dark:bg-gray-900 border border-input p-2.5 rounded-lg text-sm text-foreground outline-none focus:ring-2 focus:ring-blue-500"
                 value={formData.email}
                 onChange={e => setFormData({...formData, email: e.target.value})}
                 placeholder="contato@empresa.com"
@@ -1134,7 +1197,7 @@ const CompaniesManager = ({ onShowToast }) => {
           <div className="flex justify-end gap-2 pt-2">
             <button
               onClick={handleCancel}
-              className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              className="px-4 py-2 text-muted-foreground hover:text-gray-900 dark:hover:text-white"
             >
               Cancelar
             </button>
@@ -1148,9 +1211,9 @@ const CompaniesManager = ({ onShowToast }) => {
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-lg">
+      <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
          <table className="w-full text-left text-sm">
-          <thead className="bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 font-bold uppercase text-xs">
+          <thead className="bg-gray-100 dark:bg-gray-900 text-muted-foreground font-bold uppercase text-xs">
             <tr>
               <th className="p-4">Nome</th>
               <th className="p-4">Cidade</th>
@@ -1163,10 +1226,10 @@ const CompaniesManager = ({ onShowToast }) => {
             {companies.length > 0 ? (
               companies.map(company => (
                 <tr key={company.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                  <td className="p-4 font-bold text-gray-900 dark:text-white">{company.name}</td>
-                  <td className="p-4 text-gray-600 dark:text-gray-400">{company.city || 'N/A'}</td>
-                  <td className="p-4 text-gray-600 dark:text-gray-400">{company.interestArea || 'N/A'}</td>
-                  <td className="p-4 text-gray-600 dark:text-gray-400 text-xs">
+                  <td className="p-4 font-bold text-foreground">{company.name}</td>
+                  <td className="p-4 text-muted-foreground">{company.city || 'N/A'}</td>
+                  <td className="p-4 text-muted-foreground">{company.interestArea || 'N/A'}</td>
+                  <td className="p-4 text-muted-foreground text-xs">
                     {company.phone && <div>{company.phone}</div>}
                     {company.email && <div>{company.email}</div>}
                     {!company.phone && !company.email && 'N/A'}
@@ -1193,7 +1256,7 @@ const CompaniesManager = ({ onShowToast }) => {
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="p-8 text-center text-gray-500 dark:text-gray-400">
+                <td colSpan="5" className="p-8 text-center text-muted-foreground">
                   Nenhuma empresa cadastrada
                 </td>
                </tr>
@@ -1253,7 +1316,7 @@ const MassActionHistory = () => {
           {history.length} registro{history.length !== 1 ? 's' : ''}
         </div>
       </div>
-      <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
+      <div className="bg-brand-card border border-brand-border rounded-lg overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-slate-400">
             <div className="animate-spin inline-block w-6 h-6 border-2 border-brand-cyan border-t-transparent rounded-full"></div>
@@ -1403,7 +1466,7 @@ const ActivityLog = ({ activityLog = [] }) => {
         </div>
       </div>
 
-      <div className="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden">
+      <div className="bg-gray-800/50 border border-gray-700 rounded-lg overflow-hidden">
         {filteredActivities.length === 0 ? (
           <div className="p-8 text-center text-gray-400">
             <FileText size={48} className="mx-auto mb-4 opacity-50" />
@@ -1468,6 +1531,85 @@ const ActivityLog = ({ activityLog = [] }) => {
       <div className="text-xs text-gray-500 text-center">
         Mostrando {filteredActivities.length} de {activityLog.length} atividades
       </div>
+    </div>
+  );
+};
+
+// --- Diagnóstico ---
+function formatDiagTs(ts) {
+  if (ts == null) return '—';
+  return new Date(ts * 1000).toLocaleString('pt-BR');
+}
+
+const DiagnosticTab = ({ candidates = [] }) => {
+  const hasCandidates = candidates.length > 0;
+  const stats = useMemo(() => {
+    const list = candidates.filter(c => !c.deletedAt);
+    let withOriginal = 0, withCreatedAt = 0, onlyCreated = 0;
+    const now = Date.now() / 1000;
+    list.forEach(c => {
+      const o = getTimestampSeconds(c.original_timestamp);
+      const cr = getTimestampSeconds(c.createdAt);
+      if (o != null) withOriginal++;
+      if (cr != null) withCreatedAt++;
+      if (o == null && cr != null) onlyCreated++;
+    });
+    return { total: list.length, withOriginal, withCreatedAt, onlyCreated };
+  }, [candidates]);
+
+  const recent = useMemo(() => {
+    return [...candidates]
+      .filter(c => !c.deletedAt)
+      .map(c => ({ ...c, _ts: getTimestampSeconds(c.original_timestamp) ?? getTimestampSeconds(c.createdAt) ?? 0 }))
+      .sort((a, b) => b._ts - a._ts)
+      .slice(0, 10);
+  }, [candidates]);
+
+  const mappingOk = useMemo(() => {
+    const keys = new Set(candidates.flatMap(c => Object.keys(c)));
+    const required = CANDIDATE_FIELDS.filter(f => f.required).map(f => f.key);
+    const missing = required.filter(k => !keys.has(k));
+    return { missing };
+  }, [candidates]);
+
+  return (
+    <div className="max-w-3xl space-y-6">
+      <section className="rounded-lg border border-border bg-card/50 p-4">
+        <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2 mb-3"><Database size={16} /> Conexão (Supabase)</h3>
+        <p className="text-sm text-muted-foreground">{hasCandidates ? `${candidates.length} candidato(s) carregados.` : 'Nenhum candidato carregado.'}</p>
+      </section>
+      <section className="rounded-lg border border-border bg-card/50 p-4">
+        <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2 mb-3"><History size={16} /> Timestamps</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+          <div className="p-3 rounded bg-gray-50 dark:bg-gray-700/50"><div className="text-muted-foreground text-xs">Total</div><div className="font-semibold text-foreground">{stats.total}</div></div>
+          <div className="p-3 rounded bg-gray-50 dark:bg-gray-700/50"><div className="text-muted-foreground text-xs">original_timestamp</div><div className="font-semibold text-foreground">{stats.withOriginal}</div></div>
+          <div className="p-3 rounded bg-gray-50 dark:bg-gray-700/50"><div className="text-muted-foreground text-xs">createdAt</div><div className="font-semibold text-foreground">{stats.withCreatedAt}</div></div>
+          <div className="p-3 rounded bg-gray-50 dark:bg-gray-700/50"><div className="text-muted-foreground text-xs">Apenas createdAt</div><div className="font-semibold text-amber-600 dark:text-amber-400">{stats.onlyCreated}</div></div>
+        </div>
+      </section>
+      <section className="rounded-lg border border-border bg-card/50 p-4">
+        <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2 mb-3"><FileText size={16} /> Mapeamento de campos</h3>
+        <p className="text-sm text-muted-foreground">Campos obrigatórios ausentes: {mappingOk.missing.length === 0 ? 'nenhum' : mappingOk.missing.join(', ')}</p>
+      </section>
+      <section className="rounded-lg border border-border bg-card/50 p-4">
+        <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2 mb-3"><Users size={16} /> Últimos 10 candidatos</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead><tr className="border-b border-gray-200 dark:border-gray-600 text-left text-xs text-gray-500"><th className="py-2 px-2">Nome</th><th className="py-2 px-2">Email</th><th className="py-2 px-2">original_timestamp</th><th className="py-2 px-2">createdAt</th></tr></thead>
+            <tbody>
+              {recent.length === 0 && <tr><td colSpan={4} className="py-4 text-center text-gray-500">Nenhum candidato.</td></tr>}
+              {recent.map(c => (
+                <tr key={c.id} className="border-b border-gray-100 dark:border-gray-700/50 text-muted-foreground">
+                  <td className="py-2 px-2">{c.fullName || '—'}</td>
+                  <td className="py-2 px-2">{c.email || '—'}</td>
+                  <td className="py-2 px-2">{formatDiagTs(getTimestampSeconds(c.original_timestamp))}</td>
+                  <td className="py-2 px-2">{formatDiagTs(getTimestampSeconds(c.createdAt))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 };

@@ -9,22 +9,22 @@ export default function EducationTab({
     formatDate
 }) {
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+        <div className="bg-card rounded-lg border border-border p-6">
+            <h2 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
                 <GraduationCap size={20} />
                 Formação Acadêmica
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                         Nível de Escolaridade
                     </label>
                     {isEditing ? (
                         <select
                             value={editData.schoolingLevel || ''}
                             onChange={(e) => handleFieldChange('schoolingLevel', e.target.value)}
-                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full bg-background border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-foreground outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">Selecione</option>
                             <option value="Ensino Fundamental">Ensino Fundamental</option>
@@ -37,12 +37,12 @@ export default function EducationTab({
                             <option value="Doutorado">Doutorado</option>
                         </select>
                     ) : (
-                        <p className="text-gray-900 dark:text-white font-medium">{candidate.schoolingLevel || 'Não informado'}</p>
+                        <p className="text-foreground font-medium">{candidate.schoolingLevel || 'Não informado'}</p>
                     )}
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                         Curso / Formação
                     </label>
                     {isEditing ? (
@@ -50,16 +50,16 @@ export default function EducationTab({
                             type="text"
                             value={editData.education || ''}
                             onChange={(e) => handleFieldChange('education', e.target.value)}
-                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full bg-background border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-foreground outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Ex: Administração de Empresas"
                         />
                     ) : (
-                        <p className="text-gray-900 dark:text-white font-medium">{candidate.education || 'Não informado'}</p>
+                        <p className="text-foreground font-medium">{candidate.education || 'Não informado'}</p>
                     )}
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                         <Building2 size={16} className="text-gray-400" />
                         Instituição de Ensino
                     </label>
@@ -68,15 +68,15 @@ export default function EducationTab({
                             type="text"
                             value={editData.institution || ''}
                             onChange={(e) => handleFieldChange('institution', e.target.value)}
-                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full bg-background border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-foreground outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     ) : (
-                        <p className="text-gray-900 dark:text-white">{candidate.institution || 'Não informado'}</p>
+                        <p className="text-foreground">{candidate.institution || 'Não informado'}</p>
                     )}
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                         <Calendar size={16} className="text-gray-400" />
                         Data de Formatura
                     </label>
@@ -85,24 +85,24 @@ export default function EducationTab({
                             type="date"
                             value={editData.graduationDate || ''}
                             onChange={(e) => handleFieldChange('graduationDate', e.target.value)}
-                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full bg-background border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-foreground outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     ) : (
-                        <p className="text-gray-900 dark:text-white">
+                        <p className="text-foreground">
                             {candidate.graduationDate ? formatDate(candidate.graduationDate) : 'Não informado'}
                         </p>
                     )}
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                         Cursando Atualmente?
                     </label>
                     {isEditing ? (
                         <select
                             value={editData.isStudying ? 'Sim' : 'Não'}
                             onChange={(e) => handleFieldChange('isStudying', e.target.value === 'Sim')}
-                            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full bg-background border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-foreground outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="Não">Não</option>
                             <option value="Sim">Sim</option>

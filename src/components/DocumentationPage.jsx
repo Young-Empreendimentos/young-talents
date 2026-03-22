@@ -23,14 +23,14 @@ export default function DocumentationPage() {
   const ContentComponent = currentDoc.Component;
 
   return (
-    <div className="flex h-full overflow-hidden bg-white dark:bg-gray-900">
+    <div className="flex h-full overflow-hidden bg-background">
       <DocumentationSidebar activeSlug={activeSlug} onNavigate={handleNavigate} />
 
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-6 py-8">
           <div className="flex items-center gap-3 mb-6">
             <Book size={28} className="text-blue-600 dark:text-blue-400 flex-shrink-0" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-bold text-foreground">
               {currentDoc.title}
             </h1>
           </div>

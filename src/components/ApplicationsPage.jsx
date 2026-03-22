@@ -257,17 +257,17 @@ export default function ApplicationsPage({
   return (
     <div className="h-full flex flex-col">
       {/* Header com Resumo */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-card border-b border-border p-6">
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Candidaturas</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <h2 className="text-2xl font-bold text-foreground">Candidaturas</h2>
+            <p className="text-sm text-muted-foreground mt-1">
               Gerencie todas as candidaturas de candidatos às vagas
             </p>
           </div>
           <button
             onClick={() => setShowNewApplicationModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus size={18}/> Nova Candidatura
           </button>
@@ -275,7 +275,7 @@ export default function ApplicationsPage({
         
         {/* Cards de Métricas */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white">
             <div className="flex items-center gap-2 mb-2">
               <FileText size={20} className="opacity-80"/>
               <span className="text-sm font-medium opacity-90">Total</span>
@@ -283,7 +283,7 @@ export default function ApplicationsPage({
             <div className="text-3xl font-bold">{stats.total}</div>
           </div>
           
-          <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl p-4 text-white">
+          <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg p-4 text-white">
             <div className="flex items-center gap-2 mb-2">
               <Clock size={20} className="opacity-80"/>
               <span className="text-sm font-medium opacity-90">Em Processo</span>
@@ -291,7 +291,7 @@ export default function ApplicationsPage({
             <div className="text-3xl font-bold">{stats.inProcess}</div>
           </div>
           
-          <div className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl p-4 text-white">
+          <div className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg p-4 text-white">
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle size={20} className="opacity-80"/>
               <span className="text-sm font-medium opacity-90">Contratados</span>
@@ -299,7 +299,7 @@ export default function ApplicationsPage({
             <div className="text-3xl font-bold">{stats.hired}</div>
           </div>
           
-          <div className="bg-gradient-to-br from-red-500 to-rose-500 rounded-xl p-4 text-white">
+          <div className="bg-gradient-to-br from-red-500 to-rose-500 rounded-lg p-4 text-white">
             <div className="flex items-center gap-2 mb-2">
               <XCircle size={20} className="opacity-80"/>
               <span className="text-sm font-medium opacity-90">Reprovados</span>
@@ -307,7 +307,7 @@ export default function ApplicationsPage({
             <div className="text-3xl font-bold">{stats.rejected}</div>
           </div>
           
-          <div className="bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl p-4 text-white">
+          <div className="bg-gradient-to-br from-gray-500 to-gray-600 rounded-lg p-4 text-white">
             <div className="flex items-center gap-2 mb-2">
               <AlertCircle size={20} className="opacity-80"/>
               <span className="text-sm font-medium opacity-90">Desistências</span>
@@ -315,7 +315,7 @@ export default function ApplicationsPage({
             <div className="text-3xl font-bold">{stats.withdrawn}</div>
           </div>
           
-          <div className="bg-gradient-to-br from-purple-500 to-violet-500 rounded-xl p-4 text-white">
+          <div className="bg-gradient-to-br from-purple-500 to-violet-500 rounded-lg p-4 text-white">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp size={20} className="opacity-80"/>
               <span className="text-sm font-medium opacity-90">Taxa Conversão</span>
@@ -326,7 +326,7 @@ export default function ApplicationsPage({
       </div>
       
       {/* Barra de Filtros */}
-      <div className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 p-4">
+      <div className="bg-gray-50 dark:bg-gray-900/50 border-b border-border p-4">
         <div className="flex flex-wrap gap-3 items-center">
           {/* Busca */}
           <div className="relative flex-1 min-w-[250px]">
@@ -336,7 +336,7 @@ export default function ApplicationsPage({
               placeholder="Buscar por candidato, email, vaga ou empresa..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-900 dark:text-white"
+              className="w-full pl-10 pr-4 py-2.5 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-foreground"
             />
           </div>
           
@@ -344,7 +344,7 @@ export default function ApplicationsPage({
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+            className="px-4 py-2.5 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-foreground"
           >
             <option value="all">Todos os Status</option>
             <optgroup label="Em Processo">
@@ -363,7 +363,7 @@ export default function ApplicationsPage({
           <select
             value={jobFilter}
             onChange={e => setJobFilter(e.target.value)}
-            className="px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+            className="px-4 py-2.5 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-foreground"
           >
             <option value="all">Todas as Vagas</option>
             {uniqueJobs.map(job => (
@@ -375,7 +375,7 @@ export default function ApplicationsPage({
           <select
             value={companyFilter}
             onChange={e => setCompanyFilter(e.target.value)}
-            className="px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+            className="px-4 py-2.5 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-foreground"
           >
             <option value="all">Todas as Empresas</option>
             {uniqueCompanies.map(company => (
@@ -387,7 +387,7 @@ export default function ApplicationsPage({
           <select
             value={periodFilter}
             onChange={e => setPeriodFilter(e.target.value)}
-            className="px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+            className="px-4 py-2.5 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-foreground"
           >
             <option value="all">Todo Período</option>
             <option value="today">Hoje</option>
@@ -408,7 +408,7 @@ export default function ApplicationsPage({
         </div>
         
         {/* Contagem de resultados */}
-        <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+        <div className="mt-3 text-sm text-muted-foreground">
           {filteredApplications.length} candidatura(s) encontrada(s)
           {hasActiveFilters && ` (de ${applications.length} total)`}
         </div>
@@ -417,7 +417,7 @@ export default function ApplicationsPage({
       {/* Tabela de Candidaturas */}
       <div className="flex-1 overflow-auto p-4">
         {filteredApplications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-500 dark:text-gray-400">
+          <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
             <FileText size={48} className="mb-4 opacity-30"/>
             <p className="text-lg font-medium">Nenhuma candidatura encontrada</p>
             <p className="text-sm mt-1">
@@ -425,9 +425,9 @@ export default function ApplicationsPage({
             </p>
           </div>
         ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="bg-card rounded-lg border border-border overflow-hidden">
             {/* Header da Tabela */}
-            <div className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 px-4 py-3 grid grid-cols-12 gap-4 text-sm font-semibold text-gray-600 dark:text-gray-400">
+            <div className="bg-gray-50 dark:bg-gray-900/50 border-b border-border px-4 py-3 grid grid-cols-12 gap-4 text-sm font-semibold text-muted-foreground">
               <button 
                 onClick={() => toggleSort('candidateName')}
                 className="col-span-3 flex items-center gap-1 hover:text-gray-900 dark:hover:text-white"
@@ -482,11 +482,11 @@ export default function ApplicationsPage({
                         <div className="min-w-0">
                           <button 
                             onClick={() => onEditCandidate && candidate && onEditCandidate(candidate)}
-                            className="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 truncate block text-left"
+                            className="font-medium text-foreground hover:text-blue-600 dark:hover:text-blue-400 truncate block text-left"
                           >
                             {app.candidateName || 'Sem nome'}
                           </button>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          <div className="text-xs text-muted-foreground truncate">
                             {app.candidateEmail}
                           </div>
                         </div>
@@ -496,11 +496,11 @@ export default function ApplicationsPage({
                       <div className="col-span-3">
                         <button 
                           onClick={() => onViewJob && job && onViewJob(job)}
-                          className="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 truncate block text-left"
+                          className="font-medium text-foreground hover:text-blue-600 dark:hover:text-blue-400 truncate block text-left"
                         >
                           {app.jobTitle || 'Sem vaga'}
                         </button>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                        <div className="text-xs text-muted-foreground flex items-center gap-1">
                           <Building2 size={12}/> {app.jobCompany || 'Sem empresa'}
                         </div>
                       </div>
@@ -522,7 +522,7 @@ export default function ApplicationsPage({
                       </div>
                       
                       {/* Data */}
-                      <div className="col-span-2 text-sm text-gray-600 dark:text-gray-400">
+                      <div className="col-span-2 text-sm text-muted-foreground">
                         <div>{formatDate(app.appliedAt)}</div>
                         {app.updatedAt && app.updatedAt !== app.appliedAt && (
                           <div className="text-xs opacity-70">Atualizado: {formatDate(app.updatedAt)}</div>
@@ -533,7 +533,7 @@ export default function ApplicationsPage({
                       <div className="col-span-2 flex items-center justify-end gap-1">
                         <button
                           onClick={() => setExpandedApp(isExpanded ? null : app.id)}
-                          className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                          className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-muted rounded-lg transition-colors"
                           title={isExpanded ? 'Recolher' : 'Expandir'}
                         >
                           {isExpanded ? <ChevronUp size={18}/> : <ChevronDown size={18}/>}
@@ -561,32 +561,32 @@ export default function ApplicationsPage({
                         <div className="pt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
                           {/* Info do Candidato */}
                           <div>
-                            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                            <h4 className="text-sm font-semibold text-muted-foreground mb-3">
                               Informações do Candidato
                             </h4>
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-2 text-sm">
+                            <div className="bg-card rounded-lg p-4 space-y-2 text-sm">
                               {candidate?.phone && (
-                                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                                <div className="flex items-center gap-2 text-muted-foreground">
                                   <Phone size={14}/> {candidate.phone}
                                 </div>
                               )}
                               {candidate?.city && (
-                                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                                <div className="flex items-center gap-2 text-muted-foreground">
                                   <MapPin size={14}/> {candidate.city}
                                 </div>
                               )}
                               {candidate?.interestAreas && (
-                                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                                <div className="flex items-center gap-2 text-muted-foreground">
                                   <Briefcase size={14}/> {candidate.interestAreas}
                                 </div>
                               )}
                               {candidate?.schoolingLevel && (
-                                <div className="text-gray-600 dark:text-gray-400">
+                                <div className="text-muted-foreground">
                                   <span className="text-gray-500">Escolaridade:</span> {candidate.schoolingLevel}
                                 </div>
                               )}
                               {candidate?.experience && (
-                                <div className="text-gray-600 dark:text-gray-400">
+                                <div className="text-muted-foreground">
                                   <span className="text-gray-500">Experiência:</span>
                                   <div className="mt-1 whitespace-pre-wrap break-words">
                                     {candidate.experience}
@@ -598,10 +598,10 @@ export default function ApplicationsPage({
                           
                           {/* Notas */}
                           <div>
-                            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                            <h4 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
                               <MessageSquare size={14}/> Notas da Candidatura
                             </h4>
-                            <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
+                            <div className="bg-card rounded-lg p-4">
                               {/* Adicionar Nota */}
                               <div className="flex gap-2 mb-3">
                                 <input
@@ -610,7 +610,7 @@ export default function ApplicationsPage({
                                   value={expandedApp === app.id ? newNote : ''}
                                   onChange={e => setNewNote(e.target.value)}
                                   onKeyPress={e => e.key === 'Enter' && handleAddNote(app.id)}
-                                  className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                                  className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-foreground"
                                 />
                                 <button
                                   onClick={() => handleAddNote(app.id)}
@@ -626,7 +626,7 @@ export default function ApplicationsPage({
                                 {(app.notes || []).length > 0 ? (
                                   app.notes.map((note, idx) => (
                                     <div key={idx} className="bg-gray-100 dark:bg-gray-900 rounded-lg p-2 text-sm">
-                                      <p className="text-gray-700 dark:text-gray-300">{note.text}</p>
+                                      <p className="text-muted-foreground">{note.text}</p>
                                       <p className="text-xs text-gray-500 mt-1">{note.userName} • {formatDate(note.timestamp)}</p>
                                     </div>
                                   ))
@@ -640,8 +640,8 @@ export default function ApplicationsPage({
                         
                         {/* Info da Vaga */}
                         {job && (
-                          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                          <div className="mt-4 pt-4 border-t border-border">
+                            <h4 className="text-sm font-semibold text-muted-foreground mb-3">
                               Dados da Vaga
                             </h4>
                             <div className="flex flex-wrap gap-4 text-sm">
@@ -666,12 +666,12 @@ export default function ApplicationsPage({
                                 </span>
                               )}
                               {job.contractType && (
-                                <span className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full">
+                                <span className="bg-muted text-muted-foreground px-3 py-1 rounded-full">
                                   {job.contractType}
                                 </span>
                               )}
                               {job.workModel && (
-                                <span className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full">
+                                <span className="bg-muted text-muted-foreground px-3 py-1 rounded-full">
                                   {job.workModel}
                                 </span>
                               )}
@@ -689,7 +689,7 @@ export default function ApplicationsPage({
       </div>
       
       {/* Resumo por Status na Lateral (Footer fixo) */}
-      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
+      <div className="bg-card border-t border-border p-4">
         <div className="flex flex-wrap gap-2 justify-center">
           {Object.entries(stats.byStatus)
             .filter(([_, count]) => count > 0)
@@ -712,10 +712,10 @@ export default function ApplicationsPage({
       {/* Modal Nova Candidatura */}
       {showNewApplicationModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl border border-gray-200 dark:border-gray-700">
+          <div className="bg-card rounded-lg shadow-2xl w-full max-w-2xl border border-border">
             {/* Header */}
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
-              <h3 className="font-bold text-xl text-gray-900 dark:text-white">Nova Candidatura</h3>
+            <div className="p-6 border-b border-border flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
+              <h3 className="font-bold text-xl text-foreground">Nova Candidatura</h3>
               <button 
                 onClick={() => {
                   setShowNewApplicationModal(false);
@@ -726,7 +726,7 @@ export default function ApplicationsPage({
                 }}
                 className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
-                <X size={20} className="text-gray-500 dark:text-gray-400"/>
+                <X size={20} className="text-muted-foreground"/>
               </button>
             </div>
             
@@ -734,7 +734,7 @@ export default function ApplicationsPage({
             <div className="p-6 space-y-6">
               {/* Seleção de Candidato */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-muted-foreground mb-2">
                   Candidato <span className="text-red-500">*</span>
                 </label>
                 <div className="relative mb-2">
@@ -744,13 +744,13 @@ export default function ApplicationsPage({
                     placeholder="Buscar candidato por nome ou email..."
                     value={searchCandidateForNew}
                     onChange={e => setSearchCandidateForNew(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                    className="w-full pl-10 pr-4 py-2.5 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-foreground"
                   />
                 </div>
                 <select
                   value={selectedCandidateId}
                   onChange={e => setSelectedCandidateId(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2.5 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-foreground"
                   required
                 >
                   <option value="">Selecione um candidato...</option>
@@ -771,7 +771,7 @@ export default function ApplicationsPage({
               
               {/* Seleção de Vaga */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-muted-foreground mb-2">
                   Vaga <span className="text-red-500">*</span>
                 </label>
                 <div className="relative mb-2">
@@ -781,13 +781,13 @@ export default function ApplicationsPage({
                     placeholder="Buscar vaga por título ou empresa..."
                     value={searchJobForNew}
                     onChange={e => setSearchJobForNew(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                    className="w-full pl-10 pr-4 py-2.5 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-foreground"
                   />
                 </div>
                 <select
                   value={selectedJobId}
                   onChange={e => setSelectedJobId(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2.5 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-foreground"
                   required
                 >
                   <option value="">Selecione uma vaga...</option>
@@ -822,7 +822,7 @@ export default function ApplicationsPage({
             </div>
             
             {/* Footer */}
-            <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-end gap-3">
+            <div className="p-6 border-t border-border bg-gray-50 dark:bg-gray-900/50 flex justify-end gap-3">
               <button
                 onClick={() => {
                   setShowNewApplicationModal(false);
@@ -858,7 +858,7 @@ export default function ApplicationsPage({
                   }
                 }}
                 disabled={!selectedCandidateId || !selectedJobId}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg active:scale-95"
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-sm active:scale-95"
               >
                 Criar Candidatura
               </button>
