@@ -19,18 +19,108 @@ CREATE SCHEMA IF NOT EXISTS "young_talents";
 ALTER SCHEMA "young_talents" OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "young_talents"."is_developer"() RETURNS boolean
+CREATE OR REPLACE FUNCTION "young_talents"."has_privileged_role"("p_min_role" "text") RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO 'young_talents', 'public'
+    AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM young_talents.user_roles ur
+    WHERE
+      (
+        (p_min_role = 'admin' AND ur.role = 'admin')
+        OR (p_min_role = 'editor' AND ur.role IN ('admin', 'editor'))
+      )
+      AND (
+        ur.user_id = auth.uid()
+        OR (
+          (auth.jwt() ->> 'email') IS NOT NULL
+          AND lower(trim(ur.email)) = lower(trim(auth.jwt() ->> 'email'))
+        )
+      )
+  );
+$$;
+
+
+ALTER FUNCTION "young_talents"."has_privileged_role"("p_min_role" "text") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "young_talents"."has_privileged_role"("p_min_role" "text") IS 'True se o usuário autenticado tem admin (ou editor+admin) em user_roles por user_id OU por email do JWT (case-insensitive). SECURITY DEFINER para contornar RLS na checagem.';
+
+
+
+CREATE OR REPLACE FUNCTION "young_talents"."has_staff_access"() RETURNS boolean
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public', 'young_talents'
+    AS $$
+DECLARE
+  jwt_email TEXT;
+BEGIN
+  IF young_talents.is_developer() THEN
+    RETURN TRUE;
+  END IF;
+
+  jwt_email := LOWER(TRIM(NULLIF(auth.jwt() ->> 'email', '')));
+
+  RETURN EXISTS (
+    SELECT 1 FROM young_talents.user_roles ur
+    WHERE ur.role IN ('admin', 'editor', 'viewer')
+    AND (
+      ur.user_id = auth.uid()
+      OR (
+        ur.user_id IS NULL
+        AND jwt_email IS NOT NULL
+        AND LOWER(TRIM(ur.email)) = jwt_email
+      )
+    )
+  );
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN FALSE;
+END;
+$$;
+
+
+ALTER FUNCTION "young_talents"."has_staff_access"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "young_talents"."has_staff_access"() IS 'True se o usuário tem papel staff (admin/editor/viewer) em user_roles, por user_id ou email no JWT (user_id NULL). Usado em SELECT RLS.';
+
+
+
+CREATE OR REPLACE FUNCTION "young_talents"."is_admin"() RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public', 'young_talents'
     AS $$
 BEGIN
   RETURN EXISTS (
-    SELECT 1 FROM auth.users
-    WHERE id = auth.uid()
-    AND email IN (
-      'dev@local',
-      'dev@example.com',
-      'developer@example.com'
-    )
+    SELECT 1 FROM young_talents.user_roles
+    WHERE user_id = auth.uid()
+    AND role = 'admin'
+  );
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN FALSE;
+END;
+$$;
+
+
+ALTER FUNCTION "young_talents"."is_admin"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "young_talents"."is_admin"() IS 'Verifica se o usuário atual tem role admin em user_roles. Usado nas políticas RLS para evitar recursão.';
+
+
+
+CREATE OR REPLACE FUNCTION "young_talents"."is_developer"() RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+BEGIN
+  RETURN auth.uid() IN (
+    '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::uuid,  -- dev@adventurelabs.com.br
+    '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::uuid,  -- contato@adventurelabs.com.br
+    '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::uuid   -- eduardo@youngempreendimentos.com.br
   );
 END;
 $$;
@@ -39,12 +129,59 @@ $$;
 ALTER FUNCTION "young_talents"."is_developer"() OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "young_talents"."is_developer"() IS 'Verifica se o usuário autenticado é um desenvolvedor baseado em seu email. Desenvolvedores têm permissões de admin.';
+COMMENT ON FUNCTION "young_talents"."is_developer"() IS 'Verifica se o usuário é desenvolvedor (dev, contato ou eduardo por user_id). Acesso total a tabelas e roles do young_talents.';
 
+
+
+CREATE OR REPLACE FUNCTION "young_talents"."is_editor_or_admin"() RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public', 'young_talents'
+    AS $$
+DECLARE
+  jwt_email TEXT;
+BEGIN
+  jwt_email := LOWER(TRIM(NULLIF(auth.jwt() ->> 'email', '')));
+  RETURN EXISTS (
+    SELECT 1 FROM young_talents.user_roles ur
+    WHERE ur.role IN ('admin', 'editor')
+    AND (
+      ur.user_id = auth.uid()
+      OR (ur.user_id IS NULL AND jwt_email IS NOT NULL AND LOWER(TRIM(ur.email)) = jwt_email)
+    )
+  );
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN FALSE;
+END;
+$$;
+
+
+ALTER FUNCTION "young_talents"."is_editor_or_admin"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "young_talents"."is_editor_or_admin"() IS 'True se o usuário atual tem role admin ou editor (por user_id ou por email no JWT). Usado em RLS de applications (YT-10).';
+
+
+
+CREATE OR REPLACE FUNCTION "young_talents"."set_job_requested_by"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'young_talents', 'public'
+    AS $$
+BEGIN
+  IF NEW.requested_by_user_id IS NULL AND auth.uid() IS NOT NULL THEN
+    NEW.requested_by_user_id := auth.uid();
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "young_talents"."set_job_requested_by"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "young_talents"."sync_user_role_on_login"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'young_talents', 'public'
     AS $$
 DECLARE
   user_email TEXT;
@@ -52,7 +189,6 @@ DECLARE
   user_photo TEXT;
   existing_role RECORD;
 BEGIN
-  -- Obter dados do usuário autenticado
   user_email := NEW.email;
   user_name := COALESCE(
     NEW.raw_user_meta_data->>'full_name',
@@ -66,14 +202,12 @@ BEGIN
     NULL
   );
 
-  -- Buscar registro existente em user_roles por email
   SELECT * INTO existing_role
   FROM young_talents.user_roles
-  WHERE email = user_email
+  WHERE lower(trim(email)) = lower(trim(user_email))
   LIMIT 1;
 
   IF existing_role IS NOT NULL THEN
-    -- Atualizar registro existente
     UPDATE young_talents.user_roles
     SET
       user_id = NEW.id,
@@ -82,30 +216,28 @@ BEGIN
       last_login = NOW(),
       updated_at = NOW()
     WHERE id = existing_role.id;
-    
+
     RAISE NOTICE 'Sincronizado user_role para % (ID: %)', user_email, NEW.id;
   ELSE
-    -- Criar novo registro com role padrão 'viewer'
-    -- Apenas se o usuário não tiver role pré-cadastrado
-    INSERT INTO young_talents.user_roles (user_id, email, name, photo, role, created_at, last_login)
+    INSERT INTO young_talents.user_roles AS ur (user_id, email, name, photo, role, created_at, last_login)
     VALUES (
       NEW.id,
       user_email,
       user_name,
       user_photo,
-      'viewer', -- Role padrão para novos usuários
+      'viewer',
       NOW(),
       NOW()
     )
     ON CONFLICT (email) DO UPDATE
     SET
-      user_id = NEW.id,
-      name = COALESCE(user_name, user_roles.name),
-      photo = COALESCE(user_photo, user_roles.photo),
+      user_id = EXCLUDED.user_id,
+      name = COALESCE(EXCLUDED.name, ur.name),
+      photo = COALESCE(EXCLUDED.photo, ur.photo),
       last_login = NOW(),
       updated_at = NOW();
-    
-    RAISE NOTICE 'Criado novo user_role para % (ID: %)', user_email, NEW.id;
+
+    RAISE NOTICE 'Criado/atualizado user_role para % (ID: %)', user_email, NEW.id;
   END IF;
 
   RETURN NEW;
@@ -116,7 +248,7 @@ $$;
 ALTER FUNCTION "young_talents"."sync_user_role_on_login"() OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "young_talents"."sync_user_role_on_login"() IS 'Sincroniza automaticamente dados do usuário (user_id, name, photo, last_login) em user_roles quando usuário faz login ou atualiza perfil. Se não existir registro, cria com role padrão viewer.';
+COMMENT ON FUNCTION "young_talents"."sync_user_role_on_login"() IS 'Sincroniza user_roles no login; match de email com lower(trim) para evitar divergência de case.';
 
 
 
@@ -211,7 +343,7 @@ CREATE TABLE IF NOT EXISTS "young_talents"."candidates" (
 ALTER TABLE "young_talents"."candidates" OWNER TO "postgres";
 
 
-COMMENT ON COLUMN "young_talents"."candidates"."starred" IS 'Marcação "em consideração" para filtro na pipeline e banco de talentos';
+COMMENT ON COLUMN "young_talents"."candidates"."starred" IS 'Marcação "em consideração" para filtro na etapa Inscrito';
 
 
 
@@ -332,6 +464,7 @@ CREATE TABLE IF NOT EXISTS "young_talents"."jobs" (
     "deleted_at" timestamp with time zone,
     "approved_by" "text",
     "posting_channels" "jsonb",
+    "requested_by_user_id" "uuid",
     CONSTRAINT "jobs_status_check" CHECK (("status" = ANY (ARRAY['Aberta'::"text", 'Preenchida'::"text", 'Cancelada'::"text", 'Fechada'::"text"])))
 );
 
@@ -339,11 +472,15 @@ CREATE TABLE IF NOT EXISTS "young_talents"."jobs" (
 ALTER TABLE "young_talents"."jobs" OWNER TO "postgres";
 
 
-COMMENT ON COLUMN "young_talents"."jobs"."approved_by" IS 'Responsável pela solicitação e autorização da abertura da vaga (não quem abre no sistema).';
+COMMENT ON COLUMN "young_talents"."jobs"."approved_by" IS 'Quem autorizou a abertura da vaga (nome ou e-mail, pode ser selecionado na tela).';
 
 
 
 COMMENT ON COLUMN "young_talents"."jobs"."posting_channels" IS 'Canais onde a vaga é/será divulgada. Ex: { "selected": ["linkedin", "infojobs"], "faculdade": "USP", "agencia": "", "outro": "" }';
+
+
+
+COMMENT ON COLUMN "young_talents"."jobs"."requested_by_user_id" IS 'Usuário do sistema que solicitou/criou a abertura da vaga (preenchido automaticamente no INSERT).';
 
 
 
@@ -529,6 +666,10 @@ CREATE INDEX "idx_jobs_created_at" ON "young_talents"."jobs" USING "btree" ("cre
 
 
 
+CREATE INDEX "idx_jobs_requested_by_user_id" ON "young_talents"."jobs" USING "btree" ("requested_by_user_id");
+
+
+
 CREATE INDEX "idx_jobs_status" ON "young_talents"."jobs" USING "btree" ("status");
 
 
@@ -558,6 +699,10 @@ CREATE INDEX "idx_user_roles_role" ON "young_talents"."user_roles" USING "btree"
 
 
 CREATE INDEX "idx_user_roles_user_id" ON "young_talents"."user_roles" USING "btree" ("user_id");
+
+
+
+CREATE OR REPLACE TRIGGER "set_job_requested_by_trigger" BEFORE INSERT ON "young_talents"."jobs" FOR EACH ROW EXECUTE FUNCTION "young_talents"."set_job_requested_by"();
 
 
 
@@ -612,6 +757,11 @@ ALTER TABLE ONLY "young_talents"."applications"
 
 
 
+ALTER TABLE ONLY "young_talents"."jobs"
+    ADD CONSTRAINT "jobs_requested_by_user_id_fkey" FOREIGN KEY ("requested_by_user_id") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
+
+
+
 ALTER TABLE ONLY "young_talents"."positions"
     ADD CONSTRAINT "positions_activity_area_id_fkey" FOREIGN KEY ("activity_area_id") REFERENCES "young_talents"."activity_areas"("id") ON DELETE SET NULL;
 
@@ -627,195 +777,131 @@ ALTER TABLE ONLY "young_talents"."user_roles"
 
 
 
-CREATE POLICY "Admin e editor podem atualizar activity_areas" ON "young_talents"."activity_areas" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem atualizar activity_areas" ON "young_talents"."activity_areas" FOR UPDATE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem atualizar candidatos" ON "young_talents"."candidates" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem atualizar candidatos" ON "young_talents"."candidates" FOR UPDATE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem atualizar cities" ON "young_talents"."cities" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem atualizar cities" ON "young_talents"."cities" FOR UPDATE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem atualizar companies" ON "young_talents"."companies" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem atualizar companies" ON "young_talents"."companies" FOR UPDATE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem atualizar job_levels" ON "young_talents"."job_levels" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem atualizar job_levels" ON "young_talents"."job_levels" FOR UPDATE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem atualizar jobs" ON "young_talents"."jobs" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem atualizar jobs" ON "young_talents"."jobs" FOR UPDATE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem atualizar positions" ON "young_talents"."positions" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem atualizar positions" ON "young_talents"."positions" FOR UPDATE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem atualizar sectors" ON "young_talents"."sectors" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem atualizar sectors" ON "young_talents"."sectors" FOR UPDATE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem gerenciar aplicações (Insert)" ON "young_talents"."applications" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem gerenciar aplicações (Insert)" ON "young_talents"."applications" FOR INSERT TO "authenticated" WITH CHECK (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem gerenciar aplicações (Update)" ON "young_talents"."applications" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem gerenciar aplicações (Update)" ON "young_talents"."applications" FOR UPDATE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem inserir activity_areas" ON "young_talents"."activity_areas" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem inserir activity_areas" ON "young_talents"."activity_areas" FOR INSERT TO "authenticated" WITH CHECK (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem inserir candidatos" ON "young_talents"."candidates" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem inserir candidatos" ON "young_talents"."candidates" FOR INSERT TO "authenticated" WITH CHECK (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem inserir cities" ON "young_talents"."cities" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem inserir cities" ON "young_talents"."cities" FOR INSERT TO "authenticated" WITH CHECK (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem inserir companies" ON "young_talents"."companies" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem inserir companies" ON "young_talents"."companies" FOR INSERT TO "authenticated" WITH CHECK (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem inserir job_levels" ON "young_talents"."job_levels" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem inserir job_levels" ON "young_talents"."job_levels" FOR INSERT TO "authenticated" WITH CHECK (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem inserir jobs" ON "young_talents"."jobs" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem inserir jobs" ON "young_talents"."jobs" FOR INSERT TO "authenticated" WITH CHECK (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem inserir positions" ON "young_talents"."positions" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem inserir positions" ON "young_talents"."positions" FOR INSERT TO "authenticated" WITH CHECK (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin e editor podem inserir sectors" ON "young_talents"."sectors" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"text", 'editor'::"text"]))))));
+CREATE POLICY "Admin e editor podem inserir sectors" ON "young_talents"."sectors" FOR INSERT TO "authenticated" WITH CHECK (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('editor'::"text")));
 
 
 
-CREATE POLICY "Admin pode ler activity_log" ON "young_talents"."activity_log" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles" "ur"
-  WHERE (("ur"."user_id" = "auth"."uid"()) AND ("ur"."role" = 'admin'::"text")))));
+CREATE POLICY "Admin pode ler activity_log" ON "young_talents"."activity_log" FOR SELECT TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('admin'::"text")));
 
 
 
-CREATE POLICY "Admin pode ler todos os roles" ON "young_talents"."user_roles" FOR SELECT TO "authenticated" USING (((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles" "ur"
-  WHERE (("ur"."user_id" = "auth"."uid"()) AND ("ur"."role" = 'admin'::"text")))) OR "young_talents"."is_developer"()));
+CREATE POLICY "Admin pode ler todos os roles" ON "young_talents"."user_roles" FOR SELECT TO "authenticated" USING (("young_talents"."has_privileged_role"('admin'::"text") OR "young_talents"."is_developer"()));
 
 
 
-CREATE POLICY "Apenas admin pode atualizar roles" ON "young_talents"."user_roles" FOR UPDATE TO "authenticated" USING (((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles" "user_roles_1"
-  WHERE (("user_roles_1"."user_id" = "auth"."uid"()) AND ("user_roles_1"."role" = 'admin'::"text")))) OR "young_talents"."is_developer"()));
+CREATE POLICY "Apenas admin pode atualizar roles" ON "young_talents"."user_roles" FOR UPDATE TO "authenticated" USING (("young_talents"."has_privileged_role"('admin'::"text") OR "young_talents"."is_developer"()));
 
 
 
-CREATE POLICY "Apenas admin pode deletar activity_areas" ON "young_talents"."activity_areas" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+CREATE POLICY "Apenas admin pode deletar activity_areas" ON "young_talents"."activity_areas" FOR DELETE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('admin'::"text")));
 
 
 
-CREATE POLICY "Apenas admin pode deletar aplicações" ON "young_talents"."applications" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+CREATE POLICY "Apenas admin pode deletar aplicações" ON "young_talents"."applications" FOR DELETE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('admin'::"text")));
 
 
 
-CREATE POLICY "Apenas admin pode deletar candidatos" ON "young_talents"."candidates" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+CREATE POLICY "Apenas admin pode deletar candidatos" ON "young_talents"."candidates" FOR DELETE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('admin'::"text")));
 
 
 
-CREATE POLICY "Apenas admin pode deletar cities" ON "young_talents"."cities" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+CREATE POLICY "Apenas admin pode deletar cities" ON "young_talents"."cities" FOR DELETE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('admin'::"text")));
 
 
 
-CREATE POLICY "Apenas admin pode deletar companies" ON "young_talents"."companies" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+CREATE POLICY "Apenas admin pode deletar companies" ON "young_talents"."companies" FOR DELETE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('admin'::"text")));
 
 
 
-CREATE POLICY "Apenas admin pode deletar job_levels" ON "young_talents"."job_levels" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+CREATE POLICY "Apenas admin pode deletar job_levels" ON "young_talents"."job_levels" FOR DELETE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('admin'::"text")));
 
 
 
-CREATE POLICY "Apenas admin pode deletar jobs" ON "young_talents"."jobs" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+CREATE POLICY "Apenas admin pode deletar jobs" ON "young_talents"."jobs" FOR DELETE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('admin'::"text")));
 
 
 
-CREATE POLICY "Apenas admin pode deletar positions" ON "young_talents"."positions" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+CREATE POLICY "Apenas admin pode deletar positions" ON "young_talents"."positions" FOR DELETE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('admin'::"text")));
 
 
 
-CREATE POLICY "Apenas admin pode deletar roles" ON "young_talents"."user_roles" FOR DELETE TO "authenticated" USING (((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles" "user_roles_1"
-  WHERE (("user_roles_1"."user_id" = "auth"."uid"()) AND ("user_roles_1"."role" = 'admin'::"text")))) OR "young_talents"."is_developer"()));
+CREATE POLICY "Apenas admin pode deletar roles" ON "young_talents"."user_roles" FOR DELETE TO "authenticated" USING (("young_talents"."has_privileged_role"('admin'::"text") OR "young_talents"."is_developer"()));
 
 
 
-CREATE POLICY "Apenas admin pode deletar sectors" ON "young_talents"."sectors" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles"
-  WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"text")))));
+CREATE POLICY "Apenas admin pode deletar sectors" ON "young_talents"."sectors" FOR DELETE TO "authenticated" USING (("young_talents"."is_developer"() OR "young_talents"."has_privileged_role"('admin'::"text")));
 
 
 
-CREATE POLICY "Apenas admin pode inserir roles" ON "young_talents"."user_roles" FOR INSERT TO "authenticated" WITH CHECK (((EXISTS ( SELECT 1
-   FROM "young_talents"."user_roles" "user_roles_1"
-  WHERE (("user_roles_1"."user_id" = "auth"."uid"()) AND ("user_roles_1"."role" = 'admin'::"text")))) OR "young_talents"."is_developer"()));
+CREATE POLICY "Apenas admin pode inserir roles" ON "young_talents"."user_roles" FOR INSERT TO "authenticated" WITH CHECK (("young_talents"."has_privileged_role"('admin'::"text") OR "young_talents"."is_developer"()));
 
 
 
@@ -823,35 +909,387 @@ CREATE POLICY "Autenticado pode inserir activity_log" ON "young_talents"."activi
 
 
 
-CREATE POLICY "Authenticated read activity_areas" ON "young_talents"."activity_areas" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "Dev 2e104a2a DELETE activity_areas" ON "young_talents"."activity_areas" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
 
 
 
-CREATE POLICY "Authenticated read applications" ON "young_talents"."applications" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "Dev 2e104a2a DELETE applications" ON "young_talents"."applications" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
 
 
 
-CREATE POLICY "Authenticated read cities" ON "young_talents"."cities" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "Dev 2e104a2a DELETE candidates" ON "young_talents"."candidates" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
 
 
 
-CREATE POLICY "Authenticated read companies" ON "young_talents"."companies" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "Dev 2e104a2a DELETE cities" ON "young_talents"."cities" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
 
 
 
-CREATE POLICY "Authenticated read job_levels" ON "young_talents"."job_levels" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "Dev 2e104a2a DELETE companies" ON "young_talents"."companies" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
 
 
 
-CREATE POLICY "Authenticated read jobs" ON "young_talents"."jobs" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "Dev 2e104a2a DELETE job_levels" ON "young_talents"."job_levels" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
 
 
 
-CREATE POLICY "Authenticated read positions" ON "young_talents"."positions" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "Dev 2e104a2a DELETE jobs" ON "young_talents"."jobs" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
 
 
 
-CREATE POLICY "Authenticated read sectors" ON "young_talents"."sectors" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "Dev 2e104a2a DELETE positions" ON "young_talents"."positions" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a DELETE sectors" ON "young_talents"."sectors" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a DELETE user_roles" ON "young_talents"."user_roles" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a INSERT activity_areas" ON "young_talents"."activity_areas" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a INSERT applications" ON "young_talents"."applications" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a INSERT candidates" ON "young_talents"."candidates" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a INSERT cities" ON "young_talents"."cities" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a INSERT companies" ON "young_talents"."companies" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a INSERT job_levels" ON "young_talents"."job_levels" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a INSERT jobs" ON "young_talents"."jobs" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a INSERT positions" ON "young_talents"."positions" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a INSERT sectors" ON "young_talents"."sectors" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a INSERT user_roles" ON "young_talents"."user_roles" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a SELECT activity_log" ON "young_talents"."activity_log" FOR SELECT TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a SELECT user_roles" ON "young_talents"."user_roles" FOR SELECT TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a UPDATE activity_areas" ON "young_talents"."activity_areas" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a UPDATE applications" ON "young_talents"."applications" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a UPDATE candidates" ON "young_talents"."candidates" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a UPDATE cities" ON "young_talents"."cities" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a UPDATE companies" ON "young_talents"."companies" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a UPDATE job_levels" ON "young_talents"."job_levels" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a UPDATE jobs" ON "young_talents"."jobs" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a UPDATE positions" ON "young_talents"."positions" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a UPDATE sectors" ON "young_talents"."sectors" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 2e104a2a UPDATE user_roles" ON "young_talents"."user_roles" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '2e104a2a-4117-4bb8-9a84-526ed68af4f9'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 DELETE activity_areas" ON "young_talents"."activity_areas" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 DELETE applications" ON "young_talents"."applications" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 DELETE candidates" ON "young_talents"."candidates" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 DELETE cities" ON "young_talents"."cities" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 DELETE companies" ON "young_talents"."companies" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 DELETE job_levels" ON "young_talents"."job_levels" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 DELETE jobs" ON "young_talents"."jobs" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 DELETE positions" ON "young_talents"."positions" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 DELETE sectors" ON "young_talents"."sectors" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 DELETE user_roles" ON "young_talents"."user_roles" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 INSERT activity_areas" ON "young_talents"."activity_areas" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 INSERT applications" ON "young_talents"."applications" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 INSERT candidates" ON "young_talents"."candidates" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 INSERT cities" ON "young_talents"."cities" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 INSERT companies" ON "young_talents"."companies" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 INSERT job_levels" ON "young_talents"."job_levels" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 INSERT jobs" ON "young_talents"."jobs" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 INSERT positions" ON "young_talents"."positions" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 INSERT sectors" ON "young_talents"."sectors" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 INSERT user_roles" ON "young_talents"."user_roles" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 SELECT activity_log" ON "young_talents"."activity_log" FOR SELECT TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 SELECT user_roles" ON "young_talents"."user_roles" FOR SELECT TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 UPDATE activity_areas" ON "young_talents"."activity_areas" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 UPDATE applications" ON "young_talents"."applications" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 UPDATE candidates" ON "young_talents"."candidates" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 UPDATE cities" ON "young_talents"."cities" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 UPDATE companies" ON "young_talents"."companies" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 UPDATE job_levels" ON "young_talents"."job_levels" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 UPDATE jobs" ON "young_talents"."jobs" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 UPDATE positions" ON "young_talents"."positions" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 UPDATE sectors" ON "young_talents"."sectors" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 5b9c32f6 UPDATE user_roles" ON "young_talents"."user_roles" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '5b9c32f6-7f6a-45e3-9c56-98def279fe69'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde DELETE activity_areas" ON "young_talents"."activity_areas" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde DELETE applications" ON "young_talents"."applications" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde DELETE candidates" ON "young_talents"."candidates" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde DELETE cities" ON "young_talents"."cities" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde DELETE companies" ON "young_talents"."companies" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde DELETE job_levels" ON "young_talents"."job_levels" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde DELETE jobs" ON "young_talents"."jobs" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde DELETE positions" ON "young_talents"."positions" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde DELETE sectors" ON "young_talents"."sectors" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde DELETE user_roles" ON "young_talents"."user_roles" FOR DELETE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde INSERT activity_areas" ON "young_talents"."activity_areas" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde INSERT applications" ON "young_talents"."applications" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde INSERT candidates" ON "young_talents"."candidates" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde INSERT cities" ON "young_talents"."cities" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde INSERT companies" ON "young_talents"."companies" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde INSERT job_levels" ON "young_talents"."job_levels" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde INSERT jobs" ON "young_talents"."jobs" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde INSERT positions" ON "young_talents"."positions" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde INSERT sectors" ON "young_talents"."sectors" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde INSERT user_roles" ON "young_talents"."user_roles" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde SELECT activity_log" ON "young_talents"."activity_log" FOR SELECT TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde SELECT user_roles" ON "young_talents"."user_roles" FOR SELECT TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde UPDATE activity_areas" ON "young_talents"."activity_areas" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde UPDATE applications" ON "young_talents"."applications" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde UPDATE candidates" ON "young_talents"."candidates" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde UPDATE cities" ON "young_talents"."cities" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde UPDATE companies" ON "young_talents"."companies" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde UPDATE job_levels" ON "young_talents"."job_levels" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde UPDATE jobs" ON "young_talents"."jobs" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde UPDATE positions" ON "young_talents"."positions" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde UPDATE sectors" ON "young_talents"."sectors" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
+
+
+
+CREATE POLICY "Dev 6d3c9cde UPDATE user_roles" ON "young_talents"."user_roles" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = '6d3c9cde-fe5f-496a-a5ec-0fedb05d1df4'::"uuid"));
 
 
 
@@ -859,13 +1297,43 @@ CREATE POLICY "Formulário público pode inserir candidatos" ON "young_talents".
 
 
 
-CREATE POLICY "Usuários autenticados podem ler candidatos" ON "young_talents"."candidates" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "Staff pode ler activity_areas" ON "young_talents"."activity_areas" FOR SELECT TO "authenticated" USING ("young_talents"."has_staff_access"());
 
 
 
-CREATE POLICY "Usuários podem ler seu próprio role" ON "young_talents"."user_roles" FOR SELECT TO "authenticated" USING ((("user_id" = "auth"."uid"()) OR (("user_id" IS NULL) AND ("email" = (( SELECT "users"."email"
-   FROM "auth"."users"
-  WHERE ("users"."id" = "auth"."uid"())))::"text"))));
+CREATE POLICY "Staff pode ler applications" ON "young_talents"."applications" FOR SELECT TO "authenticated" USING ("young_talents"."has_staff_access"());
+
+
+
+CREATE POLICY "Staff pode ler candidatos" ON "young_talents"."candidates" FOR SELECT TO "authenticated" USING ("young_talents"."has_staff_access"());
+
+
+
+CREATE POLICY "Staff pode ler cities" ON "young_talents"."cities" FOR SELECT TO "authenticated" USING ("young_talents"."has_staff_access"());
+
+
+
+CREATE POLICY "Staff pode ler companies" ON "young_talents"."companies" FOR SELECT TO "authenticated" USING ("young_talents"."has_staff_access"());
+
+
+
+CREATE POLICY "Staff pode ler job_levels" ON "young_talents"."job_levels" FOR SELECT TO "authenticated" USING ("young_talents"."has_staff_access"());
+
+
+
+CREATE POLICY "Staff pode ler jobs" ON "young_talents"."jobs" FOR SELECT TO "authenticated" USING ("young_talents"."has_staff_access"());
+
+
+
+CREATE POLICY "Staff pode ler positions" ON "young_talents"."positions" FOR SELECT TO "authenticated" USING ("young_talents"."has_staff_access"());
+
+
+
+CREATE POLICY "Staff pode ler sectors" ON "young_talents"."sectors" FOR SELECT TO "authenticated" USING ("young_talents"."has_staff_access"());
+
+
+
+CREATE POLICY "Usuários podem ler seu próprio role" ON "young_talents"."user_roles" FOR SELECT TO "authenticated" USING ((("user_id" = "auth"."uid"()) OR ((("auth"."jwt"() ->> 'email'::"text") IS NOT NULL) AND ("lower"(TRIM(BOTH FROM "email")) = "lower"(TRIM(BOTH FROM ("auth"."jwt"() ->> 'email'::"text")))))));
 
 
 
@@ -893,6 +1361,10 @@ ALTER TABLE "young_talents"."job_levels" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "young_talents"."jobs" ENABLE ROW LEVEL SECURITY;
 
 
+CREATE POLICY "owner_full_access_user_roles" ON "young_talents"."user_roles" TO "authenticated" USING ((("auth"."jwt"() ->> 'email'::"text") = 'contato@adventurelabs.com.br'::"text")) WITH CHECK ((("auth"."jwt"() ->> 'email'::"text") = 'contato@adventurelabs.com.br'::"text"));
+
+
+
 ALTER TABLE "young_talents"."positions" ENABLE ROW LEVEL SECURITY;
 
 
@@ -908,9 +1380,40 @@ GRANT USAGE ON SCHEMA "young_talents" TO "service_role";
 
 
 
+REVOKE ALL ON FUNCTION "young_talents"."has_privileged_role"("p_min_role" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "young_talents"."has_privileged_role"("p_min_role" "text") TO "anon";
+GRANT ALL ON FUNCTION "young_talents"."has_privileged_role"("p_min_role" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "young_talents"."has_privileged_role"("p_min_role" "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "young_talents"."has_staff_access"() TO "anon";
+GRANT ALL ON FUNCTION "young_talents"."has_staff_access"() TO "authenticated";
+GRANT ALL ON FUNCTION "young_talents"."has_staff_access"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "young_talents"."is_admin"() TO "anon";
+GRANT ALL ON FUNCTION "young_talents"."is_admin"() TO "authenticated";
+GRANT ALL ON FUNCTION "young_talents"."is_admin"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "young_talents"."is_developer"() TO "anon";
 GRANT ALL ON FUNCTION "young_talents"."is_developer"() TO "authenticated";
 GRANT ALL ON FUNCTION "young_talents"."is_developer"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "young_talents"."is_editor_or_admin"() TO "anon";
+GRANT ALL ON FUNCTION "young_talents"."is_editor_or_admin"() TO "authenticated";
+GRANT ALL ON FUNCTION "young_talents"."is_editor_or_admin"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "young_talents"."set_job_requested_by"() TO "anon";
+GRANT ALL ON FUNCTION "young_talents"."set_job_requested_by"() TO "authenticated";
+GRANT ALL ON FUNCTION "young_talents"."set_job_requested_by"() TO "service_role";
 
 
 
@@ -932,7 +1435,7 @@ GRANT ALL ON TABLE "young_talents"."activity_log" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "young_talents"."candidates" TO "anon";
+GRANT INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,MAINTAIN,UPDATE ON TABLE "young_talents"."candidates" TO "anon";
 GRANT ALL ON TABLE "young_talents"."candidates" TO "authenticated";
 GRANT ALL ON TABLE "young_talents"."candidates" TO "service_role";
 
