@@ -2,7 +2,9 @@
 
 # 🏆 Young Talents ATS
 
-> **Nota (monorepo):** o app Supabase canônico vive em **`apps/clientes/young-talents/plataforma`**. Este diretório em `clients/04_young/` mantém espelho de SQL/docs. Modelo de segurança (sem segredos): `wiki/Young-Talents-ATS-Seguranca.md` e `docs/young-talents/sql/README.md` na raiz do monorepo.
+> **Governança (2026-03):** produto **interno Adventure Labs** (ativo comercializável). SSOT deste app no monorepo; fluxo Git: commit/push em `01_ADVENTURE_LABS`. Ver [`docs/YOUNG_TALENTS_PRODUTO_INTERNO.md`](../../../../docs/YOUNG_TALENTS_PRODUTO_INTERNO.md) e [`docs/young-talents/CHANGELOG.md`](../../../../docs/young-talents/CHANGELOG.md).
+>
+> **Espelho SQL:** `clients/04_young/young-talents/`. Segurança (sem segredos): `wiki/Young-Talents-ATS-Seguranca.md` e `docs/young-talents/sql/README.md` na raiz do monorepo.
 
 Sistema de Gerenciamento de Recrutamento (ATS - Applicant Tracking System) desenvolvido com React + Vite + Supabase.
 
