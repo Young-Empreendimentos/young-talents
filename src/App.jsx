@@ -347,7 +347,7 @@ export default function App() {
   };
 
   // Supabase Data Loaders
-  const schema = () => supabase?.schema('young_talents');
+  const schema = () => supabase;
 
   const loadCandidates = React.useCallback(async () => {
     if (!supabase) return;
@@ -381,7 +381,7 @@ export default function App() {
 
   const loadJobs = React.useCallback(async () => {
     if (!supabase) return;
-    const { data, error } = await schema().from('jobs').select('*').order('created_at', { ascending: false });
+    const { data, error } = await schema().from('talents_jobs').select('*').order('created_at', { ascending: false });
     if (!error) setJobs(mapJobsFromSupabase(data ?? []));
   }, []);
 
@@ -389,7 +389,7 @@ export default function App() {
     if (!supabase) return;
     const cached = getCached('yt_cache_companies');
     if (cached) setCompanies(cached);
-    const { data, error } = await schema().from('companies').select('*').order('name');
+    const { data, error } = await schema().from('talents_companies').select('*').order('name');
     if (!error) {
       const mapped = mapCompaniesFromSupabase(data ?? []);
       setCompanies(mapped);
@@ -401,7 +401,7 @@ export default function App() {
     if (!supabase) return;
     const cached = getCached('yt_cache_cities');
     if (cached) setCities(cached);
-    const { data, error } = await schema().from('cities').select('*').order('name');
+    const { data, error } = await schema().from('talents_cities').select('*').order('name');
     if (!error) {
       const mapped = mapCitiesFromSupabase(data ?? []);
       setCities(mapped);
@@ -413,7 +413,7 @@ export default function App() {
     if (!supabase) return;
     const cached = getCached('yt_cache_sectors');
     if (cached) setSectors(cached);
-    const { data, error } = await schema().from('sectors').select('*').order('name');
+    const { data, error } = await schema().from('talents_sectors').select('*').order('name');
     if (!error) {
       const mapped = mapSectorsFromSupabase(data ?? []);
       setSectors(mapped);
@@ -425,7 +425,7 @@ export default function App() {
     if (!supabase) return;
     const cached = getCached('yt_cache_positions');
     if (cached) setRoles(cached);
-    const { data, error } = await schema().from('positions').select('*').order('name');
+    const { data, error } = await schema().from('talents_positions').select('*').order('name');
     if (!error) {
       const mapped = mapPositionsFromSupabase(data ?? []);
       setRoles(mapped);
@@ -437,7 +437,7 @@ export default function App() {
     if (!supabase) return;
     const cached = getCached('yt_cache_job_levels');
     if (cached) setJobLevels(cached);
-    const { data, error } = await schema().from('job_levels').select('*').order('name');
+    const { data, error } = await schema().from('talents_job_levels').select('*').order('name');
     if (!error) {
       const mapped = mapJobLevelsFromSupabase(data ?? []);
       setJobLevels(mapped);
@@ -449,7 +449,7 @@ export default function App() {
     if (!supabase) return;
     const cached = getCached('yt_cache_activity_areas');
     if (cached) setActivityAreas(cached);
-    const { data, error } = await schema().from('activity_areas').select('*').order('name');
+    const { data, error } = await schema().from('talents_activity_areas').select('*').order('name');
     if (!error) {
       const mapped = mapActivityAreasFromSupabase(data ?? []);
       setActivityAreas(mapped);
@@ -459,7 +459,7 @@ export default function App() {
 
   const loadApplications = React.useCallback(async () => {
     if (!supabase) return;
-    const { data, error } = await schema().from('applications').select('*').order('created_at', { ascending: false });
+    const { data, error } = await schema().from('talents_applications').select('*').order('created_at', { ascending: false });
     if (!error) setApplications(mapApplicationsFromSupabase(data ?? []));
   }, []);
 
@@ -469,7 +469,7 @@ export default function App() {
       return;
     }
     try {
-      const { data, error } = await supabase.from('activity_log').select('*').order('created_at', { ascending: false }).limit(500);
+      const { data, error } = await supabase.from('talents_activity_log').select('*').order('created_at', { ascending: false }).limit(500);
       if (error) {
         if (error.code !== 'PGRST116' && error.code !== '42P01') console.warn('[ActivityLog] Erro:', error.message);
         activityLogUnavailableRef.current = true;
@@ -520,7 +520,7 @@ export default function App() {
       if (currentUserRole === 'admin') loadActivityLog();
     }
     if (supabase) {
-      channel = supabase.channel('candidates_changes').on('postgres_changes', { event: '*', schema: 'young_talents', table: 'candidates' }, () => { loadCandidates(); }).subscribe();
+      channel = supabase.channel('candidates_changes').on('postgres_changes', { event: '*', schema: 'public', table: 'talents_candidates' }, () => { loadCandidates(); }).subscribe();
     }
     return () => {
       if (supabase && channel) supabase.removeChannel(channel);
@@ -545,7 +545,7 @@ export default function App() {
     setUserRolesLoaded(false);
     (async () => {
       try {
-        const { data, error } = await schema().from('user_roles').select('*').order('created_at', { ascending: false });
+        const { data, error } = await schema().from('talents_user_roles').select('*').order('created_at', { ascending: false });
         if (cancelled) return;
         if (!error && data) {
           setUserRoles(data);
@@ -553,7 +553,7 @@ export default function App() {
           if (current) {
             const needsUpdate = current.user_id !== user.id || (user.user_metadata?.full_name || user.user_metadata?.name) !== current.name;
             if (needsUpdate) {
-              await schema().from('user_roles').update({ user_id: user.id, name: user.user_metadata?.full_name || user.user_metadata?.name || current.name, last_login: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', current.id);
+              await schema().from('talents_user_roles').update({ user_id: user.id, name: user.user_metadata?.full_name || user.user_metadata?.name || current.name, last_login: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', current.id);
             }
           }
         }
@@ -571,7 +571,7 @@ export default function App() {
     if (!effectiveUser || !effectiveUser.email || !supabase) return;
     try {
       const payload = { user_id: effectiveUser.id || null, user_email: effectiveUser.email, user_name: effectiveUser.displayName || effectiveUser.email, action: activityType, entity_type: entityType, entity_id: entityId, details: description || '', meta: metadata && Object.keys(metadata).length > 0 ? metadata : null };
-      const { data, error } = await supabase.from('activity_log').insert(payload).select('id, created_at').single();
+      const { data, error } = await supabase.from('talents_activity_log').insert(payload).select('id, created_at').single();
       if (!error && data) setActivityLog(prev => [...prev, { id: data.id, type: activityType, description, userName: payload.user_name, userEmail: payload.user_email, timestamp: data.created_at, entityType, entityId }]);
     } catch (e) { console.warn('Erro activity log:', e); }
   };
@@ -581,7 +581,7 @@ export default function App() {
     const previousCandidates = candidates;
     setCandidates(prev => prev.map(x => x.id === c.id ? { ...x, starred: !x.starred } : x));
     try {
-      const { error } = await supabase.from('candidates').update({ starred: !c.starred }).eq('id', c.id);
+      const { error } = await supabase.from('talents_candidates').update({ starred: !c.starred }).eq('id', c.id);
       if (error) throw error;
       await recordActivity('update', c.starred ? 'Removido de em consideração' : 'Marcado em consideração', 'candidate', c.id);
       showToast('Atualizado.', 'success');
@@ -605,12 +605,12 @@ export default function App() {
         }
         if (d.id) {
           const { id, ...rest } = payload;
-          const { error } = await schema().from('jobs').update(rest).eq('id', d.id);
+          const { error } = await schema().from('talents_jobs').update(rest).eq('id', d.id);
           if (error) throw error;
           showToast('Vaga atualizada.', 'success');
           await recordActivity('update', `Vaga "${d.title}" atualizada`, 'job', d.id, { title: d.title });
         } else {
-          const { data: inserted, error } = await schema().from('jobs').insert(payload).select('id').single();
+          const { data: inserted, error } = await schema().from('talents_jobs').insert(payload).select('id').single();
           if (error) throw error;
           if (inserted) await recordActivity('create', `Vaga "${d.title}" criada`, 'job', inserted.id, { title: d.title });
           showToast('Vaga criada.', 'success');
@@ -621,17 +621,17 @@ export default function App() {
         const activityDescription = options.activityDescription;
         if (d.id) {
           const { id, ...rest } = payload;
-          const { error } = await supabase.from('candidates').update(rest).eq('id', d.id);
+          const { error } = await supabase.from('talents_candidates').update(rest).eq('id', d.id);
           if (error) throw error;
           await recordActivity('update', activityDescription || 'Candidato atualizado', 'candidate', d.id, { fullName: d.fullName });
           showToast('Candidato atualizado.', 'success');
           if (d.status != null && d.id) {
-            const { error: syncErr } = await schema().from('applications').update({ status: d.status, last_activity: new Date().toISOString() }).eq('candidate_id', d.id);
+            const { error: syncErr } = await schema().from('talents_applications').update({ status: d.status, last_activity: new Date().toISOString() }).eq('candidate_id', d.id);
             if (syncErr) console.warn('Sincronizar candidaturas:', syncErr);
             else await loadApplications();
           }
         } else {
-          const { data: inserted, error } = await supabase.from('candidates').insert(payload).select('id').single();
+          const { data: inserted, error } = await supabase.from('talents_candidates').insert(payload).select('id').single();
           if (error) throw error;
           await recordActivity('create', 'Candidato criado', 'candidate', inserted?.id, { fullName: d.fullName });
           showToast('Candidato criado.', 'success');
@@ -639,7 +639,7 @@ export default function App() {
         await loadCandidates();
       } else {
         const { id, ...rest } = d;
-        const { error } = id ? await schema().from(col).update(rest).eq('id', id) : await schema().from(col).insert(rest);
+        const { error } = id ? await schema().from('talents_' + col).update(rest).eq('id', id) : await schema().from('talents_' + col).insert(rest);
         if (error) throw error;
         showToast('Sucesso!', 'success');
         if (col === 'companies') await loadCompanies();
@@ -663,7 +663,7 @@ export default function App() {
   const handleDeleteGeneric = async (col, id) => {
     if (!window.confirm('Excluir este item?')) return;
     try {
-      const { error } = col === 'jobs' ? await schema().from('jobs').update({ deleted_at: new Date().toISOString() }).eq('id', id) : await schema().from(col).delete().eq('id', id);
+      const { error } = col === 'jobs' ? await schema().from('talents_jobs').update({ deleted_at: new Date().toISOString() }).eq('id', id) : await schema().from('talents_' + col).delete().eq('id', id);
       if (error) throw error;
       showToast('Excluído com sucesso.', 'success');
       if (col === 'jobs') await loadJobs();
@@ -685,7 +685,7 @@ export default function App() {
     const job = jobs.find(j => j.id === jobId);
     try {
       const payload = { candidate_id: candidateId, job_id: jobId, candidate_name: candidate?.fullName || 'Candidato', candidate_email: candidate?.email || '', job_title: job?.title || 'Vaga', job_company: job?.company || '', status: 'Inscrito', applied_at: new Date().toISOString(), created_by: effectiveUser.email, created_at: new Date().toISOString() };
-      const { data, error } = await schema().from('applications').insert(payload).select('*').single();
+      const { data, error } = await schema().from('talents_applications').insert(payload).select('*').single();
       if (error) throw error;
       await recordActivity('update', 'Candidatura criada', 'candidate', candidateId);
       showToast('Vinculado com sucesso!', 'success');
@@ -696,7 +696,7 @@ export default function App() {
 
   const updateApplicationStatus = async (id, status) => {
     try {
-      const { error } = await schema().from('applications').update({ status, last_activity: new Date().toISOString() }).eq('id', id);
+      const { error } = await schema().from('talents_applications').update({ status, last_activity: new Date().toISOString() }).eq('id', id);
       if (error) throw error;
       const app = applications.find(a => a.id === id);
       if (app?.candidateId) await recordActivity('update', `Candidatura atualizada para ${status}`, 'candidate', app.candidateId);
@@ -710,7 +710,7 @@ export default function App() {
     const app = applications.find(a => a.id === id);
     const candidateId = app?.candidateId;
     try {
-      const { error } = await schema().from('applications').delete().eq('id', id);
+      const { error } = await schema().from('talents_applications').delete().eq('id', id);
       if (error) throw error;
       if (candidateId) await recordActivity('update', 'Candidatura removida', 'candidate', candidateId);
       showToast('Removido.', 'success');
@@ -723,7 +723,7 @@ export default function App() {
     if (!app) return;
     try {
       const newNote = { text, timestamp: new Date().toISOString(), userEmail: effectiveUser.email, userName: effectiveUser.displayName || effectiveUser.email };
-      const { error } = await schema().from('applications').update({ notes: [...(app.notes || []), newNote] }).eq('id', id);
+      const { error } = await schema().from('talents_applications').update({ notes: [...(app.notes || []), newNote] }).eq('id', id);
       if (error) throw error;
       if (app.candidateId) await recordActivity('update', 'Nota adicionada na candidatura', 'candidate', app.candidateId);
       showToast('Nota adicionada.', 'success');
@@ -745,11 +745,11 @@ export default function App() {
     try {
       const exists = userRoles.find(r => r.email === email.toLowerCase());
       const res = exists
-        ? await schema().from('user_roles').update({ role, name, updated_at: new Date().toISOString() }).eq('id', exists.id)
-        : await schema().from('user_roles').insert({ email: email.toLowerCase(), role, name, created_at: new Date().toISOString() });
+        ? await schema().from('talents_user_roles').update({ role, name, updated_at: new Date().toISOString() }).eq('id', exists.id)
+        : await schema().from('talents_user_roles').insert({ email: email.toLowerCase(), role, name, created_at: new Date().toISOString() });
       if (res.error) throw res.error;
       showToast('Permissão atualizada.', 'success');
-      const { data } = await schema().from('user_roles').select('*').order('created_at', { ascending: false });
+      const { data } = await schema().from('talents_user_roles').select('*').order('created_at', { ascending: false });
       if (data) setUserRoles(data);
     } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro.', 'error'); }
   };
@@ -757,10 +757,10 @@ export default function App() {
   const removeUserRole = async (id) => {
     if (!window.confirm('Remover acesso?')) return;
     try {
-      const { error } = await schema().from('user_roles').delete().eq('id', id);
+      const { error } = await schema().from('talents_user_roles').delete().eq('id', id);
       if (error) throw error;
       showToast('Acesso removido.', 'success');
-      const { data } = await schema().from('user_roles').select('*').order('created_at', { ascending: false });
+      const { data } = await schema().from('talents_user_roles').select('*').order('created_at', { ascending: false });
       if (data) setUserRoles(data);
     } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao remover.', 'error'); }
   };
@@ -801,7 +801,7 @@ export default function App() {
         throw new Error(msg);
       }
       showToast('Usuário criado.', 'success');
-      const { data: updated } = await schema().from('user_roles').select('*').order('created_at', { ascending: false });
+      const { data: updated } = await schema().from('talents_user_roles').select('*').order('created_at', { ascending: false });
       if (updated) setUserRoles(updated);
       return true;
     } catch (err) {
@@ -904,7 +904,7 @@ export default function App() {
   const onCreatePosition = React.useCallback(async ({ name, level }) => {
     if (!supabase) return false;
     try {
-      const { error } = await schema().from('positions').insert({ name: name.trim(), level: (level && level.trim()) || null });
+      const { error } = await schema().from('talents_positions').insert({ name: name.trim(), level: (level && level.trim()) || null });
       if (error) throw error;
       await loadRoles();
       showToast('Cargo criado.', 'success');
@@ -918,7 +918,7 @@ export default function App() {
   const onCreateSector = React.useCallback(async ({ name }) => {
     if (!supabase) return false;
     try {
-      const { error } = await schema().from('sectors').insert({ name: name.trim() });
+      const { error } = await schema().from('talents_sectors').insert({ name: name.trim() });
       if (error) throw error;
       await loadSectors();
       showToast('Setor criado.', 'success');

@@ -190,8 +190,7 @@ const PublicCandidateForm = () => {
     const loadCities = async () => {
       try {
         const { data, error } = await supabase
-          .schema('young_talents')
-          .from('cities')
+          .from('talents_cities')
           .select('*')
           .order('name');
         
@@ -744,7 +743,7 @@ const PublicCandidateForm = () => {
       // Enviar para Supabase (view public.candidates redireciona para young_talents.candidates)
       // O ID gerado automaticamente pelo Supabase será usado para identificar este envio
       const { data: insertedData, error } = await supabase
-        .from('candidates')
+        .from('talents_candidates')
         .insert([normalizedData])
         .select('id')
         .single();

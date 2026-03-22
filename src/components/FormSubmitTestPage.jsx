@@ -74,7 +74,7 @@ export default function FormSubmitTestPage() {
     try {
       const payload = buildTestPayload();
       const { data, error } = await supabase
-        .from('candidates')
+        .from('talents_candidates')
         .insert([payload])
         .select();
 

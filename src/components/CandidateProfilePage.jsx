@@ -68,7 +68,7 @@ export default function CandidateProfilePage({
       return;
     }
     (async () => {
-      const { data, error } = await supabase.from('candidates').select('*').eq('id', id).maybeSingle();
+      const { data, error } = await supabase.from('talents_candidates').select('*').eq('id', id).maybeSingle();
       if (error) {
         console.warn('Erro ao buscar candidato:', error);
         setCandidate(null);
