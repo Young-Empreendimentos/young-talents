@@ -57,7 +57,7 @@ const DEV_USER = {
   photoURL: null
 };
 
-const PUBLIC_PATHS = ['/', '/apply', '/apply/test', '/apply/thank-you', '/login'];
+const PUBLIC_PATHS = ['/', '/apply', '/apply/test', '/apply/thank-you', '/login', '/reset-password'];
 
 /** Google OAuth pode devolver o e-mail com capitalização diferente da linha em user_roles */
 const emailsMatch = (a, b) => {
@@ -85,8 +85,11 @@ export default function App() {
       setUser(session?.user ?? null);
       setAuthLoading(false);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      if (event === 'PASSWORD_RECOVERY') {
+        navigate('/reset-password');
+      }
     });
     return () => subscription?.unsubscribe();
   }, [isDevEnv]);

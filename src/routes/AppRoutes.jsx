@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import LoginPage from '../components/LoginPage';
+import ResetPasswordPage from '../components/ResetPasswordPage';
 import PublicCandidateForm from '../components/PublicCandidateForm';
 import FormSubmitTestPage from '../components/FormSubmitTestPage';
 import ThankYouPage from '../components/ThankYouPage';
@@ -141,6 +142,7 @@ const AppRoutes = ({
     return (
         <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/apply" element={<PublicCandidateForm />} />
             <Route path="/apply/test" element={<FormSubmitTestPage />} />
             <Route path="/apply/thank-you" element={<ThankYouPage />} />
