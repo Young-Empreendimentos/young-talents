@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react';
 import { supabase } from '../supabase';
 
-const RESET_REDIRECT = `${window.location.origin}${window.location.pathname.replace(/\/$/, '')}/reset-password`;
+const RESET_REDIRECT = `${window.location.origin}${import.meta.env.BASE_URL}reset-password`;
 
 export default function LoginPage() {
   const navigate = useNavigate();
