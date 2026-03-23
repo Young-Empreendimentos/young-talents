@@ -13,6 +13,8 @@ export default function ResetPasswordPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    if (!supabase) { setReady(true); return; }
+
     // Verifica sessão imediatamente (evento pode ter sido processado antes de montar)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setReady(true);
