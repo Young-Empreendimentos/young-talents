@@ -13,19 +13,28 @@ export default function ResetPasswordPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Supabase processa automaticamente o hash da URL e emite PASSWORD_RECOVERY
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setReady(true);
-      }
-    });
-
-    // Também verifica se já há sessão ativa (caso o usuário recarregue a página)
+    // Verifica sessão imediatamente (evento pode ter sido processado antes de montar)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setReady(true);
     });
 
-    return () => subscription?.unsubscribe();
+    // Escuta qualquer evento com sessão ativa
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session && ['PASSWORD_RECOVERY', 'SIGNED_IN', 'INITIAL_SESSION', 'TOKEN_REFRESHED'].includes(event)) {
+        setReady(true);
+      }
+    });
+
+    // Fallback: re-verifica após 1s caso o evento tenha chegado com delay
+    const timer = setTimeout(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) setReady(true);
+    }, 1000);
+
+    return () => {
+      subscription?.unsubscribe();
+      clearTimeout(timer);
+    };
   }, []);
 
   const handleSubmit = async (e) => {
