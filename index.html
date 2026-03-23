@@ -12,7 +12,7 @@
         } else {
           var p = new URLSearchParams(location.search).get('p');
           if (p) {
-            history.replaceState(null, null, '/' + decodeURIComponent(p));
+            history.replaceState(null, null, '/' + decodeURIComponent(p) + location.hash);
           }
         }
       })();
