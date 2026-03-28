@@ -19,34 +19,36 @@ export default function JobCandidatesModal({
   const [expandedApp, setExpandedApp] = useState(null);
   const [newNote, setNewNote] = useState('');
 
-  if (!isOpen || !job) return null;
-
   // Candidaturas desta vaga
-  const jobApplications = applications.filter(a => a.jobId === job.id);
-  
-  // Candidatos que já estão vinculados a esta vaga
-  const linkedCandidateIds = jobApplications.map(a => a.candidateId);
-  
-  // Candidatos disponíveis para vincular (que não estão nesta vaga)
-  const availableCandidates = candidates.filter(c => 
-    !linkedCandidateIds.includes(c.id) &&
-    (c.fullName?.toLowerCase().includes(searchCandidate.toLowerCase()) ||
-     c.email?.toLowerCase().includes(searchCandidate.toLowerCase()))
-  );
+  const jobApplications = useMemo(() =>
+    job ? applications.filter(a => a.jobId === job.id) : [],
+  [applications, job]);
 
   // Estatísticas
   const stats = useMemo(() => {
     const byStatus = {};
     PIPELINE_STAGES.forEach(s => byStatus[s] = 0);
     CLOSING_STATUSES.forEach(s => byStatus[s] = 0);
-    
+
     jobApplications.forEach(app => {
       const status = app.status || 'Inscrito';
       byStatus[status] = (byStatus[status] || 0) + 1;
     });
-    
+
     return byStatus;
   }, [jobApplications]);
+
+  if (!isOpen || !job) return null;
+
+  // Candidatos que já estão vinculados a esta vaga
+  const linkedCandidateIds = jobApplications.map(a => a.candidateId);
+
+  // Candidatos disponíveis para vincular (que não estão nesta vaga)
+  const availableCandidates = candidates.filter(c =>
+    !linkedCandidateIds.includes(c.id) &&
+    (c.fullName?.toLowerCase().includes(searchCandidate.toLowerCase()) ||
+     c.email?.toLowerCase().includes(searchCandidate.toLowerCase()))
+  );
 
   const handleAddCandidate = async (candidateId) => {
     if (onCreateApplication) {
