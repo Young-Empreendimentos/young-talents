@@ -523,21 +523,31 @@ export default function App() {
   }, [effectiveUser, loadAllData, loadActivityLog, currentUserRole, hasStaffRole, loadCandidates]);
 
   // Sync user_roles
+  const prevUserEmailRef = useRef(null);
   useEffect(() => {
     if (!supabase) {
       setUserRolesLoaded(false);
       return;
     }
     if (!user) {
+      prevUserEmailRef.current = null;
       setUserRolesLoaded(false);
       return;
     }
     if (user.email === DEV_USER.email) {
+      prevUserEmailRef.current = user.email;
       setUserRolesLoaded(true);
       return;
     }
+    // Só reseta userRolesLoaded se o email mudou (login diferente).
+    // Token refresh do Supabase muda a ref de `user` mas mantém o email —
+    // não devemos desmontar o app inteiro por causa disso.
+    const emailChanged = prevUserEmailRef.current !== user.email;
+    prevUserEmailRef.current = user.email;
+    if (emailChanged) {
+      setUserRolesLoaded(false);
+    }
     let cancelled = false;
-    setUserRolesLoaded(false);
     (async () => {
       try {
         const { data, error } = await schema().from('talents_user_roles').select('*').order('created_at', { ascending: false });
