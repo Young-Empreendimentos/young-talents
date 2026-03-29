@@ -1,867 +1,512 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MessageSquare, History, X, AlertCircle, Info, Trophy, CalendarCheck, Plus } from 'lucide-react';
-import { PIPELINE_STAGES, CLOSING_STATUSES, STATUS_COLORS } from '../constants';
-import InputField from './InputField';
-import UrlField from './UrlField';
-import { validateCandidate, checkDuplicateEmail } from '../utils/validation';
-import { normalizeCity, getMainCitiesOptions } from '../utils/cityNormalizer';
-import { normalizeSource, getMainSourcesOptions } from '../utils/sourceNormalizer';
-import { normalizeInterestAreasString, getMainInterestAreasOptions } from '../utils/interestAreaNormalizer';
-import { getCandidateTimestamp } from '../utils/timestampUtils';
-import { CHILDREN_OPTIONS, normalizeChildrenForStorage } from '../utils/childrenNormalizer';
+import { useNavigate } from 'react-router-dom';
+import {
+    X, Phone, Video, Users, Plus, Trash2, ChevronDown, ChevronUp,
+    Calendar, Clock, FileText, Briefcase, TrendingUp, MessageSquare,
+    MapPin, User, GraduationCap, Star, ExternalLink, Loader2
+} from 'lucide-react';
+import { STATUS_COLORS, PIPELINE_STAGES, CLOSING_STATUSES } from '../constants';
+import { getPhotoPublicUrl } from '../utils/urlUtils';
+import { formatChildrenForDisplay } from '../utils/childrenNormalizer';
 
-const CandidateModal = ({ candidate, onClose, onSave, options, isSaving, onAdvanceStage, statusMovements = [], onAddNote, interviews = [], onScheduleInterview, allCandidates = [], applications = [], onCreateApplication, jobs = [] }) => {
-    // Normaliza cidade ao carregar candidato
-    const normalizedCandidate = candidate?.city ? { ...candidate, city: normalizeCity(candidate.city) } : candidate;
-    const [d, setD] = useState({ ...normalizedCandidate });
-    const [activeSection, setActiveSection] = useState('pessoal');
-    const [newNote, setNewNote] = useState('');
-    const [savingNote, setSavingNote] = useState(false);
-    const [validationErrors, setValidationErrors] = useState({});
-    const [validationWarnings, setValidationWarnings] = useState({});
-    const [showValidationSummary, setShowValidationSummary] = useState(false);
-    const [showLinkJobDropdown, setShowLinkJobDropdown] = useState(false);
-    const [linkJobSelectedId, setLinkJobSelectedId] = useState('');
+const INTERACTION_ICONS = { users: Users, phone: Phone, video: Video };
 
-    // Filtrar movimentações deste candidato
-    const candidateMovements = useMemo(() => {
-        if (!candidate?.id) return [];
-        return statusMovements
-            .filter(m => m.candidateId === candidate.id)
-            .sort((a, b) => {
-                const timeA = a.timestamp?.seconds || a.timestamp?._seconds || 0;
-                const timeB = b.timestamp?.seconds || b.timestamp?._seconds || 0;
-                return timeB - timeA; // Mais recente primeiro
-            });
-    }, [statusMovements, candidate?.id]);
+// Dias desde uma data
+const daysSince = (dateStr) => {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    if (isNaN(d)) return null;
+    return Math.floor((Date.now() - d.getTime()) / 86400000);
+};
 
-    // Notas do candidato
-    const candidateNotes = useMemo(() => {
-        return (d.notes || []).sort((a, b) => {
-            const timeA = a.timestamp?.seconds || a.timestamp?._seconds || new Date(a.timestamp).getTime() / 1000 || 0;
-            const timeB = b.timestamp?.seconds || b.timestamp?._seconds || new Date(b.timestamp).getTime() / 1000 || 0;
-            return timeB - timeA;
-        });
-    }, [d.notes]);
+const formatDate = (dateStr) => {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
 
-    // Entrevistas do candidato
-    const candidateInterviews = useMemo(() => {
-        if (!candidate?.id) return [];
-        return interviews
+const formatDateTime = (dateStr) => {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleString('pt-BR', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
+};
+
+// Linha de dado do currículo
+const InfoRow = ({ label, value }) => {
+    if (!value) return null;
+    return (
+        <div>
+            <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+            <p className="text-sm text-foreground">{value}</p>
+        </div>
+    );
+};
+
+// Grupo de dados com título
+const DataGroup = ({ icon: Icon, title, children }) => (
+    <div className="space-y-3">
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 pb-2 border-b border-border">
+            {Icon && <Icon size={13} />} {title}
+        </h4>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-3">{children}</div>
+    </div>
+);
+
+export default function CandidateModal({
+    candidate,
+    onClose,
+    onSave,
+    options = {},
+    isSaving,
+    statusMovements = [],
+    applications = [],
+    onCreateApplication,
+    jobs = [],
+    interactions = [],
+    interactionTypes = [],
+    addInteraction,
+    loadInteractions,
+    deleteInteraction,
+    showToast,
+    onAdvanceStage,
+}) {
+    const navigate = useNavigate();
+    const [activeSection, setActiveSection] = useState('visao-geral');
+
+    // Interações deste candidato
+    const candidateInteractions = useMemo(() =>
+        interactions
             .filter(i => i.candidateId === candidate.id)
-            .sort((a, b) => new Date(`${b.date}T${b.time}`) - new Date(`${a.date}T${a.time}`));
-    }, [interviews, candidate?.id]);
+            .sort((a, b) => new Date(b.occurredAt) - new Date(a.occurredAt)),
+        [interactions, candidate.id]
+    );
 
-    // Determina próxima etapa disponível
-    const getCurrentStageIndex = () => {
-        const currentStatus = d.status || 'Inscrito';
-        return PIPELINE_STAGES.indexOf(currentStatus);
-    };
+    // Candidaturas deste candidato
+    const candidateApplications = useMemo(() =>
+        applications.filter(a => a.candidateId === candidate.id),
+        [applications, candidate.id]
+    );
 
-    const getNextStages = () => {
-        const currentIndex = getCurrentStageIndex();
-        if (currentIndex === -1 || currentIndex >= PIPELINE_STAGES.length - 1) {
-            return CLOSING_STATUSES; // Se já está na última etapa, mostra apenas status de fechamento
+    // Dias no pipeline
+    const daysInPipeline = useMemo(() => {
+        const ts = candidate.createdAt || candidate.original_timestamp;
+        return daysSince(ts);
+    }, [candidate]);
+
+    // Próximas etapas
+    const nextStages = useMemo(() => {
+        const idx = PIPELINE_STAGES.indexOf(candidate.status || 'Inscrito');
+        if (idx === -1 || idx >= PIPELINE_STAGES.length - 1) return CLOSING_STATUSES;
+        return [PIPELINE_STAGES[idx + 1], ...CLOSING_STATUSES];
+    }, [candidate.status]);
+
+    // Formulário de nova interação
+    const [showInteractionForm, setShowInteractionForm] = useState(false);
+    const [newInteraction, setNewInteraction] = useState({
+        type: interactionTypes[0]?.name || '',
+        occurredAt: new Date().toISOString().slice(0, 16),
+        notes: ''
+    });
+    const [savingInteraction, setSavingInteraction] = useState(false);
+
+    // Vincular a vaga
+    const [showLinkJob, setShowLinkJob] = useState(false);
+    const [linkJobId, setLinkJobId] = useState('');
+
+    // Carregar interações ao abrir
+    useEffect(() => {
+        if (candidate.id && loadInteractions) {
+            loadInteractions(candidate.id);
         }
-        return [PIPELINE_STAGES[currentIndex + 1], ...CLOSING_STATUSES];
-    };
+    }, [candidate.id, loadInteractions]);
 
-    const handleInputChange = (field, value) => {
-        // Normaliza campos específicos quando o usuário digita
-        if (field === 'city' && value) {
-            value = normalizeCity(value);
-        } else if (field === 'source' && value) {
-            value = normalizeSource(value);
-        } else if (field === 'interestAreas' && value) {
-            value = normalizeInterestAreasString(value);
-        }
-        setD(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handleSave = () => {
-        // Validação antes de salvar
-        const validation = validateCandidate(d, {
-            checkRequired: true,
-            strictMode: false,
-            stage: d.status
-        });
-
-        // Verificar duplicata de email (apenas para novos candidatos ou se email mudou)
-        if (d.email) {
-            const duplicateCheck = checkDuplicateEmail(d.email, allCandidates, d.id);
-            if (duplicateCheck.isDuplicate) {
-                validation.valid = false;
-                validation.errors.email = duplicateCheck.message;
-            }
-        }
-
-        setValidationErrors(validation.errors);
-        setValidationWarnings(validation.warnings);
-
-        if (!validation.valid) {
-            setShowValidationSummary(true);
-            // Rolar para o topo do modal para mostrar erros
-            return;
-        }
-
-        // Garante que os campos estão normalizados antes de salvar
-        const dataToSave = { ...d };
-        if (dataToSave.city) {
-            dataToSave.city = normalizeCity(dataToSave.city);
-        }
-        if (dataToSave.source) {
-            dataToSave.source = normalizeSource(dataToSave.source);
-        }
-        if (dataToSave.interestAreas) {
-            dataToSave.interestAreas = normalizeInterestAreasString(dataToSave.interestAreas);
-        }
-
-        // Limpar erros e salvar
-        setShowValidationSummary(false);
-        onSave(dataToSave);
-    };
-
-    const handleAddNote = async () => {
-        if (!newNote.trim() || !onAddNote) return;
-        setSavingNote(true);
+    const handleAddInteraction = async () => {
+        if (!newInteraction.type || !newInteraction.occurredAt) return;
+        setSavingInteraction(true);
         try {
-            await onAddNote(d.id, newNote.trim());
-            // Atualiza localmente para feedback imediato
-            const newNoteObj = {
-                text: newNote.trim(),
-                timestamp: new Date().toISOString(),
-                userEmail: 'current_user', // Será substituído pelo App
-                userName: 'Você'
-            };
-            setD(prev => ({
-                ...prev,
-                notes: [newNoteObj, ...(prev.notes || [])]
-            }));
-            setNewNote('');
+            await addInteraction({
+                candidateId: candidate.id,
+                type: newInteraction.type,
+                occurredAt: new Date(newInteraction.occurredAt).toISOString(),
+                notes: newInteraction.notes
+            });
+            setShowInteractionForm(false);
+            setNewInteraction({ type: interactionTypes[0]?.name || '', occurredAt: new Date().toISOString().slice(0, 16), notes: '' });
+            if (showToast) showToast('Interação registrada.', 'success');
         } catch (e) {
-            console.error('Erro ao adicionar nota:', e);
+            console.error(e);
+            if (showToast) showToast('Erro ao registrar interação.', 'error');
         } finally {
-            setSavingNote(false);
+            setSavingInteraction(false);
         }
     };
 
-    // Formatar data de timestamp
-    const formatTimestamp = (ts) => {
-        if (!ts) return 'N/A';
-        let date;
-        if (ts.seconds || ts._seconds) {
-            date = new Date((ts.seconds || ts._seconds) * 1000);
-        } else if (ts.toDate) {
-            date = ts.toDate();
-        } else {
-            date = new Date(ts);
+    const handleDeleteInteraction = async (id) => {
+        if (!window.confirm('Remover esta interação?')) return;
+        try {
+            await deleteInteraction(id);
+        } catch (e) {
+            if (showToast) showToast('Erro ao remover.', 'error');
         }
-        return date.toLocaleString('pt-BR', {
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-        });
     };
+
+    const handleLinkJob = async () => {
+        if (!linkJobId || !onCreateApplication) return;
+        await onCreateApplication(candidate.id, linkJobId);
+        setLinkJobId('');
+        setShowLinkJob(false);
+    };
+
+    const photoUrl = getPhotoPublicUrl(candidate.photoUrl);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 dark:bg-black/80 p-4 backdrop-blur-sm">
-            <div className="bg-brand-card dark:bg-brand-card rounded-lg w-full max-w-4xl h-[90vh] flex flex-col border border-border text-foreground">
-                <div className="px-6 py-4 border-b border-border flex justify-between bg-brand-card dark:bg-brand-card">
-                    <div><h3 className="font-bold text-xl text-white">{d.id ? 'Editar' : 'Novo'} Candidato</h3></div>
-                    <button onClick={onClose}><X /></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+            <div className="bg-card rounded-xl w-full max-w-3xl h-[88vh] flex flex-col border border-border shadow-xl">
+
+                {/* Header */}
+                <div className="px-5 py-4 border-b border-border flex items-center gap-3">
+                    {/* Avatar */}
+                    <div className="w-10 h-10 rounded-full bg-muted flex-shrink-0 overflow-hidden flex items-center justify-center">
+                        {photoUrl ? (
+                            <img src={photoUrl} alt={candidate.fullName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        ) : (
+                            <User size={20} className="text-muted-foreground" />
+                        )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground truncate">{candidate.fullName || 'Candidato'}</h3>
+                        <p className="text-xs text-muted-foreground truncate">{candidate.email}</p>
+                    </div>
+                    <button
+                        onClick={() => { onClose(); navigate(`/candidate/${candidate.id}`); }}
+                        className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 px-2 py-1 rounded hover:bg-muted"
+                        title="Ver perfil completo"
+                    >
+                        <ExternalLink size={13} />
+                    </button>
+                    <button onClick={onClose} className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted">
+                        <X size={18} />
+                    </button>
                 </div>
 
-                {/* Resumo de Validação */}
-                {showValidationSummary && Object.keys(validationErrors).length > 0 && (
-                    <div className="mx-6 mt-4 bg-red-900/30 border border-red-700 rounded-lg p-4">
-                        <div className="flex items-center gap-2 text-red-300 font-bold mb-2">
-                            <AlertCircle size={18} /> {Object.keys(validationErrors).length} erro(s) encontrado(s)
-                        </div>
-                        <ul className="text-sm text-red-400 space-y-1 ml-6">
-                            {Object.entries(validationErrors).map(([field, message]) => (
-                                <li key={field}>• {message}</li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-                {showValidationSummary && Object.keys(validationWarnings).length > 0 && Object.keys(validationErrors).length === 0 && (
-                    <div className="mx-6 mt-4 bg-yellow-900/30 border border-yellow-700 rounded-lg p-4">
-                        <div className="flex items-center gap-2 text-yellow-300 font-bold mb-2">
-                            <Info size={18} /> {Object.keys(validationWarnings).length} aviso(s)
-                        </div>
-                        <ul className="text-sm text-yellow-400 space-y-1 ml-6">
-                            {Object.entries(validationWarnings).map(([field, message]) => (
-                                <li key={field}>• {message}</li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-
-                <div className="flex border-b border-border dark:border-border">
-                    {['pessoal', 'profissional', 'processo', 'etapas', 'histórico', 'adicional'].map(tab => (
-                        <button key={tab} onClick={() => setActiveSection(tab)} className={`flex-1 py-3 px-4 text-sm font-bold uppercase ${activeSection === tab ? 'text-blue-600 dark:text-blue-400 border-b-2 border-brand-orange' : 'text-slate-500 dark:text-slate-500'}`}>
-                            {tab}
+                {/* Tabs */}
+                <div className="flex border-b border-border px-5">
+                    {[
+                        { id: 'visao-geral', label: 'Visão Geral' },
+                        { id: 'curriculo', label: 'Currículo' }
+                    ].map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveSection(tab.id)}
+                            className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
+                                activeSection === tab.id
+                                    ? 'border-young-orange text-young-orange'
+                                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                            }`}
+                        >
+                            {tab.label}
                         </button>
                     ))}
                 </div>
-                <div className="p-8 overflow-y-auto flex-1 bg-background">
-                    {activeSection === 'pessoal' && (
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-5 space-y-5">
+
+                    {/* ============ VISÃO GERAL ============ */}
+                    {activeSection === 'visao-geral' && (
                         <>
-                            {/* Menu de Avanço de Etapa - Destaque */}
-                            {d.id && onAdvanceStage && (
-                                <div className="bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border-2 border-blue-500/50 rounded-lg p-4 mb-6">
-                                    <label className="block text-sm font-bold text-white mb-2 flex items-center gap-2">
-                                        <Trophy size={18} className="text-yellow-400" /> Avançar Etapa do Processo
-                                    </label>
-                                    <div className="flex gap-2">
-                                        <select
-                                            className="flex-1 bg-card border border-input p-2.5 rounded-lg text-sm text-foreground outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-                                            value=""
-                                            onChange={(e) => {
-                                                if (e.target.value && onAdvanceStage) {
-                                                    onAdvanceStage(d, e.target.value);
-                                                }
-                                                e.target.value = '';
-                                            }}
-                                        >
-                                            <option value="">Selecione a próxima etapa...</option>
-                                            {getNextStages().map(stage => (
-                                                <option key={stage} value={stage}>
-                                                    {stage}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <div className="text-xs text-slate-300 self-center px-2">
-                                            Etapa atual: <span className="font-bold text-blue-300">{d.status || 'Inscrito'}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-2 gap-6">
-                                <InputField label="Nome Completo" field="fullName" value={d.fullName} onChange={handleInputChange} />
-                                <InputField label="Email Principal" field="email" value={d.email} onChange={handleInputChange} />
-                                <InputField label="Email Secundário" field="email_secondary" value={d.email_secondary} onChange={handleInputChange} />
-                                <InputField label="Telefone/Celular" field="phone" value={d.phone} onChange={handleInputChange} />
-                                <div className="mb-3">
-                                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Cidade</label>
-                                    <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.city || ''} onChange={e => handleInputChange('city', e.target.value)}>
-                                        <option value="">Selecione...</option>
-                                        <optgroup label="Cidades Principais">
-                                            {getMainCitiesOptions().map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                                        </optgroup>
-                                        {options.cities && options.cities.length > 0 && (
-                                            <optgroup label="Outras Cidades">
-                                                {options.cities.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                                            </optgroup>
+                            {/* Status + Dias no pipeline */}
+                            <div className="flex items-start gap-4">
+                                <div className="flex-1">
+                                    <p className="text-xs text-muted-foreground mb-1.5">Status atual</p>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <span className={`px-2.5 py-1 rounded text-xs font-bold uppercase ${STATUS_COLORS[candidate.status] || 'bg-slate-600 text-white'}`}>
+                                            {candidate.status || 'Inscrito'}
+                                        </span>
+                                        {onAdvanceStage && (
+                                            <select
+                                                className="text-xs border border-input rounded px-2 py-1 bg-background text-foreground outline-none focus:ring-1 focus:ring-young-orange"
+                                                value=""
+                                                onChange={e => { if (e.target.value) onAdvanceStage(candidate, e.target.value); }}
+                                            >
+                                                <option value="">Mover para...</option>
+                                                {nextStages.map(s => <option key={s} value={s}>{s}</option>)}
+                                            </select>
                                         )}
-                                    </select>
-                                    <p className="text-xs text-slate-400 mt-1">Digite ou selecione - será normalizado automaticamente</p>
-                                </div>
-                                <InputField label="Data de Nascimento" field="birthDate" type="date" value={d.birthDate} onChange={handleInputChange} />
-                                <InputField label="Idade" field="age" type="number" value={d.age} onChange={handleInputChange} />
-                                <div className="mb-3">
-                                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Estado Civil</label>
-                                    <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.maritalStatus || ''} onChange={e => setD({ ...d, maritalStatus: e.target.value })}>
-                                        <option value="">Selecione...</option>
-                                        {options.marital && options.marital.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
-                                    </select>
-                                </div>
-                                <div className="mb-3">
-                                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Quantidade de Filhos</label>
-                                    <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.childrenCount != null && d.childrenCount !== '' ? normalizeChildrenForStorage(d.childrenCount) : ''} onChange={e => handleInputChange('childrenCount', e.target.value === '' ? '' : normalizeChildrenForStorage(e.target.value))}>
-                                        <option value="">Selecione...</option>
-                                        {CHILDREN_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                                    </select>
-                                </div>
-                                <UrlField label="URL da Foto" field="photoUrl" value={d.photoUrl} onChange={handleInputChange} placeholder="Cole a URL da foto aqui..." />
-                                <div className="mb-3">
-                                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Possui CNH Tipo B?</label>
-                                    <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.hasLicense || ''} onChange={e => setD({ ...d, hasLicense: e.target.value })}>
-                                        <option value="">Selecione...</option>
-                                        <option value="Sim">Sim</option>
-                                        <option value="Não">Não</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </>
-                    )}
-                    {activeSection === 'profissional' && (
-                        <div className="grid grid-cols-2 gap-6">
-                            <InputField label="Formação" field="education" value={d.education} onChange={handleInputChange} />
-                            <div className="mb-3">
-                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Nível de Escolaridade</label>
-                                <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.schoolingLevel || ''} onChange={e => setD({ ...d, schoolingLevel: e.target.value })}>
-                                    <option value="">Selecione...</option>
-                                    {options.schooling && options.schooling.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                                </select>
-                            </div>
-                            <InputField label="Instituição de Ensino" field="institution" value={d.institution} onChange={handleInputChange} />
-                            <InputField label="Data de Formatura" field="graduationDate" type="date" value={d.graduationDate} onChange={handleInputChange} />
-                            <div className="mb-3">
-                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Está Cursando Atualmente?</label>
-                                <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.isStudying || ''} onChange={e => setD({ ...d, isStudying: e.target.value })}>
-                                    <option value="">Selecione...</option>
-                                    <option value="Sim">Sim</option>
-                                    <option value="Não">Não</option>
-                                </select>
-                            </div>
-                            <div className="mb-3">
-                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Área de Interesse</label>
-                                <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.interestAreas || ''} onChange={e => handleInputChange('interestAreas', e.target.value)}>
-                                    <option value="">Selecione...</option>
-                                    <optgroup label="Áreas Principais">
-                                        {getMainInterestAreasOptions().map(i => <option key={i.id} value={i.name}>{i.name}</option>)}
-                                    </optgroup>
-                                    {options.interestAreas && options.interestAreas.length > 0 && (
-                                        <optgroup label="Outras Áreas">
-                                            {options.interestAreas.map(i => <option key={i.id} value={i.name}>{i.name}</option>)}
-                                        </optgroup>
-                                    )}
-                                </select>
-                                <p className="text-xs text-slate-400 mt-1">Digite ou selecione - será normalizado automaticamente</p>
-                            </div>
-                            <div className="mb-3 col-span-2">
-                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Experiências Anteriores</label>
-                                <textarea className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-24" value={d.experience || ''} onChange={e => setD({ ...d, experience: e.target.value })} placeholder="Descreva as experiências profissionais..." />
-                            </div>
-                            <div className="mb-3 col-span-2">
-                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Cursos e Certificações</label>
-                                <textarea className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20" value={d.courses || ''} onChange={e => setD({ ...d, courses: e.target.value })} placeholder="Liste cursos e certificações..." />
-                            </div>
-                            <UrlField label="Link CV" field="cvUrl" value={d.cvUrl} onChange={handleInputChange} placeholder="Cole a URL do currículo aqui..." />
-                            <UrlField label="Link Portfolio" field="portfolioUrl" value={d.portfolioUrl} onChange={handleInputChange} placeholder="Cole a URL do portfólio aqui..." />
-                        </div>
-                    )}
-                    {activeSection === 'processo' && (
-                        <div className="grid grid-cols-2 gap-6">
-                            {/* Candidaturas Vinculadas */}
-                            <div className="mb-3 col-span-2">
-                                <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <label className="block text-sm font-bold text-foreground uppercase">Candidaturas Vinculadas</label>
-                                        {onCreateApplication && (() => {
-                                            const availableJobs = (options.jobs || jobs || []).filter(j => j.status === 'Aberta');
-                                            if (availableJobs.length === 0) return null;
-                                            return (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => { setShowLinkJobDropdown(!showLinkJobDropdown); setLinkJobSelectedId(''); }}
-                                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
-                                                >
-                                                    <Plus size={16} /> Vincular a Nova Vaga
-                                                </button>
-                                            );
-                                        })()}
                                     </div>
-                                    {showLinkJobDropdown && onCreateApplication && candidate?.id && (() => {
-                                        const availableJobs = (options.jobs || jobs || []).filter(j => j.status === 'Aberta');
-                                        const alreadyLinkedIds = (applications || []).filter(a => a.candidateId === candidate.id).map(a => a.jobId);
-                                        const jobsToShow = availableJobs.filter(j => !alreadyLinkedIds.includes(j.id));
-                                        return (
-                                            <div className="mt-3 p-3 bg-card border border-blue-200 dark:border-blue-700 rounded-lg space-y-2">
-                                                <label className="block text-xs font-semibold text-muted-foreground">Selecione a vaga e confirme</label>
-                                                <select
-                                                    value={linkJobSelectedId}
-                                                    onChange={e => setLinkJobSelectedId(e.target.value)}
-                                                    className="w-full bg-background border border-input p-2.5 rounded-lg text-sm text-foreground outline-none focus:ring-2 focus:ring-blue-500"
-                                                >
-                                                    <option value="">Selecione uma vaga...</option>
-                                                    {jobsToShow.map(j => (
-                                                        <option key={j.id} value={j.id}>{j.title} – {j.company}{j.city ? ` (${j.city})` : ''}</option>
-                                                    ))}
-                                                </select>
-                                                {jobsToShow.length === 0 && (
-                                                    <p className="text-xs text-amber-600 dark:text-amber-400">Este candidato já está vinculado a todas as vagas abertas.</p>
-                                                )}
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        type="button"
-                                                        disabled={!linkJobSelectedId}
-                                                        onClick={async () => {
-                                                            if (!linkJobSelectedId) return;
-                                                            await onCreateApplication(candidate.id, linkJobSelectedId);
-                                                            setLinkJobSelectedId('');
-                                                            setShowLinkJobDropdown(false);
-                                                        }}
-                                                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium"
-                                                    >
-                                                        Vincular
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => { setShowLinkJobDropdown(false); setLinkJobSelectedId(''); }}
-                                                        className="px-4 py-2 border border-input text-muted-foreground rounded-lg text-sm font-medium hover:bg-muted"
-                                                    >
-                                                        Cancelar
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })()}
-                                    {(() => {
-                                        const candidateApplications = applications.filter(a => a.candidateId === candidate?.id);
-                                        if (candidateApplications.length === 0) {
-                                            return (
-                                                <div className="text-center py-4 text-muted-foreground text-sm">
-                                                    <p>Nenhuma candidatura vinculada ainda.</p>
-                                                    <p className="text-xs mt-1">Clique em "Vincular a Nova Vaga" para criar uma candidatura.</p>
-                                                </div>
-                                            );
-                                        }
-                                        return (
-                                            <div className="space-y-2">
-                                                {candidateApplications.map(app => {
-                                                    const job = (options.jobs || jobs || []).find(j => j.id === app.jobId);
-                                                    return (
-                                                        <div key={app.id} className="bg-card border border-border rounded-lg p-3">
-                                                            <div className="flex items-center justify-between">
-                                                                <div className="flex-1">
-                                                                    <h5 className="font-semibold text-foreground text-sm">
-                                                                        {job?.title || app.jobTitle || 'Vaga não encontrada'}
-                                                                    </h5>
-                                                                    <p className="text-xs text-muted-foreground mt-1">
-                                                                        {job?.company || app.jobCompany || ''} {job?.city ? `• ${job.city}` : ''}
-                                                                    </p>
-                                                                    <span className={`inline-block mt-2 px-2 py-0.5 rounded text-xs border ${STATUS_COLORS[app.status] || 'bg-slate-700 text-slate-200 border-slate-600'}`}>
-                                                                        {app.status || 'Inscrito'}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        );
-                                    })()}
                                 </div>
-                            </div>
-                            <div className="mb-3">
-                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Onde encontrou (Fonte)</label>
-                                <select className="w-full bg-background border border-gray-300 dark:border-gray-700 p-2.5 rounded text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.source || ''} onChange={e => handleInputChange('source', e.target.value)}>
-                                    <option value="">Selecione...</option>
-                                    <optgroup label="Origens Principais">
-                                        {getMainSourcesOptions().map(o => <option key={o.id} value={o.name}>{o.name}</option>)}
-                                    </optgroup>
-                                    {options.origins && options.origins.length > 0 && (
-                                        <optgroup label="Outras Origens">
-                                            {options.origins.map(o => <option key={o.id} value={o.name}>{o.name}</option>)}
-                                        </optgroup>
-                                    )}
-                                </select>
-                                <p className="text-xs text-slate-400 mt-1">Digite ou selecione - será normalizado automaticamente</p>
-                            </div>
-                            <InputField label="Indicação (Quem indicou?)" field="referral" value={d.referral} onChange={handleInputChange} />
-                            <InputField label="Expectativa Salarial" field="salaryExpectation" value={d.salaryExpectation} onChange={handleInputChange} />
-                            <div className="mb-3">
-                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Disponibilidade para Mudança de Cidade?</label>
-                                <select className="w-full bg-background dark:bg-background border border-border dark:border-border p-2.5 rounded text-white dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={d.canRelocate || ''} onChange={e => setD({ ...d, canRelocate: e.target.value })}>
-                                    <option value="">Selecione...</option>
-                                    <option value="Sim">Sim</option>
-                                    <option value="Não">Não</option>
-                                </select>
-                            </div>
-                            <div className="mb-3 col-span-2">
-                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Referências Profissionais</label>
-                                <textarea className="w-full bg-background dark:bg-background border border-border dark:border-border p-2.5 rounded text-white dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20" value={d.references || ''} onChange={e => setD({ ...d, references: e.target.value })} placeholder="Liste referências profissionais..." />
+                                {daysInPipeline !== null && (
+                                    <div className="text-right">
+                                        <p className="text-xs text-muted-foreground mb-0.5">No pipeline</p>
+                                        <p className="text-2xl font-bold text-foreground">{daysInPipeline}</p>
+                                        <p className="text-xs text-muted-foreground">dias</p>
+                                    </div>
+                                )}
                             </div>
 
-                            {/* Entrevistas Agendadas */}
-                            <div className="col-span-2 bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                                <div className="flex justify-between items-center mb-3">
-                                    <h4 className="font-bold text-white flex items-center gap-2">
-                                        <CalendarCheck size={18} className="text-purple-400" /> Entrevistas Agendadas
-                                    </h4>
-                                    {onScheduleInterview && d.id && (
+                            {/* Candidaturas */}
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                                        <Briefcase size={13} /> Candidaturas
+                                    </p>
+                                    {onCreateApplication && (
                                         <button
-                                            type="button"
-                                            onClick={() => onScheduleInterview(d)}
-                                            className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors"
+                                            onClick={() => setShowLinkJob(!showLinkJob)}
+                                            className="text-xs text-young-orange hover:underline flex items-center gap-1"
                                         >
-                                            <Plus size={14} /> Agendar
+                                            <Plus size={12} /> Vincular vaga
                                         </button>
                                     )}
                                 </div>
-                                {candidateInterviews.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {candidateInterviews.map(interview => {
-                                            const interviewDate = new Date(interview.date);
-                                            const isPast = interviewDate < new Date();
+
+                                {showLinkJob && (
+                                    <div className="mb-2 p-3 bg-muted rounded-lg flex gap-2">
+                                        <select
+                                            value={linkJobId}
+                                            onChange={e => setLinkJobId(e.target.value)}
+                                            className="flex-1 text-sm border border-input rounded px-2 py-1.5 bg-background text-foreground outline-none focus:ring-1 focus:ring-young-orange"
+                                        >
+                                            <option value="">Selecione uma vaga...</option>
+                                            {(options.jobs || jobs).filter(j => j.status === 'Aberta' && !candidateApplications.find(a => a.jobId === j.id)).map(j => (
+                                                <option key={j.id} value={j.id}>{j.title}</option>
+                                            ))}
+                                        </select>
+                                        <button onClick={handleLinkJob} disabled={!linkJobId} className="text-xs px-3 py-1.5 bg-young-orange text-white rounded disabled:opacity-50">Vincular</button>
+                                        <button onClick={() => setShowLinkJob(false)} className="text-xs px-2 py-1.5 text-muted-foreground hover:text-foreground">✕</button>
+                                    </div>
+                                )}
+
+                                {candidateApplications.length > 0 ? (
+                                    <div className="space-y-1.5">
+                                        {candidateApplications.map(app => {
+                                            const job = (options.jobs || jobs).find(j => j.id === app.jobId);
+                                            const isActive = !['Contratado', 'Reprovado', 'Desistiu da vaga', 'Desistiu'].includes(app.status);
                                             return (
-                                                <div key={interview.id} className={`p-3 rounded-lg border ${interview.status === 'Cancelada' ? 'bg-red-900/20 border-red-800' :
-                                                    interview.status === 'Realizada' ? 'bg-green-900/20 border-green-800' :
-                                                        isPast ? 'bg-yellow-900/20 border-yellow-800' :
-                                                            'bg-gray-900/50 border-gray-600'
-                                                    }`}>
-                                                    <div className="flex justify-between items-start">
-                                                        <div>
-                                                            <div className="font-medium text-white text-sm">{interview.type}</div>
-                                                            <div className="text-xs text-gray-400">
-                                                                {interviewDate.toLocaleDateString('pt-BR')} às {interview.time}
-                                                                {interview.duration && ` (${interview.duration}min)`}
-                                                            </div>
-                                                            {interview.jobTitle && <div className="text-xs text-gray-500">Vaga: {interview.jobTitle}</div>}
-                                                        </div>
-                                                        <span className={`text-xs px-2 py-0.5 rounded ${interview.status === 'Agendada' ? 'bg-blue-600 text-white' :
-                                                            interview.status === 'Confirmada' ? 'bg-green-600 text-white' :
-                                                                interview.status === 'Realizada' ? 'bg-gray-600 text-white' :
-                                                                    interview.status === 'Cancelada' ? 'bg-red-600 text-white' :
-                                                                        'bg-yellow-600 text-white'
-                                                            }`}>
-                                                            {interview.status}
-                                                        </span>
+                                                <div key={app.id} className={`flex items-center justify-between px-3 py-2 rounded-lg border ${isActive ? 'border-border bg-background' : 'border-border/50 bg-muted/40 opacity-60'}`}>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-foreground">{job?.title || app.jobTitle || 'Vaga não encontrada'}</p>
+                                                        {!isActive && <p className="text-xs text-muted-foreground">Inativa</p>}
                                                     </div>
-                                                    {interview.isOnline && interview.meetingLink && (
-                                                        <a href={interview.meetingLink} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:underline mt-1 inline-block">
-                                                            Link da reunião
-                                                        </a>
-                                                    )}
-                                                    {!interview.isOnline && interview.location && (
-                                                        <div className="text-xs text-gray-400 mt-1">{interview.location}</div>
-                                                    )}
+                                                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${STATUS_COLORS[app.status] || 'bg-slate-600 text-white'}`}>
+                                                        {app.status}
+                                                    </span>
                                                 </div>
                                             );
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="text-center text-gray-500 py-4 text-sm">
-                                        Nenhuma entrevista agendada
-                                    </div>
+                                    <p className="text-sm text-muted-foreground italic">Nenhuma candidatura vinculada.</p>
                                 )}
                             </div>
-                        </div>
-                    )}
-                    {activeSection === 'etapas' && (
-                        <div className="space-y-6">
-                            {/* Status atual */}
-                            <div className="bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-blue-500/50 rounded-lg p-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <label className="text-xs text-gray-400 uppercase">Status Atual</label>
-                                        <div className="text-xl font-bold text-white">{d.status || 'Inscrito'}</div>
-                                    </div>
-                                    {d.id && onAdvanceStage && (
-                                        <select
-                                            className="bg-gray-800 border border-gray-600 px-4 py-2 rounded-lg text-white text-sm font-medium"
-                                            value=""
-                                            onChange={(e) => {
-                                                if (e.target.value && onAdvanceStage) {
-                                                    onAdvanceStage(d, e.target.value);
-                                                }
-                                                e.target.value = '';
-                                            }}
-                                        >
-                                            <option value="">Avançar para...</option>
-                                            {getNextStages().map(stage => (
-                                                <option key={stage} value={stage}>{stage}</option>
-                                            ))}
-                                        </select>
-                                    )}
-                                </div>
-                            </div>
 
-                            {/* 1ª Entrevista */}
-                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                                <h4 className="font-bold text-white mb-4 flex items-center gap-2">
-                                    <span className="w-6 h-6 bg-cyan-600 rounded-full flex items-center justify-center text-xs">1</span>
-                                    1ª Entrevista (RH)
-                                </h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Data e Hora</label>
-                                        <input
-                                            type="datetime-local"
-                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                            value={d.interview1Date || ''}
-                                            onChange={e => setD({ ...d, interview1Date: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Status</label>
-                                        <select
-                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                            value={d.interview1Status || ''}
-                                            onChange={e => setD({ ...d, interview1Status: e.target.value })}
-                                        >
-                                            <option value="">Não realizada</option>
-                                            <option value="Agendada">Agendada</option>
-                                            <option value="Realizada">Realizada</option>
-                                            <option value="Cancelada">Cancelada</option>
-                                            <option value="NoShow">No-show</option>
-                                        </select>
-                                    </div>
-                                    <div className="col-span-2">
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Observações</label>
-                                        <textarea
-                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20"
-                                            value={d.interview1Notes || ''}
-                                            onChange={e => setD({ ...d, interview1Notes: e.target.value })}
-                                            placeholder="Anotações sobre a entrevista..."
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Testes */}
-                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                                <h4 className="font-bold text-white mb-4 flex items-center gap-2">
-                                    <span className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-xs">T</span>
-                                    Testes
-                                </h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Resultado</label>
-                                        <select
-                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                            value={d.testResults || ''}
-                                            onChange={e => setD({ ...d, testResults: e.target.value })}
-                                        >
-                                            <option value="">Não realizado</option>
-                                            <option value="Aprovado">Aprovado</option>
-                                            <option value="Aprovado com ressalvas">Aprovado com ressalvas</option>
-                                            <option value="Reprovado">Reprovado</option>
-                                            <option value="Não aplicável">Não aplicável</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Data do Teste</label>
-                                        <input
-                                            type="date"
-                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                            value={d.testDate || ''}
-                                            onChange={e => setD({ ...d, testDate: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="col-span-2">
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Observações dos Testes</label>
-                                        <textarea
-                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20"
-                                            value={d.testNotes || ''}
-                                            onChange={e => setD({ ...d, testNotes: e.target.value })}
-                                            placeholder="Detalhes sobre os testes realizados..."
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* 2ª Entrevista */}
-                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                                <h4 className="font-bold text-white mb-4 flex items-center gap-2">
-                                    <span className="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center text-xs">2</span>
-                                    2ª Entrevista (Gestor)
-                                </h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Data e Hora</label>
-                                        <input
-                                            type="datetime-local"
-                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                            value={d.interview2Date || ''}
-                                            onChange={e => setD({ ...d, interview2Date: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Status</label>
-                                        <select
-                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                            value={d.interview2Status || ''}
-                                            onChange={e => setD({ ...d, interview2Status: e.target.value })}
-                                        >
-                                            <option value="">Não realizada</option>
-                                            <option value="Agendada">Agendada</option>
-                                            <option value="Realizada">Realizada</option>
-                                            <option value="Cancelada">Cancelada</option>
-                                            <option value="NoShow">No-show</option>
-                                        </select>
-                                    </div>
-                                    <div className="col-span-2">
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Observações</label>
-                                        <textarea
-                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20"
-                                            value={d.interview2Notes || ''}
-                                            onChange={e => setD({ ...d, interview2Notes: e.target.value })}
-                                            placeholder="Anotações sobre a entrevista com gestor..."
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Retorno */}
-                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                                <h4 className="font-bold text-white mb-4 flex items-center gap-2">
-                                    <span className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-xs">✓</span>
-                                    Retorno ao Candidato
-                                </h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Retorno Dado?</label>
-                                        <select
-                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                            value={d.returnSent || ''}
-                                            onChange={e => setD({ ...d, returnSent: e.target.value })}
-                                        >
-                                            <option value="">Não informado</option>
-                                            <option value="Sim">Sim, retorno dado</option>
-                                            <option value="Não">Não, ainda não dado</option>
-                                            <option value="Pendente">Pendente</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Data do Retorno</label>
-                                        <input
-                                            type="date"
-                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                            value={d.returnDate || ''}
-                                            onChange={e => setD({ ...d, returnDate: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="col-span-2">
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Observações do Retorno</label>
-                                        <textarea
-                                            className="w-full bg-background border border-border p-2.5 rounded text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-20"
-                                            value={d.returnNotes || ''}
-                                            onChange={e => setD({ ...d, returnNotes: e.target.value })}
-                                            placeholder="Detalhes sobre o retorno dado ao candidato..."
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    {activeSection === 'histórico' && (
-                        <div className="space-y-6">
-                            {/* Seção de Notas/Comentários */}
-                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                                <h4 className="font-bold text-white mb-3 flex items-center gap-2">
-                                    <MessageSquare size={18} className="text-blue-400" /> Notas e Comentários
-                                </h4>
-
-                                {/* Adicionar nova nota */}
-                                <div className="flex gap-2 mb-4">
-                                    <textarea
-                                        value={newNote}
-                                        onChange={e => setNewNote(e.target.value)}
-                                        placeholder="Adicione uma nota, feedback de entrevista, observação..."
-                                        className="flex-1 bg-gray-900 border border-gray-600 rounded-lg p-3 text-sm text-white resize-none h-20 outline-none focus:border-blue-500"
-                                        disabled={savingNote}
-                                    />
+                            {/* Interações */}
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                                        <MessageSquare size={13} /> Interações ({candidateInteractions.length})
+                                    </p>
                                     <button
-                                        onClick={handleAddNote}
-                                        disabled={!newNote.trim() || savingNote}
-                                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 rounded-lg font-medium text-sm transition-colors self-end h-10"
+                                        onClick={() => setShowInteractionForm(!showInteractionForm)}
+                                        className="text-xs text-young-orange hover:underline flex items-center gap-1"
                                     >
-                                        {savingNote ? '...' : 'Adicionar'}
+                                        <Plus size={12} /> Nova interação
                                     </button>
                                 </div>
 
-                                {/* Lista de notas */}
-                                <div className="space-y-3 max-h-48 overflow-y-auto">
-                                    {candidateNotes.length > 0 ? candidateNotes.map((note, idx) => (
-                                        <div key={idx} className="bg-gray-900/50 rounded-lg p-3 border-l-4 border-blue-500">
-                                            <p className="text-sm text-gray-200 whitespace-pre-wrap">{note.text}</p>
-                                            <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
-                                                <span>{note.userName || note.userEmail || 'Usuário'}</span>
-                                                <span>{formatTimestamp(note.timestamp)}</span>
+                                {/* Form nova interação */}
+                                {showInteractionForm && (
+                                    <div className="mb-3 p-4 bg-muted rounded-lg space-y-3 border border-border">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="block text-xs text-muted-foreground mb-1">Tipo</label>
+                                                <select
+                                                    value={newInteraction.type}
+                                                    onChange={e => setNewInteraction(p => ({ ...p, type: e.target.value }))}
+                                                    className="w-full text-sm border border-input rounded px-2 py-1.5 bg-background text-foreground outline-none focus:ring-1 focus:ring-young-orange"
+                                                >
+                                                    <option value="">Selecione...</option>
+                                                    {interactionTypes.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-muted-foreground mb-1">Data e hora</label>
+                                                <input
+                                                    type="datetime-local"
+                                                    value={newInteraction.occurredAt}
+                                                    onChange={e => setNewInteraction(p => ({ ...p, occurredAt: e.target.value }))}
+                                                    className="w-full text-sm border border-input rounded px-2 py-1.5 bg-background text-foreground outline-none focus:ring-1 focus:ring-young-orange"
+                                                />
                                             </div>
                                         </div>
-                                    )) : (
-                                        <div className="text-center text-gray-500 py-4 text-sm">
-                                            Nenhuma nota adicionada ainda
+                                        <div>
+                                            <label className="block text-xs text-muted-foreground mb-1">Relato / Observações</label>
+                                            <textarea
+                                                value={newInteraction.notes}
+                                                onChange={e => setNewInteraction(p => ({ ...p, notes: e.target.value }))}
+                                                placeholder="Descreva o que foi discutido, impressões, próximos passos..."
+                                                rows={3}
+                                                className="w-full text-sm border border-input rounded px-2 py-2 bg-background text-foreground outline-none focus:ring-1 focus:ring-young-orange resize-none"
+                                            />
                                         </div>
-                                    )}
-                                </div>
-                            </div>
+                                        <div className="flex gap-2 justify-end">
+                                            <button onClick={() => setShowInteractionForm(false)} className="text-sm px-3 py-1.5 text-muted-foreground hover:text-foreground">Cancelar</button>
+                                            <button
+                                                onClick={handleAddInteraction}
+                                                disabled={savingInteraction || !newInteraction.type || !newInteraction.occurredAt}
+                                                className="text-sm px-4 py-1.5 bg-young-orange text-white rounded disabled:opacity-50 flex items-center gap-1.5"
+                                            >
+                                                {savingInteraction ? <Loader2 size={13} className="animate-spin" /> : null}
+                                                Registrar
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
 
-                            {/* Timeline de Movimentações */}
-                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                                <h4 className="font-bold text-white mb-3 flex items-center gap-2">
-                                    <History size={18} className="text-green-400" /> Histórico de Movimentações
-                                </h4>
-
-                                <div className="relative">
-                                    {candidateMovements.length > 0 ? (
-                                        <div className="space-y-4">
-                                            {candidateMovements.map((movement, idx) => (
-                                                <div key={movement.id || idx} className="flex gap-4">
-                                                    {/* Linha vertical */}
-                                                    <div className="flex flex-col items-center">
-                                                        <div className={`w-3 h-3 rounded-full ${movement.isClosingStatus
-                                                            ? movement.newStatus === 'Contratado' ? 'bg-green-500' : 'bg-red-500'
-                                                            : 'bg-blue-500'
-                                                            }`} />
-                                                        {idx < candidateMovements.length - 1 && (
-                                                            <div className="w-0.5 h-full bg-gray-600 mt-1" />
+                                {/* Lista de interações */}
+                                {candidateInteractions.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {candidateInteractions.map(interaction => {
+                                            const iconDef = interactionTypes.find(t => t.name === interaction.type);
+                                            const Icon = INTERACTION_ICONS[iconDef?.icon] || MessageSquare;
+                                            return (
+                                                <div key={interaction.id} className="flex gap-3 px-3 py-2.5 rounded-lg border border-border bg-background group">
+                                                    <div className="w-7 h-7 rounded-full bg-young-orange/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                        <Icon size={14} className="text-young-orange" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center justify-between gap-2">
+                                                            <p className="text-sm font-medium text-foreground">{interaction.type}</p>
+                                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                                                <span className="text-xs text-muted-foreground">{formatDate(interaction.occurredAt)}</span>
+                                                                {deleteInteraction && (
+                                                                    <button
+                                                                        onClick={() => handleDeleteInteraction(interaction.id)}
+                                                                        className="opacity-0 group-hover:opacity-100 p-0.5 text-muted-foreground hover:text-red-500 transition-opacity"
+                                                                    >
+                                                                        <Trash2 size={13} />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        {interaction.notes && (
+                                                            <p className="text-xs text-muted-foreground mt-0.5 whitespace-pre-wrap">{interaction.notes}</p>
+                                                        )}
+                                                        {interaction.createdByName && (
+                                                            <p className="text-[10px] text-muted-foreground/60 mt-1">por {interaction.createdByName}</p>
                                                         )}
                                                     </div>
-
-                                                    {/* Conteúdo */}
-                                                    <div className="flex-1 pb-4">
-                                                        <p className="text-sm text-gray-200 mb-1">
-                                                            <span className="font-semibold text-white">{movement.userName || movement.userEmail || 'Usuário'}</span>
-                                                            {' moveu de '}
-                                                            <span className="font-medium text-blue-400">{movement.previousStatus || 'Inscrito'}</span>
-                                                            {' para '}
-                                                            <span className={`font-medium ${movement.newStatus === 'Contratado' ? 'text-green-400' :
-                                                                movement.newStatus === 'Reprovado' ? 'text-red-400' :
-                                                                    'text-cyan-400'
-                                                                }`}>
-                                                                {movement.newStatus}
-                                                            </span>
-                                                            {movement.jobTitle && (
-                                                                <>
-                                                                    {' na vaga '}
-                                                                    <span className="font-medium text-purple-400">{movement.jobTitle}</span>
-                                                                </>
-                                                            )}
-                                                        </p>
-                                                        <div className="mt-1 text-xs text-gray-500">
-                                                            {formatTimestamp(movement.timestamp)}
-                                                        </div>
-                                                    </div>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center text-gray-500 py-6 text-sm">
-                                            <History size={32} className="mx-auto mb-2 opacity-50" />
-                                            Nenhuma movimentação registrada
-                                            <p className="text-xs mt-1">As movimentações serão registradas a partir de agora</p>
-                                        </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground italic">Nenhuma interação registrada.</p>
+                                )}
+                            </div>
+                        </>
+                    )}
+
+                    {/* ============ CURRÍCULO ============ */}
+                    {activeSection === 'curriculo' && (
+                        <div className="space-y-6">
+                            <DataGroup icon={User} title="Dados Pessoais">
+                                <InfoRow label="Nome" value={candidate.fullName} />
+                                <InfoRow label="Data de nascimento" value={formatDate(candidate.birthDate)} />
+                                <InfoRow label="Idade" value={candidate.age ? `${candidate.age} anos` : null} />
+                                <InfoRow label="Estado civil" value={candidate.maritalStatus} />
+                                <InfoRow label="Filhos" value={formatChildrenForDisplay(candidate.childrenCount)} />
+                                <InfoRow label="CNH Tipo B" value={candidate.hasLicense} />
+                                <InfoRow label="Cidade" value={candidate.city} />
+                                <InfoRow label="Disponível para mudança" value={candidate.canRelocate} />
+                                {candidate.photoUrl && (
+                                    <div className="col-span-2">
+                                        <p className="text-xs text-muted-foreground mb-1.5">Foto</p>
+                                        <img
+                                            src={getPhotoPublicUrl(candidate.photoUrl)}
+                                            alt={candidate.fullName}
+                                            className="w-16 h-16 rounded-lg object-cover border border-border"
+                                        />
+                                    </div>
+                                )}
+                            </DataGroup>
+
+                            <DataGroup icon={Phone} title="Informações de Contato">
+                                <InfoRow label="E-mail principal" value={candidate.email} />
+                                <InfoRow label="E-mail secundário" value={candidate.email_secondary} />
+                                <InfoRow label="Telefone" value={candidate.phone} />
+                            </DataGroup>
+
+                            <DataGroup icon={GraduationCap} title="Formação">
+                                <InfoRow label="Formação" value={candidate.education} />
+                                <InfoRow label="Escolaridade" value={candidate.schoolingLevel} />
+                                <InfoRow label="Instituição" value={candidate.institution} />
+                                <InfoRow label="Data de formatura" value={formatDate(candidate.graduationDate)} />
+                                <InfoRow label="Cursando atualmente" value={candidate.isStudying} />
+                                <InfoRow label="Áreas de interesse" value={candidate.interestAreas} />
+                            </DataGroup>
+
+                            <DataGroup icon={Briefcase} title="Experiência e Habilidades">
+                                {candidate.experience && (
+                                    <div className="col-span-2">
+                                        <p className="text-xs text-muted-foreground mb-0.5">Experiências anteriores</p>
+                                        <p className="text-sm text-foreground whitespace-pre-wrap">{candidate.experience}</p>
+                                    </div>
+                                )}
+                                {candidate.courses && (
+                                    <div className="col-span-2">
+                                        <p className="text-xs text-muted-foreground mb-0.5">Cursos e certificações</p>
+                                        <p className="text-sm text-foreground whitespace-pre-wrap">{candidate.courses}</p>
+                                    </div>
+                                )}
+                                {candidate.certifications && (
+                                    <div className="col-span-2">
+                                        <p className="text-xs text-muted-foreground mb-0.5">Certificações profissionais</p>
+                                        <p className="text-sm text-foreground">{candidate.certifications}</p>
+                                    </div>
+                                )}
+                                <InfoRow label="Expectativa salarial" value={candidate.salaryExpectation} />
+                                <InfoRow label="Referências profissionais" value={candidate.references || candidate.professional_references} />
+                            </DataGroup>
+
+                            {/* Links */}
+                            {(candidate.cvUrl || candidate.portfolioUrl) && (
+                                <div className="space-y-2">
+                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Documentos</p>
+                                    {candidate.cvUrl && (
+                                        <a href={candidate.cvUrl} target="_blank" rel="noopener noreferrer"
+                                            className="flex items-center gap-2 text-sm text-blue-500 hover:underline">
+                                            <FileText size={14} /> Currículo <ExternalLink size={12} />
+                                        </a>
+                                    )}
+                                    {candidate.portfolioUrl && (
+                                        <a href={candidate.portfolioUrl} target="_blank" rel="noopener noreferrer"
+                                            className="flex items-center gap-2 text-sm text-blue-500 hover:underline">
+                                            <ExternalLink size={14} /> Portfólio <ExternalLink size={12} />
+                                        </a>
                                     )}
                                 </div>
-                            </div>
+                            )}
 
-                            {/* Informações de Criação/Atualização */}
-                            <div className="bg-gray-800/30 rounded-lg p-3 text-xs text-gray-500 grid grid-cols-2 gap-4">
+                            {/* Campo livre */}
+                            {candidate.freeField && (
                                 <div>
-                                    <span className="block text-gray-400">Criado em:</span>
-                                    {formatTimestamp(d.createdAt)} {d.createdBy && `por ${d.createdBy}`}
+                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Seja Você!</p>
+                                    <p className="text-sm text-foreground whitespace-pre-wrap bg-muted rounded-lg p-3">{candidate.freeField}</p>
                                 </div>
-                                <div>
-                                    <span className="block text-gray-400">Última atualização:</span>
-                                    {formatTimestamp(d.updatedAt)} {d.updatedBy && `por ${d.updatedBy}`}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    {activeSection === 'adicional' && (
-                        <div className="grid grid-cols-2 gap-6">
-                            <InputField label="Tipo de Candidatura" field="typeOfApp" value={d.typeOfApp} onChange={handleInputChange} />
-                            <div className="mb-3 col-span-2">
-                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Campo Livre</label>
-                                <textarea className="w-full bg-background dark:bg-background border border-border dark:border-border p-2.5 rounded text-white dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 h-32" value={d.freeField || ''} onChange={e => setD({ ...d, freeField: e.target.value })} placeholder="Informações adicionais..." />
-                            </div>
-                            <InputField label="ID Externo" field="external_id" value={d.external_id} onChange={handleInputChange} />
-                            <InputField label="Timestamp Original" field="original_timestamp" value={d.original_timestamp} onChange={handleInputChange} />
+                            )}
                         </div>
                     )}
                 </div>
-                <div className="px-6 py-4 border-t border-border dark:border-border flex justify-end gap-2">
-                    <button onClick={onClose} className="px-6 py-2 text-slate-400 dark:text-slate-400">Cancelar</button>
-                    <button onClick={handleSave} disabled={isSaving} className="bg-brand-orange text-white px-8 py-2 rounded">Salvar</button>
+
+                {/* Footer */}
+                <div className="px-5 py-3 border-t border-border flex justify-end">
+                    <button onClick={onClose} className="text-sm px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">
+                        Fechar
+                    </button>
                 </div>
             </div>
         </div>
     );
-};
-
-export default CandidateModal;
+}

@@ -202,6 +202,8 @@ export default function App() {
   const [statusMovements, setStatusMovements] = useState([]);
   const [applications, setApplications] = useState([]);
   const [interviews, setInterviews] = useState([]);
+  const [interactions, setInteractions] = useState([]);
+  const [interactionTypes, setInteractionTypes] = useState([]);
   const [userRoles, setUserRoles] = useState([{ email: DEV_USER.email, role: 'admin' }]);
   const [userRolesLoaded, setUserRolesLoaded] = useState(false);
   const [activityLog, setActivityLog] = useState([]);
@@ -246,10 +248,11 @@ export default function App() {
   const [editingCandidate, setEditingCandidate] = useState(null);
 
   const openCandidateProfile = (candidate) => {
-    const id = candidate?.id ?? (typeof candidate === 'string' ? candidate : null);
-    if (id) {
-      navigate(`/candidate/${id}`, { state: { from: location.pathname } });
-    }
+    if (!candidate) return;
+    const found = typeof candidate === 'string'
+      ? candidates.find(c => c.id === candidate)
+      : candidate;
+    if (found) setEditingCandidate(found);
   };
 
   const [editingJob, setEditingJob] = useState(null);
@@ -458,6 +461,62 @@ export default function App() {
     if (!error) setApplications(mapApplicationsFromSupabase(data ?? []));
   }, []);
 
+  const loadInteractionTypes = React.useCallback(async () => {
+    if (!supabase) return;
+    const { data, error } = await schema().from('talents_interaction_types').select('*').eq('is_active', true).order('created_at');
+    if (!error) setInteractionTypes(data ?? []);
+  }, []);
+
+  const loadInteractions = React.useCallback(async (candidateId) => {
+    if (!supabase || !candidateId) return;
+    const { data, error } = await schema().from('talents_interactions').select('*').eq('candidate_id', candidateId).order('occurred_at', { ascending: false });
+    if (!error) setInteractions(prev => {
+      const without = prev.filter(i => i.candidateId !== candidateId);
+      const mapped = (data ?? []).map(r => {
+        const email = r.created_by_email;
+        const savedName = r.created_by_name;
+        const roleEntry = email ? userRoles.find(u => u.email?.toLowerCase() === email.toLowerCase()) : null;
+        const resolvedName = roleEntry?.name || (savedName && !savedName.includes('@') ? savedName : null) || email?.split('@')[0] || null;
+        return {
+          id: r.id, candidateId: r.candidate_id, type: r.interaction_type,
+          occurredAt: r.occurred_at, notes: r.notes,
+          createdByEmail: email, createdByName: resolvedName,
+          createdAt: r.created_at
+        };
+      });
+      return [...without, ...mapped];
+    });
+  }, [userRoles]);
+
+  const addInteraction = React.useCallback(async ({ candidateId, type, occurredAt, notes }) => {
+    if (!supabase) return null;
+    const payload = {
+      candidate_id: candidateId,
+      interaction_type: type,
+      occurred_at: occurredAt,
+      notes: notes || null,
+      created_by_email: effectiveUser?.email || null,
+      created_by_name: userRoleDoc?.name || effectiveUser?.displayName || effectiveUser?.user_metadata?.full_name || effectiveUser?.user_metadata?.name || effectiveUser?.email?.split('@')[0] || null,
+      created_at: new Date().toISOString()
+    };
+    const { data, error } = await schema().from('talents_interactions').insert(payload).select('*').single();
+    if (error) throw error;
+    const mapped = {
+      id: data.id, candidateId: data.candidate_id, type: data.interaction_type,
+      occurredAt: data.occurred_at, notes: data.notes,
+      createdByEmail: data.created_by_email, createdByName: data.created_by_name,
+      createdAt: data.created_at
+    };
+    setInteractions(prev => [mapped, ...prev]);
+    return mapped;
+  }, [effectiveUser, userRoleDoc]);
+
+  const deleteInteraction = React.useCallback(async (id) => {
+    if (!supabase) return;
+    const { error } = await schema().from('talents_interactions').delete().eq('id', id);
+    if (!error) setInteractions(prev => prev.filter(i => i.id !== id));
+  }, []);
+
   const loadActivityLog = React.useCallback(async () => {
     if (activityLogUnavailableRef.current || !supabase) {
       setActivityLog([]);
@@ -479,8 +538,8 @@ export default function App() {
   }, []);
 
   const loadAllData = React.useCallback(async () => {
-    await Promise.all([loadCandidates(), loadJobs(), loadCompanies(), loadCities(), loadSectors(), loadRoles(), loadJobLevels(), loadActivityAreas(), loadApplications()]);
-  }, [loadCandidates, loadJobs, loadCompanies, loadCities, loadSectors, loadRoles, loadJobLevels, loadActivityAreas, loadApplications]);
+    await Promise.all([loadCandidates(), loadJobs(), loadCompanies(), loadCities(), loadSectors(), loadRoles(), loadJobLevels(), loadActivityAreas(), loadApplications(), loadInteractionTypes()]);
+  }, [loadCandidates, loadJobs, loadCompanies, loadCities, loadSectors, loadRoles, loadJobLevels, loadActivityAreas, loadApplications, loadInteractionTypes]);
 
   /** Painel interno: cadastro explícito em user_roles como admin, editor ou viewer (somente leitura). */
   const hasStaffRole = useMemo(() => {
@@ -973,6 +1032,8 @@ export default function App() {
       createApplication={createApplication} updateApplicationStatus={updateApplicationStatus}
       removeApplication={removeApplication} addApplicationNote={addApplicationNote}
       scheduleInterview={scheduleInterview} showToast={showToast} loadCandidates={loadCandidates}
+      interactions={interactions} interactionTypes={interactionTypes}
+      addInteraction={addInteraction} loadInteractions={loadInteractions} deleteInteraction={deleteInteraction}
       handleToggleStar={handleToggleStar}
       refreshData={refreshData}
       toggleTheme={toggleTheme} isDark={isDark} setUserRole={setUserRole} removeUserRole={removeUserRole}

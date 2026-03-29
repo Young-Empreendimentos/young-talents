@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Kanban, List, Briefcase, Building2, MapPin, Mail, Clock, Edit3, Check, Ban, ChevronLeft, ChevronRight, Star, ChevronsLeft } from 'lucide-react';
+import { Kanban, List, Briefcase, Building2, MapPin, Clock, Edit3, Check, Ban, ChevronLeft, ChevronRight, Star, ChevronsLeft } from 'lucide-react';
 import { PIPELINE_STAGES, ALL_STATUSES, STATUS_COLORS } from '../constants';
 import { getCandidateTimestamp } from '../utils/timestampUtils';
 import { normalizeCity } from '../utils/cityNormalizer';
@@ -647,7 +647,6 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                             </div>
 
                             <div className="grid grid-cols-1 gap-1 pl-6">
-                                <div className="text-xs text-slate-400 truncate flex gap-1"><Mail size={10} /> {c.email || 'N/D'}</div>
                                 <div className="text-xs text-slate-400 truncate flex gap-1">📞 {c.phone || 'N/D'}</div>
                                 {c.score && <div className="text-xs text-blue-600 dark:text-blue-400 font-bold">Match: {c.score}%</div>}
                                 {(() => {

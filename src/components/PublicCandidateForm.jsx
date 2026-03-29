@@ -10,6 +10,7 @@ import { validateBirthDate } from '../utils/validation';
 import { getAllRSCities, searchRSCities } from '../utils/rsCities';
 import { Loader2, CheckCircle, AlertCircle, Send, ChevronRight, ChevronLeft, Link as LinkIcon, FileText, Check, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import PhotoUpload from './ui/PhotoUpload';
 
 // Dados realistas para preencher o formulário em modo teste (camelCase, datas DD/MM/YYYY)
 const getTestFormData = () => {
@@ -27,9 +28,6 @@ const getTestFormData = () => {
     city: 'Porto Alegre/RS',
     cityCustom: '',
     photoUrl: '',
-    photoFile: null,
-    photoDriveUrl: '',
-    photoType: 'url',
     education: 'Engenharia Civil',
     schoolingLevel: 'Superior Completo',
     institution: 'Universidade Federal do Rio Grande do Sul',
@@ -416,27 +414,6 @@ const PublicCandidateForm = () => {
 
   // Validação em tempo real de URLs de anexos
   useEffect(() => {
-    if (formData.photoUrl && formData.photoUrl.trim() !== '') {
-      const validation = validateAllowedDomain(formData.photoUrl);
-      if (!validation.valid) {
-        setFieldErrors(prev => ({ ...prev, photoUrl: validation.message }));
-      } else {
-        setFieldErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors.photoUrl;
-          return newErrors;
-        });
-      }
-    } else {
-      setFieldErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors.photoUrl;
-        return newErrors;
-      });
-    }
-  }, [formData.photoUrl]);
-
-  useEffect(() => {
     if (formData.cvUrl && formData.cvUrl.trim() !== '') {
       const validation = validateAllowedDomain(formData.cvUrl);
       if (!validation.valid) {
@@ -524,12 +501,7 @@ const PublicCandidateForm = () => {
           stepErrors.city = 'Cidade é obrigatória';
         }
         if (!formData.photoUrl || formData.photoUrl.trim() === '') {
-          stepErrors.photoUrl = 'Foto é obrigatória';
-        } else {
-          const photoValidation = validateAllowedDomain(formData.photoUrl);
-          if (!photoValidation.valid) {
-            stepErrors.photoUrl = photoValidation.message;
-          }
+          stepErrors.photoUrl = 'Foto é obrigatória. Faça o upload da sua foto para continuar.';
         }
         break;
       case 3: // Formação e Experiência
@@ -589,14 +561,6 @@ const PublicCandidateForm = () => {
         }
         break;
       case 5: // Anexos
-        if (!formData.photoUrl || formData.photoUrl.trim() === '') {
-          stepErrors.photoUrl = 'Foto é obrigatória';
-        } else {
-          const photoValidation = validateAllowedDomain(formData.photoUrl);
-          if (!photoValidation.valid) {
-            stepErrors.photoUrl = photoValidation.message;
-          }
-        }
         if (formData.portfolioUrl && formData.portfolioUrl.trim() !== '') {
           const portfolioValidation = validateAllowedDomain(formData.portfolioUrl);
           if (!portfolioValidation.valid) {
@@ -643,7 +607,7 @@ const PublicCandidateForm = () => {
     });
     const errs = { ...validation.errors };
     if (!formData.photoUrl || !formData.photoUrl.trim()) {
-      errs.photoUrl = 'Foto é obrigatória';
+      errs.photoUrl = 'Foto é obrigatória. Faça o upload da sua foto para continuar.';
     }
     setErrors(errs);
     return validation.valid && Object.keys(errs).length === 0;
@@ -1194,7 +1158,12 @@ const PublicCandidateForm = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  {renderAttachmentField('photo', 'Foto *', 'photo')}
+                  <PhotoUpload
+                    value={formData.photoUrl}
+                    onChange={(path) => handleChange('photoUrl', path)}
+                    required
+                    error={errors.photoUrl || fieldErrors.photoUrl}
+                  />
                 </div>
               </div>
             </section>

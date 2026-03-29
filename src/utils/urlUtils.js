@@ -1,3 +1,26 @@
+import { supabase } from '../supabase';
+
+/**
+ * Resolve um photo_url para uma URL exibível.
+ * - Se for um path do Supabase Storage (sem http), constrói a URL pública.
+ * - Se for uma URL externa (http/https), usa a conversão de Google Drive existente.
+ * - Se for null/vazio, retorna null.
+ */
+export const getPhotoPublicUrl = (photoUrl) => {
+    if (!photoUrl || typeof photoUrl !== 'string') return null;
+    const clean = photoUrl.trim();
+    if (!clean) return null;
+
+    // URL externa (legado) — usa conversão Google Drive
+    if (clean.startsWith('http://') || clean.startsWith('https://')) {
+        return photoDisplayUrl(clean);
+    }
+
+    // Path do Supabase Storage
+    const { data } = supabase.storage.from('candidate-photos').getPublicUrl(clean);
+    return data?.publicUrl || null;
+};
+
 /**
  * Converte um link de compartilhamento do Google Drive para um link de visualização direta (UC).
  * Suporta formatos:

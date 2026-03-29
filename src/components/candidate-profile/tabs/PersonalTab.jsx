@@ -1,7 +1,8 @@
 import React from 'react';
 import { User, Phone, MapPin, Calendar, Heart, Users, Camera, Copy, Check, ExternalLink, AlertCircle, Car } from 'lucide-react';
 import { CHILDREN_OPTIONS, formatChildrenForDisplay, normalizeChildrenForStorage } from '../../../utils/childrenNormalizer';
-import { copyToClipboard } from '../../../utils/urlUtils';
+import { copyToClipboard, getPhotoPublicUrl } from '../../../utils/urlUtils';
+import PhotoUpload from '../../ui/PhotoUpload';
 
 export default function PersonalTab({
     candidate,
@@ -131,45 +132,27 @@ export default function PersonalTab({
                 <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                         <Camera size={16} className="text-gray-400" />
-                        URL da Foto
+                        Foto
                     </label>
                     {isEditing ? (
-                        <input
-                            type="url"
+                        <PhotoUpload
                             value={editData.photoUrl || ''}
-                            onChange={(e) => handleFieldChange('photoUrl', e.target.value)}
-                            className="w-full bg-background border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-foreground focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="https://..."
+                            onChange={(path) => handleFieldChange('photoUrl', path)}
+                            candidateId={candidate.id}
                         />
                     ) : (
                         candidate.photoUrl ? (
-                            <div className="flex items-center gap-2">
-                                <a
-                                    href={candidate.photoUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline truncate max-w-[200px] flex items-center gap-1"
-                                >
-                                    Abrir Link <ExternalLink size={12} />
-                                </a>
-                                {photoLoadError && (
-                                    <span
-                                        className="inline-flex text-amber-600 dark:text-amber-500"
-                                        title="Link da foto indisponível ou bloqueado – verifique acesso ao Drive/link"
-                                    >
-                                        <AlertCircle size={14} />
-                                    </span>
-                                )}
-                                <button
-                                    onClick={() => handleCopy(candidate.photoUrl)}
-                                    className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                                    title="Copiar URL"
-                                >
-                                    {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
-                                </button>
+                            <div className="flex flex-col gap-2">
+                                <img
+                                    src={getPhotoPublicUrl(candidate.photoUrl)}
+                                    alt={candidate.fullName || 'Foto do candidato'}
+                                    className="w-24 h-24 rounded-lg object-cover border border-border"
+                                    referrerPolicy="no-referrer"
+                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                />
                             </div>
                         ) : (
-                            <p className="text-xs text-gray-400">Não informado</p>
+                            <p className="text-xs text-gray-400">Nao informado</p>
                         )
                     )}
                 </div>

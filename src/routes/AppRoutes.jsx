@@ -123,6 +123,11 @@ const AppRoutes = ({
     scheduleInterview,
     showToast,
     loadCandidates,
+    interactions,
+    interactionTypes,
+    addInteraction,
+    loadInteractions,
+    deleteInteraction,
     handleToggleStar,
     refreshData,
     toggleTheme,
@@ -168,15 +173,26 @@ const AppRoutes = ({
                 <CandidateProfilePage
                     candidates={candidates}
                     jobs={jobs}
-                    companies={companies}
                     applications={applications}
-                    interviews={interviews}
-                    statusMovements={statusMovements}
-                    activityLog={currentUserRole === 'admin' ? activityLog : []}
-                    onUpdateCandidate={() => { }} // Sync will happen via Supabase real-time
+                    interactions={interactions}
+                    interactionTypes={interactionTypes}
+                    loadInteractions={loadInteractions}
+                    addInteraction={addInteraction}
+                    deleteInteraction={deleteInteraction}
+                    showToast={showToast}
                     onCreateApplication={createApplication}
-                    onScheduleInterview={(candidate) => setInterviewModalData({ candidate })}
-                    onStatusChange={handleDragEnd}
+                    onAdvanceStage={(candidate, newStage) => {
+                        const missingFields = computeMissingFields(candidate, newStage);
+                        const isConclusion = CLOSING_STATUSES.includes(newStage);
+                        const needsJob = STAGES_REQUIRING_APPLICATION.includes(newStage);
+                        const hasApplication = applications.some(a => a.candidateId === candidate.id);
+                        if (isConclusion || missingFields.length > 0 || (needsJob && !hasApplication)) {
+                            setPendingTransition({ candidate, toStage: newStage, missingFields, isConclusion });
+                        } else {
+                            handleSaveGeneric('candidates', { ...candidate, status: newStage }, () => {});
+                            showToast('Status atualizado', 'success');
+                        }
+                    }}
                 />
                     )
             } />
@@ -292,16 +308,15 @@ const AppRoutes = ({
                         options={optionsProps}
                         isSaving={isSaving}
                         statusMovements={statusMovements}
-                        interviews={interviews}
-                        onScheduleInterview={(candidate) => setInterviewModalData({ candidate })}
-                        allCandidates={candidates}
                         applications={applications}
                         onCreateApplication={createApplication}
                         jobs={jobs}
-                        onAddNote={async (candidateId, noteText) => {
-                            console.log('Add note to candidate:', candidateId, noteText);
-                            showToast('Nota adicionada', 'success');
-                        }}
+                        interactions={interactions}
+                        interactionTypes={interactionTypes}
+                        addInteraction={addInteraction}
+                        loadInteractions={loadInteractions}
+                        deleteInteraction={deleteInteraction}
+                        showToast={showToast}
                         onAdvanceStage={async (candidate, newStage) => {
                             const missingFields = computeMissingFields(candidate, newStage);
                             const isConclusion = CLOSING_STATUSES.includes(newStage);
