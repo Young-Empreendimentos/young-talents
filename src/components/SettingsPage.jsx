@@ -58,7 +58,7 @@ export default function SettingsPage({
   const currentTab = tabs.find(t => t.id === activeTab);
 
   return (
-    <div className="flex flex-col h-full bg-brand-dark text-slate-200">
+    <div className="flex flex-col h-full bg-brand-dark text-foreground">
       <div className="flex-1 overflow-y-auto custom-scrollbar">
       {/* Se nenhuma aba selecionada ou aba não encontrada, mostra grid de botões */}
       {!currentTab ? (
@@ -267,7 +267,7 @@ const FieldsManager = ({ candidateFields = [] }) => {
             className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors ${
               activeSection === 'candidate'
                 ? 'bg-brand-orange text-white'
-                : 'bg-brand-card text-slate-400 hover:bg-brand-hover hover:text-white'
+                : 'bg-brand-card text-slate-400 hover:bg-brand-hover hover:text-foreground'
             }`}
           >
             Campos do Candidato
@@ -277,7 +277,7 @@ const FieldsManager = ({ candidateFields = [] }) => {
             className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors ${
               activeSection === 'job'
                 ? 'bg-brand-orange text-white'
-                : 'bg-brand-card text-slate-400 hover:bg-brand-hover hover:text-white'
+                : 'bg-brand-card text-slate-400 hover:bg-brand-hover hover:text-foreground'
             }`}
           >
             Campos da Vaga
@@ -329,7 +329,7 @@ const FieldsManager = ({ candidateFields = [] }) => {
             {(activeSection === 'candidate' ? filteredCandidateFields : filteredJobFields).map(field => (
               <tr key={field.id} className="hover:bg-brand-hover/50 dark:hover:bg-brand-hover/50 transition-colors">
                 <td className="p-4">
-                  <span className="font-bold text-white">{field.displayName}</span>
+                  <span className="font-bold text-foreground">{field.displayName}</span>
                   <span className="block text-xs text-gray-500 font-mono mt-0.5">id: {field.id}</span>
                 </td>
                 <td className="p-4 text-cyan-400 text-sm">{field.csvLabel}</td>
@@ -426,7 +426,7 @@ const PipelineManager = () => {
       {/* Etapas do Funil */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-bold text-white">Etapas do Funil (Kanban)</h3>
+          <h3 className="text-lg font-bold text-foreground">Etapas do Funil (Kanban)</h3>
           <button 
             onClick={() => setShowAddStage(!showAddStage)}
             className="text-brand-cyan hover:underline text-sm font-bold flex items-center gap-1"
@@ -442,7 +442,7 @@ const PipelineManager = () => {
               value={newStageName}
               onChange={e => setNewStageName(e.target.value)}
               placeholder="Nome da nova etapa"
-              className="flex-1 bg-brand-dark border border-brand-border rounded px-3 py-2 text-sm text-white outline-none focus:border-brand-cyan"
+              className="flex-1 bg-brand-dark border border-brand-border rounded px-3 py-2 text-sm text-foreground outline-none focus:border-brand-cyan"
               onKeyPress={e => e.key === 'Enter' && handleAddStage()}
             />
             <button
@@ -453,7 +453,7 @@ const PipelineManager = () => {
             </button>
             <button
               onClick={() => { setShowAddStage(false); setNewStageName(''); }}
-              className="bg-brand-dark border border-brand-border text-slate-400 px-4 py-2 rounded text-sm hover:text-white"
+              className="bg-brand-dark border border-brand-border text-slate-400 px-4 py-2 rounded text-sm hover:text-foreground"
             >
               <X size={16}/>
             </button>
@@ -471,11 +471,11 @@ const PipelineManager = () => {
                       defaultValue={stage}
                       onBlur={e => handleEditStage(stage, e.target.value)}
                       onKeyPress={e => e.key === 'Enter' && handleEditStage(stage, e.target.value)}
-                      className="flex-1 bg-brand-dark border border-brand-border rounded px-2 py-1 text-sm text-white outline-none focus:border-brand-cyan"
+                      className="flex-1 bg-brand-dark border border-brand-border rounded px-2 py-1 text-sm text-foreground outline-none focus:border-brand-cyan"
                       autoFocus
                     />
                   ) : (
-                  <span className="font-medium text-white">{stage}</span>
+                  <span className="font-medium text-foreground">{stage}</span>
                   )}
                 </div>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -502,11 +502,11 @@ const PipelineManager = () => {
       {/* Gatilhos e Motivos */}
       <div className="space-y-8">
         <div className="space-y-4">
-          <h3 className="text-lg font-bold text-white">Gatilhos de Fechamento</h3>
+          <h3 className="text-lg font-bold text-foreground">Gatilhos de Fechamento</h3>
           <div className="bg-brand-card border border-brand-border rounded-lg p-4 space-y-2">
              {['Contratado', 'Reprovado', 'Desistiu da Vaga'].map(status => (
                <div key={status} className="flex items-center justify-between p-3 bg-brand-dark/30 rounded-lg border border-transparent hover:border-brand-border">
-                  <span className="text-sm font-bold text-slate-200">{status}</span>
+                  <span className="text-sm font-bold text-foreground">{status}</span>
                   <span className="text-xs bg-green-900/30 text-green-400 px-2 py-1 rounded border border-green-900/50">Ativo</span>
                </div>
              ))}
@@ -515,7 +515,7 @@ const PipelineManager = () => {
 
         <div className="space-y-4">
            <div className="flex justify-between items-center">
-             <h3 className="text-lg font-bold text-white">Motivos de Perda</h3>
+             <h3 className="text-lg font-bold text-foreground">Motivos de Perda</h3>
              <button 
                onClick={() => {
                  const newReason = prompt('Digite o novo motivo de perda:');
@@ -643,7 +643,7 @@ const ImportExportManager = ({ onOpenCsvModal, onShowToast }) => {
         <div className="w-16 h-16 bg-brand-cyan/10 rounded-full flex items-center justify-center mb-4 text-brand-cyan">
            <UploadCloud size={32}/>
         </div>
-        <h3 className="text-xl font-bold text-white mb-2">Importar Candidatos</h3>
+        <h3 className="text-xl font-bold text-foreground mb-2">Importar Candidatos</h3>
         <p className="text-slate-400 text-sm mb-6">Carregue arquivos CSV para adicionar candidatos em massa ao banco de talentos.</p>
         <button onClick={onOpenCsvModal} className="bg-brand-cyan text-brand-dark px-6 py-3 rounded-lg font-bold hover:bg-cyan-400 w-full">
            Iniciar Importação
@@ -655,14 +655,14 @@ const ImportExportManager = ({ onOpenCsvModal, onShowToast }) => {
         <div className="w-16 h-16 bg-brand-orange/10 rounded-full flex items-center justify-center mb-4 text-brand-orange">
            <Download size={32}/>
         </div>
-        <h3 className="text-xl font-bold text-white mb-2">Exportar Dados</h3>
+        <h3 className="text-xl font-bold text-foreground mb-2">Exportar Dados</h3>
           <p className="text-slate-400 text-sm mb-6">Baixe relatórios completos de candidatos ou vagas em formato CSV ou Excel.</p>
           
           <div className="w-full space-y-3">
             <select
               value={exportType}
               onChange={e => setExportType(e.target.value)}
-              className="w-full bg-brand-dark border border-brand-border rounded px-3 py-2 text-sm text-white outline-none focus:border-brand-orange"
+              className="w-full bg-brand-dark border border-brand-border rounded px-3 py-2 text-sm text-foreground outline-none focus:border-brand-orange"
             >
               <option value="candidates">Candidatos</option>
               <option value="jobs">Vagas</option>
@@ -674,7 +674,7 @@ const ImportExportManager = ({ onOpenCsvModal, onShowToast }) => {
                 className={`flex-1 px-3 py-2 rounded text-sm font-bold transition-colors ${
                   exportFormat === 'csv'
                     ? 'bg-brand-orange text-white'
-                    : 'bg-brand-dark border border-brand-border text-slate-400 hover:text-white'
+                    : 'bg-brand-dark border border-brand-border text-slate-400 hover:text-foreground'
                 }`}
               >
                 CSV
@@ -684,7 +684,7 @@ const ImportExportManager = ({ onOpenCsvModal, onShowToast }) => {
                 className={`flex-1 px-3 py-2 rounded text-sm font-bold transition-colors ${
                   exportFormat === 'xlsx'
                     ? 'bg-brand-orange text-white'
-                    : 'bg-brand-dark border border-brand-border text-slate-400 hover:text-white'
+                    : 'bg-brand-dark border border-brand-border text-slate-400 hover:text-foreground'
                 }`}
               >
                 Excel
@@ -857,7 +857,7 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <button onClick={() => { setShowAddUser(false); setNewUserEmail(''); setNewUserName(''); setNewUserPassword(''); }} className="px-4 py-2 text-muted-foreground hover:text-gray-900 dark:hover:text-white">
+            <button onClick={() => { setShowAddUser(false); setNewUserEmail(''); setNewUserName(''); setNewUserPassword(''); }} className="px-4 py-2 text-muted-foreground hover:text-gray-900 dark:hover:text-foreground">
               Cancelar
             </button>
             <button onClick={handleAddUser} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700">
@@ -991,7 +991,7 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
 const EmailTemplateManager = () => (
    <div className="max-w-5xl mx-auto animate-in fade-in space-y-6">
       <div className="flex justify-between items-center">
-         <h3 className="text-lg font-bold text-white">Modelos de Email Automáticos</h3>
+         <h3 className="text-lg font-bold text-foreground">Modelos de Email Automáticos</h3>
          <div className="flex items-center gap-2">
            <button 
              onClick={() => showToast('Funcionalidade de criar template em desenvolvimento', 'info')}
@@ -1013,8 +1013,8 @@ const EmailTemplateManager = () => (
          ].map((t, i) => (
             <div key={i} className="bg-brand-card p-5 rounded-lg border border-brand-border hover:border-brand-orange transition-colors cursor-pointer group">
                <div className="flex justify-between items-start mb-3">
-                  <h4 className="font-bold text-white">{t.title}</h4>
-                  <Edit3 size={16} className="text-slate-500 group-hover:text-white"/>
+                  <h4 className="font-bold text-foreground">{t.title}</h4>
+                  <Edit3 size={16} className="text-slate-500 group-hover:text-foreground"/>
                </div>
                <div className="text-xs text-slate-400 mb-2">Gatilho: <span className="text-brand-cyan">{t.trigger}</span></div>
                <div className="text-sm text-slate-300 bg-brand-dark p-3 rounded border border-brand-border italic">
@@ -1197,7 +1197,7 @@ const CompaniesManager = ({ onShowToast }) => {
           <div className="flex justify-end gap-2 pt-2">
             <button
               onClick={handleCancel}
-              className="px-4 py-2 text-muted-foreground hover:text-gray-900 dark:hover:text-white"
+              className="px-4 py-2 text-muted-foreground hover:text-gray-900 dark:hover:text-foreground"
             >
               Cancelar
             </button>
@@ -1311,7 +1311,7 @@ const MassActionHistory = () => {
   return (
     <div className="max-w-5xl mx-auto animate-in fade-in space-y-6">
       <div className="flex justify-between items-center">
-      <h3 className="text-lg font-bold text-white">Histórico de Ações em Massa</h3>
+      <h3 className="text-lg font-bold text-foreground">Histórico de Ações em Massa</h3>
         <div className="text-xs text-slate-400">
           {history.length} registro{history.length !== 1 ? 's' : ''}
         </div>
@@ -1344,7 +1344,7 @@ const MassActionHistory = () => {
                   <td className="p-4 text-slate-400 text-xs">
                     {formatDate(item.timestamp)}
                   </td>
-                  <td className="p-4 text-white text-sm">
+                  <td className="p-4 text-foreground text-sm">
                     {item.userName || item.userEmail}
                   </td>
                   <td className="p-4">
@@ -1366,7 +1366,7 @@ const MassActionHistory = () => {
                       <span className="block">Coleção: {item.collection}</span>
                     )}
                   </td>
-                  <td className="p-4 text-right font-mono font-bold text-white">
+                  <td className="p-4 text-right font-mono font-bold text-foreground">
                     {item.recordsAffected || 0}
                   </td>
                </tr>
@@ -1439,7 +1439,7 @@ const ActivityLog = ({ activityLog = [] }) => {
     <div className="max-w-5xl mx-auto animate-in fade-in space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
-          <h3 className="text-lg font-bold text-white">Log de Atividades do Sistema</h3>
+          <h3 className="text-lg font-bold text-foreground">Log de Atividades do Sistema</h3>
           <p className="text-sm text-gray-400 mt-1">Todas as ações realizadas no sistema</p>
         </div>
         <div className="flex gap-3">
@@ -1450,13 +1450,13 @@ const ActivityLog = ({ activityLog = [] }) => {
               placeholder="Buscar..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-sm text-white outline-none focus:border-blue-500 w-48"
+              className="bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-sm text-foreground outline-none focus:border-blue-500 w-48"
             />
           </div>
           <select
             value={filter}
             onChange={e => setFilter(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
+            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-blue-500"
           >
             <option value="all">Todas as ações</option>
             {activityTypes.map(type => (
@@ -1494,7 +1494,7 @@ const ActivityLog = ({ activityLog = [] }) => {
                   {/* Conteúdo */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-white">{activity.userName || activity.userEmail}</span>
+                      <span className="font-medium text-foreground">{activity.userName || activity.userEmail}</span>
                       <span className="text-gray-500">•</span>
                       <span className="text-xs text-gray-400">{formatDate(activity.timestamp)}</span>
                       {activity.userRole && (

@@ -342,7 +342,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                                 onChange={() => handleMultiSelect('jobId', j.id)}
                                                 className="accent-blue-600 dark:accent-blue-500"
                                             />
-                                            <span className="text-sm text-white">{j.title}</span>
+                                            <span className="text-sm text-foreground">{j.title}</span>
                                         </label>
                                     ))}
                                 </div>
@@ -386,7 +386,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                                 onChange={() => handleMultiSelect('status', stage)}
                                                 className="accent-blue-600 dark:accent-blue-500"
                                             />
-                                            <span className="text-sm text-white">{stage}</span>
+                                            <span className="text-sm text-foreground">{stage}</span>
                                         </label>
                                     ))}
                                     {CLOSING_STATUSES.map(status => (
@@ -397,7 +397,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                                 onChange={() => handleMultiSelect('status', status)}
                                                 className="accent-blue-600 dark:accent-blue-500"
                                             />
-                                            <span className="text-sm text-white">{status}</span>
+                                            <span className="text-sm text-foreground">{status}</span>
                                         </label>
                                     ))}
                                 </div>
@@ -431,7 +431,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                             onChange={() => setFilters({ ...filters, jobId: 'all' })}
                                             className="accent-blue-600 dark:accent-blue-500"
                                         />
-                                        <span className="text-sm text-white">Todas as Vagas</span>
+                                        <span className="text-sm text-foreground">Todas as Vagas</span>
                                     </label>
                                     {options.jobs.map(j => (
                                         <label key={j.id} className="flex items-center gap-2 p-2 hover:bg-muted rounded cursor-pointer">
@@ -441,7 +441,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                                 onChange={() => handleMultiSelect('jobId', j.id)}
                                                 className="accent-blue-600 dark:accent-blue-500"
                                             />
-                                            <span className="text-sm text-white">{j.title}</span>
+                                            <span className="text-sm text-foreground">{j.title}</span>
                                         </label>
                                     ))}
                                 </div>
@@ -878,7 +878,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
 
                 <div className="mt-4 pt-3 border-t border-border flex items-center gap-2">
                     <button onClick={onClose} className="flex-1 bg-blue-600 text-white py-1.5 rounded text-sm font-medium hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors">Aplicar Filtros</button>
-                    <button onClick={clearFilters} className="px-3 py-1.5 text-xs text-slate-400 hover:text-white rounded hover:bg-muted transition-colors">Limpar</button>
+                    <button onClick={clearFilters} className="px-3 py-1.5 text-xs text-slate-400 hover:text-foreground rounded hover:bg-muted transition-colors">Limpar</button>
                     <button
                         onClick={() => {
                             try {
@@ -887,7 +887,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                 console.warn('Erro ao salvar filtros', e);
                             }
                         }}
-                        className="px-3 py-1.5 text-xs text-muted-foreground hover:text-white rounded hover:bg-muted transition-colors"
+                        className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded hover:bg-muted transition-colors"
                     >
                         Salvar
                     </button>

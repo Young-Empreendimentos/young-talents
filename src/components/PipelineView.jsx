@@ -238,31 +238,31 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                         </div>
                         );
                     })()}
-                    <input className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none focus:border-brand-cyan w-48" placeholder="Buscar..." value={localSearch} onChange={e => setLocalSearch(e.target.value)} />
-                    <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+                    <input className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-foreground outline-none focus:border-brand-cyan w-48" placeholder="Buscar..." value={localSearch} onChange={e => setLocalSearch(e.target.value)} />
+                    <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-foreground outline-none" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
                         <option value="active">Em Andamento</option><option value="hired">Contratados</option><option value="rejected">Reprovados</option><option value="withdrawn">Desistências</option><option value="all">Todos</option>
                     </select>
                     {viewMode === 'list' && (
                         <>
-                            <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none" value={pipelineStatusFilter} onChange={e => setPipelineStatusFilter(e.target.value)}>
+                            <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-foreground outline-none" value={pipelineStatusFilter} onChange={e => setPipelineStatusFilter(e.target.value)}>
                                 <option value="all">Todas as Etapas</option>
                                 {PIPELINE_STAGES.map(stage => <option key={stage} value={stage}>{stage}</option>)}
                             </select>
-                            <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none" value={jobFilter} onChange={e => setJobFilter(e.target.value)}>
+                            <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-foreground outline-none" value={jobFilter} onChange={e => setJobFilter(e.target.value)}>
                                 <option value="all">Todas as Vagas</option>
                                 {jobs.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
                             </select>
-                            <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none" value={companyFilter} onChange={e => setCompanyFilter(e.target.value)}>
+                            <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-foreground outline-none" value={companyFilter} onChange={e => setCompanyFilter(e.target.value)}>
                                 <option value="all">Todas as Empresas</option>
                                 {companies.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                             </select>
-                            <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none" value={cityFilter} onChange={e => setCityFilter(e.target.value)}>
+                            <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-foreground outline-none" value={cityFilter} onChange={e => setCityFilter(e.target.value)}>
                                 <option value="all">Todas as Cidades</option>
                                 {Array.from(new Set(candidates.map(c => c.city).filter(Boolean))).sort().map(city => <option key={city} value={city}>{city}</option>)}
                             </select>
                         </>
                     )}
-                    <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-white outline-none" value={localSort} onChange={e => setLocalSort(e.target.value)}>
+                    <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-foreground outline-none" value={localSort} onChange={e => setLocalSort(e.target.value)}>
                         <option value="recent">Mais Recentes</option>
                         <option value="oldest">Mais Antigos</option>
                         <option value="az">A-Z</option>
@@ -277,7 +277,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                     <div className="text-xs text-slate-500">{processedData.length} talentos</div>
                     {viewMode === 'list' && (
                         <select
-                            className="bg-brand-card border border-border rounded px-2 py-1 text-xs text-white outline-none focus:border-brand-cyan"
+                            className="bg-brand-card border border-border rounded px-2 py-1 text-xs text-foreground outline-none focus:border-brand-cyan"
                             value={itemsPerPage}
                             onChange={e => {
                                 setItemsPerPage(Number(e.target.value));
@@ -293,7 +293,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                     {viewMode === 'kanban' && (
                         <>
                             <select
-                                className="bg-brand-card border border-border rounded px-2 py-1 text-xs text-white outline-none focus:border-brand-cyan"
+                                className="bg-brand-card border border-border rounded px-2 py-1 text-xs text-foreground outline-none focus:border-brand-cyan"
                                 value={kanbanItemsPerPage}
                                 onChange={e => {
                                     setKanbanItemsPerPage(Number(e.target.value));
@@ -309,7 +309,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                 onClick={() => setShowColorPicker(!showColorPicker)}
                                 className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded border transition-colors ${showColorPicker
                                     ? 'bg-brand-orange text-white border-brand-orange'
-                                    : 'bg-brand-card border-border text-slate-400 hover:text-white hover:border-brand-cyan'
+                                    : 'bg-brand-card border-border text-slate-400 hover:text-foreground hover:border-brand-cyan'
                                     }`}
                                 title="Personalizar cores das colunas"
                             >
@@ -318,7 +318,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                             {collapsedColumns.size > 0 ? (
                                 <button
                                     onClick={expandAll}
-                                    className="flex items-center gap-1 px-3 py-1.5 text-xs rounded border bg-brand-card border-border text-slate-400 hover:text-white hover:border-brand-cyan transition-colors"
+                                    className="flex items-center gap-1 px-3 py-1.5 text-xs rounded border bg-brand-card border-border text-slate-400 hover:text-foreground hover:border-brand-cyan transition-colors"
                                     title="Expandir todas as colunas"
                                 >
                                     <ChevronsLeft size={14} className="rotate-180" /> Expandir todas
@@ -326,7 +326,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                             ) : (
                                 <button
                                     onClick={collapseAll}
-                                    className="flex items-center gap-1 px-3 py-1.5 text-xs rounded border bg-brand-card border-border text-slate-400 hover:text-white hover:border-brand-cyan transition-colors"
+                                    className="flex items-center gap-1 px-3 py-1.5 text-xs rounded border bg-brand-card border-border text-slate-400 hover:text-foreground hover:border-brand-cyan transition-colors"
                                     title="Colapsar todas as colunas"
                                 >
                                     <ChevronsLeft size={14} /> Colapsar todas
@@ -369,8 +369,8 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                     </div>
                 ) : (
                     <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                        <table className="w-full text-left text-sm text-slate-300">
-                            <thead className="bg-brand-card text-white font-bold sticky top-0 z-10 shadow-sm">
+                        <table className="w-full text-left text-sm text-foreground">
+                            <thead className="bg-brand-card text-foreground font-bold sticky top-0 z-10 shadow-sm">
                                 <tr>
                                     <th className="p-4 w-10"><input type="checkbox" className="accent-blue-600 dark:accent-blue-500" checked={selectedIds.length > 0 && selectedIds.length === processedData.length} onChange={handleSelectAll} /></th>
                                     <th className="p-4 w-12" title="Em consideração"><Star size={14} className="inline text-amber-400" /></th>
@@ -414,7 +414,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                             </td>
                                             <td className="p-4">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-bold text-white dark:text-white cursor-pointer break-words" onClick={() => onEdit(c)}>{c.fullName || 'Sem nome'}</span>
+                                                    <span className="font-bold text-foreground cursor-pointer break-words" onClick={() => onEdit(c)}>{c.fullName || 'Sem nome'}</span>
                                                 </div>
                                             </td>
                                             <td className="p-4 min-w-[160px]">
@@ -422,7 +422,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                                     <select
                                                         value={c.status || 'Inscrito'}
                                                         onChange={(e) => onDragEnd(c.id, e.target.value)}
-                                                        className={`px-2 py-1 rounded text-xs border font-medium cursor-pointer transition-colors ${STATUS_COLORS[c.status] || 'bg-slate-700 text-slate-200 border-slate-600'} hover:opacity-80`}
+                                                        className={`px-2 py-1 rounded text-xs border font-medium cursor-pointer transition-colors ${STATUS_COLORS[c.status] || 'bg-muted text-muted-foreground border-border'} hover:opacity-80`}
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
                                                         {ALL_STATUSES.map(status => (
@@ -432,7 +432,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                                         ))}
                                                     </select>
                                                 ) : (
-                                                    <span className={`px-2 py-0.5 rounded text-xs border break-words ${STATUS_COLORS[c.status] || 'bg-slate-700 text-slate-200 border-slate-600'}`}>{c.status || 'Inscrito'}</span>
+                                                    <span className={`px-2 py-0.5 rounded text-xs border break-words ${STATUS_COLORS[c.status] || 'bg-muted text-muted-foreground border-border'}`}>{c.status || 'Inscrito'}</span>
                                                 )}
                                             </td>
                                             <td className="p-4">
@@ -490,12 +490,12 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                 disabled={currentPage === 1}
                                 className={`px-3 py-1.5 rounded text-sm font-bold transition-colors ${currentPage === 1
                                     ? 'bg-brand-card text-slate-600 cursor-not-allowed'
-                                    : 'bg-background text-white hover:bg-muted'
+                                    : 'bg-background text-foreground hover:bg-muted'
                                     }`}
                             >
                                 <ChevronLeft size={16} className="inline" />
                             </button>
-                            <span className="px-4 py-1.5 text-sm text-slate-300">
+                            <span className="px-4 py-1.5 text-sm text-foreground">
                                 Página {currentPage} de {viewMode === 'list' ? totalPages : kanbanTotalPages}
                             </span>
                             <button
@@ -503,7 +503,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                 disabled={currentPage >= (viewMode === 'list' ? totalPages : kanbanTotalPages)}
                                 className={`px-3 py-1.5 rounded text-sm font-bold transition-colors ${currentPage >= (viewMode === 'list' ? totalPages : kanbanTotalPages)
                                     ? 'bg-brand-card text-slate-600 cursor-not-allowed'
-                                    : 'bg-background text-white hover:bg-muted'
+                                    : 'bg-background text-foreground hover:bg-muted'
                                     }`}
                             >
                                 <ChevronRight size={16} className="inline" />
@@ -530,7 +530,7 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
     };
 
     const presetColors = [
-        'bg-slate-700 text-slate-200 border-slate-600',
+        'bg-muted text-muted-foreground border-border',
         'bg-blue-900/40 text-blue-300 border-blue-700',
         'bg-cyan-900/40 text-cyan-300 border-cyan-700',
         'bg-purple-900/40 text-purple-300 border-purple-700',
@@ -628,7 +628,7 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                                                 ))}
                                             </select>
                                         ) : (
-                                            <span className={`px-1.5 py-0.5 rounded text-xs border ${STATUS_COLORS[c.status] || 'bg-slate-700 text-slate-200 border-slate-600'}`}>{c.status || 'Inscrito'}</span>
+                                            <span className={`px-1.5 py-0.5 rounded text-xs border ${STATUS_COLORS[c.status] || 'bg-muted text-muted-foreground border-border'}`}>{c.status || 'Inscrito'}</span>
                                         )}
                                         {matchingJobs && matchingJobs.length > 0 && (
                                             <span className={`px-1.5 py-0.5 rounded text-xs border font-medium ${getMatchBadgeColor(topMatch?.matchLevel || 'low')}`} title={`${matchingJobs.length} vaga(s) com match. Melhor match: ${topMatch?.matchScore || 0}%`}>

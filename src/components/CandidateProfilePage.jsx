@@ -86,6 +86,7 @@ export default function CandidateProfilePage({
   // Candidaturas
   const [showLinkJob, setShowLinkJob] = useState(false);
   const [linkJobId, setLinkJobId] = useState('');
+  const [photoLightbox, setPhotoLightbox] = useState(false);
 
   // Buscar candidato
   useEffect(() => {
@@ -242,7 +243,7 @@ export default function CandidateProfilePage({
               </button>
               <div className="w-9 h-9 rounded-full bg-muted flex-shrink-0 overflow-hidden flex items-center justify-center">
                 {photoUrl ? (
-                  <img src={photoUrl} alt={candidate.fullName} className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={e => e.target.style.display = 'none'} />
+                  <img src={photoUrl} alt={candidate.fullName} className="w-full h-full object-cover cursor-pointer" referrerPolicy="no-referrer" onError={e => e.target.style.display = 'none'} onClick={() => setPhotoLightbox(true)} />
                 ) : (
                   <User size={18} className="text-muted-foreground" />
                 )}
@@ -535,7 +536,7 @@ export default function CandidateProfilePage({
                   {candidate.photoUrl && (
                     <div className="col-span-2 md:col-span-3">
                       <p className="text-xs text-muted-foreground mb-1.5">Foto</p>
-                      <img src={getPhotoPublicUrl(candidate.photoUrl)} alt={candidate.fullName} className="w-20 h-20 rounded-lg object-cover border border-border" referrerPolicy="no-referrer" onError={e => e.target.style.display = 'none'} />
+                      <img src={getPhotoPublicUrl(candidate.photoUrl)} alt={candidate.fullName} className="w-20 h-20 rounded-lg object-cover border border-border cursor-pointer hover:opacity-90 transition-opacity" referrerPolicy="no-referrer" onError={e => e.target.style.display = 'none'} onClick={() => setPhotoLightbox(true)} />
                     </div>
                   )}
                 </>
@@ -675,6 +676,12 @@ export default function CandidateProfilePage({
           </div>
         )}
       </div>
+
+      {photoLightbox && photoUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80" onClick={() => setPhotoLightbox(false)}>
+          <img src={photoUrl} alt={candidate.fullName} className="max-w-[90vw] max-h-[90vh] rounded-xl object-contain shadow-2xl" referrerPolicy="no-referrer" onClick={e => e.stopPropagation()} />
+        </div>
+      )}
     </div>
   );
 }
