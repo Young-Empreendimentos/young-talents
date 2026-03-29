@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { CSV_FIELD_MAPPING_OPTIONS, PIPELINE_STAGES, CLOSING_STATUSES, FILTER_STORAGE_KEY, SAVED_FILTER_PRESETS_KEY } from '../constants';
 import { Save, Trash2, Bookmark } from 'lucide-react';
 
@@ -26,6 +26,8 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
     });
     const [showCustomPeriod, setShowCustomPeriod] = useState(filters.createdAtPreset === 'custom');
     const [expandedFilters, setExpandedFilters] = useState({});
+    const [openGroups, setOpenGroups] = useState({});
+    const toggleGroup = (key) => setOpenGroups(prev => ({ ...prev, [key]: !prev[key] }));
     const [lastSearchTexts, setLastSearchTexts] = useState({});
 
     useEffect(() => {
@@ -260,47 +262,52 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                 <div className="space-y-6 flex-1 custom-scrollbar overflow-y-auto pr-2">
                     {/* Período - Data de Cadastro Original */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase">Período (Data Cadastro Original)</label>
-                        <select
-                            className="w-full bg-background border border-border rounded p-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                            value={filters.createdAtPreset || 'all'}
-                            onChange={e => {
-                                const value = e.target.value;
-                                setFilters({ ...filters, createdAtPreset: value, customDateStart: '', customDateEnd: '' });
-                                setShowCustomPeriod(value === 'custom');
-                            }}
-                        >
-                            <option value="all">Qualquer data</option>
-                            <option value="today">Hoje</option>
-                            <option value="yesterday">Ontem</option>
-                            <option value="7d">Últimos 7 dias</option>
-                            <option value="30d">Últimos 30 dias</option>
-                            <option value="90d">Últimos 90 dias</option>
-                            <option value="custom">Período personalizado</option>
-                        </select>
-                        {showCustomPeriod && (
-                            <div className="space-y-2 mt-2">
-                                <div>
-                                    <label className="text-xs text-muted-foreground mb-1 block">Data inicial</label>
-                                    <input
-                                        type="date"
-                                        className="w-full bg-background border border-border rounded p-2 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                        value={filters.customDateStart || ''}
-                                        onChange={e => setFilters({ ...filters, customDateStart: e.target.value })}
-                                    />
+                        <button onClick={() => toggleGroup('periodo')} className="w-full flex justify-between items-center text-left">
+                            <label className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase cursor-pointer">Período (Data Cadastro Original)</label>
+                            {openGroups['periodo'] ? <ChevronUp size={14} className="text-muted-foreground flex-shrink-0" /> : <ChevronDown size={14} className="text-muted-foreground flex-shrink-0" />}
+                        </button>
+                        {openGroups['periodo'] && <div className="space-y-2 mt-1">
+                            <select
+                                className="w-full bg-background border border-border rounded p-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                value={filters.createdAtPreset || 'all'}
+                                onChange={e => {
+                                    const value = e.target.value;
+                                    setFilters({ ...filters, createdAtPreset: value, customDateStart: '', customDateEnd: '' });
+                                    setShowCustomPeriod(value === 'custom');
+                                }}
+                            >
+                                <option value="all">Qualquer data</option>
+                                <option value="today">Hoje</option>
+                                <option value="yesterday">Ontem</option>
+                                <option value="7d">Últimos 7 dias</option>
+                                <option value="30d">Últimos 30 dias</option>
+                                <option value="90d">Últimos 90 dias</option>
+                                <option value="custom">Período personalizado</option>
+                            </select>
+                            {showCustomPeriod && (
+                                <div className="space-y-2 mt-2">
+                                    <div>
+                                        <label className="text-xs text-muted-foreground mb-1 block">Data inicial</label>
+                                        <input
+                                            type="date"
+                                            className="w-full bg-background border border-border rounded p-2 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                            value={filters.customDateStart || ''}
+                                            onChange={e => setFilters({ ...filters, customDateStart: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-muted-foreground mb-1 block">Data final</label>
+                                        <input
+                                            type="date"
+                                            className="w-full bg-background border border-border rounded p-2 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                            value={filters.customDateEnd || ''}
+                                            onChange={e => setFilters({ ...filters, customDateEnd: e.target.value })}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-slate-500 italic">Usa a data original de cadastro do candidato</p>
                                 </div>
-                                <div>
-                                    <label className="text-xs text-muted-foreground mb-1 block">Data final</label>
-                                    <input
-                                        type="date"
-                                        className="w-full bg-background border border-border rounded p-2 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                        value={filters.customDateEnd || ''}
-                                        onChange={e => setFilters({ ...filters, customDateEnd: e.target.value })}
-                                    />
-                                </div>
-                                <p className="text-xs text-slate-500 italic">Usa a data original de cadastro do candidato</p>
-                            </div>
-                        )}
+                            )}
+                        </div>}
                     </div>
 
                     {/* SEPARAÇÃO: FILTROS DE VAGA (DEMANDA) */}
@@ -312,16 +319,11 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
 
                         {/* Vaga */}
                         <div className="space-y-2 mb-4">
-                            <div className="flex justify-between items-center">
-                                <label className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase">Vaga</label>
-                                <button
-                                    onClick={() => toggleExpanded('jobId')}
-                                    className="text-xs text-muted-foreground hover:text-gray-900 dark:hover:text-white transition-colors"
-                                >
-                                    {expandedFilters.jobId ? 'Recolher' : 'Expandir'}
-                                </button>
-                            </div>
-                            {expandedFilters.jobId ? (
+                            <button onClick={() => toggleGroup('vaga')} className="w-full flex justify-between items-center text-left">
+                                <label className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase cursor-pointer">Vaga</label>
+                                {openGroups['vaga'] ? <ChevronUp size={14} className="text-muted-foreground flex-shrink-0" /> : <ChevronDown size={14} className="text-muted-foreground flex-shrink-0" />}
+                            </button>
+                            {openGroups['vaga'] && (expandedFilters.jobId ? (
                                 <div className="max-h-48 overflow-y-auto bg-gray-50 dark:bg-gray-900 border border-border rounded p-2 space-y-1">
                                     <label className="flex items-center gap-2 p-2 hover:bg-muted rounded cursor-pointer transition-colors">
                                         <input
@@ -348,7 +350,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                 <select className="w-full bg-background border border-border rounded p-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={Array.isArray(filters.jobId) ? filters.jobId[0] || 'all' : (filters.jobId || 'all')} onChange={e => setFilters({ ...filters, jobId: e.target.value === 'all' ? 'all' : [e.target.value] })}>
                                     <option value="all">Todas as Vagas</option>{options.jobs.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
                                 </select>
-                            )}
+                            ))}
                         </div>
                     </div>
 
@@ -361,16 +363,11 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
 
                         {/* Status (Etapa da Pipeline) - Seleção Múltipla */}
                         <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <label className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase">Status (Etapa)</label>
-                                <button
-                                    onClick={() => toggleExpanded('status')}
-                                    className="text-xs text-muted-foreground hover:text-gray-900 dark:hover:text-white transition-colors"
-                                >
-                                    {expandedFilters.status ? 'Recolher' : 'Expandir'}
-                                </button>
-                            </div>
-                            {expandedFilters.status ? (
+                            <button onClick={() => toggleGroup('status')} className="w-full flex justify-between items-center text-left">
+                                <label className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase cursor-pointer">Status (Etapa)</label>
+                                {openGroups['status'] ? <ChevronUp size={14} className="text-muted-foreground flex-shrink-0" /> : <ChevronDown size={14} className="text-muted-foreground flex-shrink-0" />}
+                            </button>
+                            {openGroups['status'] && (expandedFilters.status ? (
                                 <div className="max-h-48 overflow-y-auto bg-gray-50 dark:bg-gray-900 border border-border rounded p-2 space-y-1">
                                     <label className="flex items-center gap-2 p-2 hover:bg-muted rounded cursor-pointer transition-colors">
                                         <input
@@ -418,19 +415,14 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                         <option key={status} value={status}>{status}</option>
                                     ))}
                                 </select>
-                            )}
+                            ))}
                         </div>
                         <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <label className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase">Vaga Vinculada</label>
-                                <button
-                                    onClick={() => toggleExpanded('jobId')}
-                                    className="text-xs text-muted-foreground hover:text-white"
-                                >
-                                    {expandedFilters.jobId ? 'Recolher' : 'Expandir'}
-                                </button>
-                            </div>
-                            {expandedFilters.jobId ? (
+                            <button onClick={() => toggleGroup('vagaVinculada')} className="w-full flex justify-between items-center text-left">
+                                <label className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase cursor-pointer">Vaga Vinculada</label>
+                                {openGroups['vagaVinculada'] ? <ChevronUp size={14} className="text-muted-foreground flex-shrink-0" /> : <ChevronDown size={14} className="text-muted-foreground flex-shrink-0" />}
+                            </button>
+                            {openGroups['vagaVinculada'] && (expandedFilters.jobId ? (
                                 <div className="max-h-48 overflow-y-auto bg-background border border-border rounded p-2 space-y-1">
                                     <label className="flex items-center gap-2 p-2 hover:bg-muted rounded cursor-pointer">
                                         <input
@@ -457,38 +449,43 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                 <select className="w-full bg-background border border-border rounded p-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={Array.isArray(filters.jobId) ? filters.jobId[0] || 'all' : (filters.jobId || 'all')} onChange={e => setFilters({ ...filters, jobId: e.target.value === 'all' ? 'all' : [e.target.value] })}>
                                     <option value="all">Todas as Vagas</option>{options.jobs.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
                                 </select>
-                            )}
+                            ))}
                         </div>
 
                         <div className="space-y-3 pt-2 border-t border-dashed border-input">
-                            <label className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase">Idade (anos)</label>
-                            <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                    <span className="text-[10px] text-muted-foreground block mb-1">Mínima</span>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        max={120}
-                                        placeholder="ex: 18"
-                                        className="w-full bg-background border border-border rounded p-2 text-sm text-foreground"
-                                        value={filters.ageMin === 'all' || filters.ageMin == null ? '' : filters.ageMin}
-                                        onChange={e => setFilters({ ...filters, ageMin: e.target.value === '' ? 'all' : e.target.value })}
-                                    />
+                            <button onClick={() => toggleGroup('idade')} className="w-full flex justify-between items-center text-left">
+                                <label className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase cursor-pointer">Idade (anos)</label>
+                                {openGroups['idade'] ? <ChevronUp size={14} className="text-muted-foreground flex-shrink-0" /> : <ChevronDown size={14} className="text-muted-foreground flex-shrink-0" />}
+                            </button>
+                            {openGroups['idade'] && <div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <span className="text-[10px] text-muted-foreground block mb-1">Mínima</span>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            max={120}
+                                            placeholder="ex: 18"
+                                            className="w-full bg-background border border-border rounded p-2 text-sm text-foreground"
+                                            value={filters.ageMin === 'all' || filters.ageMin == null ? '' : filters.ageMin}
+                                            onChange={e => setFilters({ ...filters, ageMin: e.target.value === '' ? 'all' : e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] text-muted-foreground block mb-1">Máxima</span>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            max={120}
+                                            placeholder="ex: 45"
+                                            className="w-full bg-background border border-border rounded p-2 text-sm text-foreground"
+                                            value={filters.ageMax === 'all' || filters.ageMax == null ? '' : filters.ageMax}
+                                            onChange={e => setFilters({ ...filters, ageMax: e.target.value === '' ? 'all' : e.target.value })}
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <span className="text-[10px] text-muted-foreground block mb-1">Máxima</span>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        max={120}
-                                        placeholder="ex: 45"
-                                        className="w-full bg-background border border-border rounded p-2 text-sm text-foreground"
-                                        value={filters.ageMax === 'all' || filters.ageMax == null ? '' : filters.ageMax}
-                                        onChange={e => setFilters({ ...filters, ageMax: e.target.value === '' ? 'all' : e.target.value })}
-                                    />
-                                </div>
-                            </div>
-                            <p className="text-[10px] text-muted-foreground">Calculada pela idade cadastrada ou pela data de nascimento.</p>
+                                <p className="text-[10px] text-muted-foreground">Calculada pela idade cadastrada ou pela data de nascimento.</p>
+                            </div>}
                         </div>
 
                         {dynamicFilters.map(field => {
@@ -548,9 +545,12 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                             const needsSearch = ['city', 'interestAreas', 'source', 'schoolingLevel'].includes(field.value);
 
                             return (
-                                <div key={field.value} className="space-y-3 pb-4 border-b border-border">
-                                    <label className="text-sm font-semibold text-foreground block">{field.label.replace(':', '')}</label>
-
+                                <div key={field.value} className="pb-4 border-b border-border">
+                                    <button onClick={() => toggleGroup(field.value)} className="w-full flex justify-between items-center text-left py-1 mb-1">
+                                        <span className="text-sm font-semibold text-foreground">{field.label.replace(':', '')}</span>
+                                        {openGroups[field.value] ? <ChevronUp size={14} className="text-muted-foreground flex-shrink-0" /> : <ChevronDown size={14} className="text-muted-foreground flex-shrink-0" />}
+                                    </button>
+                                    {openGroups[field.value] && <div className="space-y-3 mt-1">
                                     {needsSearch ? (
                                         <>
                                             <div className="relative">
@@ -690,6 +690,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                             onChange={e => setFilters({ ...filters, [field.value]: e.target.value })}
                                         />
                                     )}
+                                    </div>}
                                 </div>
                             );
                         })}
@@ -710,8 +711,12 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                             if (tagsList.length === 0) return null;
 
                             return (
-                                <div className="space-y-3 pb-4 border-b border-border">
-                                    <label className="text-sm font-semibold text-foreground block">Tags</label>
+                                <div className="pb-4 border-b border-border">
+                                    <button onClick={() => toggleGroup('tags')} className="w-full flex justify-between items-center text-left py-1 mb-1">
+                                        <span className="text-sm font-semibold text-foreground">Tags</span>
+                                        {openGroups['tags'] ? <ChevronUp size={14} className="text-muted-foreground flex-shrink-0" /> : <ChevronDown size={14} className="text-muted-foreground flex-shrink-0" />}
+                                    </button>
+                                    {openGroups['tags'] && <div className="space-y-3 mt-1">
                                     <div className="relative">
                                         <input
                                             type="text"
@@ -789,6 +794,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                                     {searchTexts.tags && filteredTags.length === 0 && (
                                         <p className="text-xs text-muted-foreground italic">Nenhum resultado encontrado</p>
                                     )}
+                                    </div>}
                                 </div>
                             );
                         })()}
@@ -797,9 +803,13 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
 
                 {/* Filtros salvos (presets nomeados) */}
                 <div className="mt-6 pt-4 border-t border-border space-y-3">
-                    <h4 className="text-sm font-bold text-muted-foreground flex items-center gap-2">
-                        <Bookmark size={16} /> Filtros salvos
-                    </h4>
+                    <button onClick={() => toggleGroup('filtrosSalvos')} className="w-full flex justify-between items-center text-left">
+                        <h4 className="text-sm font-bold text-muted-foreground flex items-center gap-2">
+                            <Bookmark size={16} /> Filtros salvos
+                        </h4>
+                        {openGroups['filtrosSalvos'] ? <ChevronUp size={14} className="text-muted-foreground flex-shrink-0" /> : <ChevronDown size={14} className="text-muted-foreground flex-shrink-0" />}
+                    </button>
+                    {openGroups['filtrosSalvos'] && <div>
                     <div className="flex gap-2">
                         <input
                             type="text"
@@ -863,25 +873,24 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                             ))}
                         </ul>
                     )}
+                    </div>}
                 </div>
 
-                <div className="mt-8 pt-4 border-t border-border flex flex-col gap-3">
-                    <button onClick={onClose} className="w-full bg-blue-600 text-white py-3 rounded font-medium hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors">Aplicar Filtros</button>
-                    <div className="flex gap-2">
-                        <button onClick={clearFilters} className="flex-1 text-slate-400 hover:text-white py-2 text-sm">Limpar Tudo</button>
-                        <button
-                            onClick={() => {
-                                try {
-                                    localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
-                                } catch (e) {
-                                    console.warn('Erro ao salvar filtros', e);
-                                }
-                            }}
-                            className="flex-1 text-muted-foreground hover:text-white py-2 text-sm"
-                        >
-                            Salvar Filtros
-                        </button>
-                    </div>
+                <div className="mt-4 pt-3 border-t border-border flex items-center gap-2">
+                    <button onClick={onClose} className="flex-1 bg-blue-600 text-white py-1.5 rounded text-sm font-medium hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors">Aplicar Filtros</button>
+                    <button onClick={clearFilters} className="px-3 py-1.5 text-xs text-slate-400 hover:text-white rounded hover:bg-muted transition-colors">Limpar</button>
+                    <button
+                        onClick={() => {
+                            try {
+                                localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
+                            } catch (e) {
+                                console.warn('Erro ao salvar filtros', e);
+                            }
+                        }}
+                        className="px-3 py-1.5 text-xs text-muted-foreground hover:text-white rounded hover:bg-muted transition-colors"
+                    >
+                        Salvar
+                    </button>
                 </div>
             </div>
         </>

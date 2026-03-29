@@ -135,10 +135,19 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
         localStorage.setItem('kanban_display_counts', JSON.stringify(kanbanDisplayCounts));
     }, [kanbanDisplayCounts]);
 
+    // Estágios visíveis no kanban de acordo com o filtro de status
+    const visibleStages = useMemo(() => {
+        if (statusFilter === 'hired') return ['Contratado'];
+        if (statusFilter === 'rejected') return ['Reprovado'];
+        if (statusFilter === 'withdrawn') return ['Desistiu da vaga'];
+        if (statusFilter === 'all') return [...PIPELINE_STAGES, ...CLOSING_STATUSES];
+        return PIPELINE_STAGES; // 'active'
+    }, [statusFilter]);
+
     // Dados paginados para modo kanban (por coluna) - usando "ver mais"
     const kanbanDataByStage = useMemo(() => {
         const byStage = {};
-        PIPELINE_STAGES.forEach(stage => {
+        visibleStages.forEach(stage => {
             const stageCandidates = Array.isArray(processedData)
                 ? processedData.filter(c => (c.status || 'Inscrito') === stage)
                 : [];
@@ -151,7 +160,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
             };
         });
         return byStage;
-    }, [processedData, kanbanItemsPerPage, kanbanDisplayCounts]);
+    }, [processedData, visibleStages, kanbanItemsPerPage, kanbanDisplayCounts]);
 
     // Função para carregar mais itens em uma coluna
     const loadMoreInStage = (stage, amount = kanbanItemsPerPage) => {
@@ -331,7 +340,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                 {viewMode === 'kanban' ? (
                     <div className="flex-1 overflow-x-auto p-2 custom-scrollbar">
                         <div className="flex gap-2 h-full min-w-max">
-                            {PIPELINE_STAGES.map(stage => (
+                            {visibleStages.map(stage => (
                                 <KanbanColumn
                                     key={stage}
                                     stage={stage}
