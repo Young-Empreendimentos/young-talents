@@ -6,6 +6,21 @@ import { normalizeCity } from '../utils/cityNormalizer';
 import { findMatchingJobs, getMatchBadgeColor } from '../utils/matching';
 import { getCandidateRecency, getRecencyRowClass } from '../utils/candidateRecency';
 
+// Mapeamento de status antigos para os novos nomes de etapa
+const LEGACY_STATUS_MAP = {
+    'Inscrito': 'Considerado',
+    'Vaga pausada': 'Considerado',
+    'Entrevista I': 'Entrevista I realizada',
+    'Testes': 'Testes realizados',
+    'Entrevista II': 'Entrevista II realizada',
+    'Seleção': 'Selecionado',
+};
+const resolveStage = (status, pipelineStages) => {
+    if (!status) return pipelineStages[0] || 'Considerado';
+    if (pipelineStages.includes(status)) return status;
+    return LEGACY_STATUS_MAP[status] || status;
+};
+
 const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filteredCount = 0, onClearFilters, candidates, jobs, onDragEnd, onEdit, onCloseStatus, companies, applications = [], interviews = [], forceViewMode = null, highlightedCandidateId = null, filters = {}, setFilters, onToggleStar, pipelineStages: pipelineStagesProp }) => {
     const PIPELINE_STAGES = pipelineStagesProp || DEFAULT_PIPELINE_STAGES;
     const [viewMode, setViewMode] = useState(forceViewMode || 'kanban');
@@ -59,7 +74,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
     const processedData = useMemo(() => {
         // Filtrar registros deletados (soft delete)
         let data = Array.isArray(candidates) ? candidates.filter(c => !c.deletedAt) : [];
-        if (statusFilter === 'active') data = data.filter(c => PIPELINE_STAGES.includes(c.status) || !c.status);
+        if (statusFilter === 'active') data = data.filter(c => PIPELINE_STAGES.includes(c.status) || !c.status || LEGACY_STATUS_MAP[c.status] !== undefined);
         else if (statusFilter === 'hired') data = data.filter(c => c.status === 'Contratado');
         else if (statusFilter === 'rejected') data = data.filter(c => c.status === 'Reprovado');
         else if (statusFilter === 'withdrawn') data = data.filter(c => c.status === 'Desistiu da vaga');
@@ -150,7 +165,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
         const byStage = {};
         visibleStages.forEach(stage => {
             const stageCandidates = Array.isArray(processedData)
-                ? processedData.filter(c => (c.status || 'Inscrito') === stage)
+                ? processedData.filter(c => resolveStage(c.status, PIPELINE_STAGES) === stage)
                 : [];
             const displayCount = kanbanDisplayCounts[stage] || kanbanItemsPerPage;
             byStage[stage] = {
