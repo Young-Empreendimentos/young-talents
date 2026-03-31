@@ -137,7 +137,9 @@ const AppRoutes = ({
     createUserWithPassword,
     handleDragEnd,
     handleCloseStatus,
-    computeMissingFields
+    computeMissingFields,
+    pipelineStages,
+    onUpdatePipelineStages,
 }) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -263,7 +265,7 @@ const AppRoutes = ({
                     )}
 
                     {activeTab === 'dashboard' && <div className="p-6 overflow-y-auto h-full"><Dashboard candidatesLoading={candidatesLoading} filteredJobs={jobs} filteredCandidates={filteredCandidates} totalCandidatesCount={uniqueCandidatesByEmail.length} totalSubmissionsCount={candidates.filter(c => !c.deletedAt).length} onOpenCandidates={setDashboardModalCandidates} onSetModalTitle={setDashboardModalTitle} onNavigateToCandidates={(path) => navigate(path)} onNavigateToJobs={(path) => navigate(path)} statusMovements={statusMovements} applications={applications} onViewJob={openJobCandidatesModal} interviews={interviews} onScheduleInterview={(candidate) => setInterviewModalData({ candidate })} /></div>}
-                    {activeTab === 'pipeline' && <PipelineView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onDragEnd={handleDragEnd} onEdit={openCandidateProfile} onCloseStatus={handleCloseStatus} applications={applications} interviews={interviews} forceViewMode="kanban" highlightedCandidateId={highlightedCandidateId} filters={filters} setFilters={setFilters} onToggleStar={handleToggleStar} />}
+                    {activeTab === 'pipeline' && <PipelineView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onDragEnd={handleDragEnd} onEdit={openCandidateProfile} onCloseStatus={handleCloseStatus} applications={applications} interviews={interviews} forceViewMode="kanban" highlightedCandidateId={highlightedCandidateId} filters={filters} setFilters={setFilters} onToggleStar={handleToggleStar} pipelineStages={pipelineStages} />}
                     {activeTab === 'candidates' && <TalentBankView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onEdit={openCandidateProfile} applications={applications} onStatusChange={handleDragEnd} filters={filters} setFilters={setFilters} onToggleStar={handleToggleStar} />}
                     {activeTab === 'submissions' && <SubmissionsView candidatesLoading={candidatesLoading} candidates={candidates.filter(c => !c.deletedAt)} onEdit={openCandidateProfile} />}
                     {(activeTab === 'jobs' || activeTab === 'companies' || activeTab === 'positions' || activeTab === 'sectors' || activeTab === 'cities') && !/^\/jobs\/[^/]+$/.test(location.pathname) && (
@@ -295,7 +297,7 @@ const AppRoutes = ({
                     {activeTab === 'diagnostic' && <div className="p-6 overflow-y-auto h-full"><DiagnosticPage candidates={candidates} /></div>}
                     {activeTab === 'settings' && (currentUserRole === 'viewer'
                         ? <Navigate to="/dashboard" replace />
-                        : <div className="p-0 h-full"><SettingsPage {...optionsProps} onOpenCsvModal={openCsvModal} activeSettingsTab={route.settingsTab} onSettingsTabChange={(tab) => { const params = new URLSearchParams(location.search); params.set('settingsTab', tab); navigate(`${location.pathname}?${params.toString()}`); setRoute(prev => ({ ...prev, settingsTab: tab })); }} onShowToast={showToast} userRoles={userRoles} currentUserRole={currentUserRole} onSetUserRole={setUserRole} onRemoveUserRole={removeUserRole} onCreateUserWithPassword={createUserWithPassword} currentUserEmail={effectiveUser?.email} currentUserName={effectiveUser?.displayName} currentUserPhoto={effectiveUser?.photoURL} activityLog={activityLog} candidateFields={CANDIDATE_FIELDS} candidates={candidates} /></div>)}
+                        : <div className="p-0 h-full"><SettingsPage {...optionsProps} onOpenCsvModal={openCsvModal} activeSettingsTab={route.settingsTab} onSettingsTabChange={(tab) => { const params = new URLSearchParams(location.search); params.set('settingsTab', tab); navigate(`${location.pathname}?${params.toString()}`); setRoute(prev => ({ ...prev, settingsTab: tab })); }} onShowToast={showToast} userRoles={userRoles} currentUserRole={currentUserRole} onSetUserRole={setUserRole} onRemoveUserRole={removeUserRole} onCreateUserWithPassword={createUserWithPassword} currentUserEmail={effectiveUser?.email} currentUserName={effectiveUser?.displayName} currentUserPhoto={effectiveUser?.photoURL} activityLog={activityLog} candidateFields={CANDIDATE_FIELDS} candidates={candidates} pipelineStages={pipelineStages} onUpdatePipelineStages={onUpdatePipelineStages} /></div>)}
 
                     <FilterSidebar isOpen={isFilterSidebarOpen} onClose={() => setIsFilterSidebarOpen(false)} filters={filters} setFilters={setFilters} clearFilters={() => setFilters(initialFilters)} options={optionsProps} candidates={candidates} />
 

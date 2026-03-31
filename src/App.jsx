@@ -186,6 +186,7 @@ export default function App() {
   };
 
   // Dados
+  const [pipelineStages, setPipelineStages] = useState(PIPELINE_STAGES);
   const [jobs, setJobs] = useState([]);
   const [candidates, setCandidates] = useState([]);
   const [companies, setCompanies] = useState([]);
@@ -1039,6 +1040,7 @@ export default function App() {
       toggleTheme={toggleTheme} isDark={isDark} setUserRole={setUserRole} removeUserRole={removeUserRole}
       createUserWithPassword={createUserWithPassword} handleDragEnd={handleDragEnd}
       handleCloseStatus={handleCloseStatus} computeMissingFields={computeMissingFields}
+      pipelineStages={pipelineStages} onUpdatePipelineStages={setPipelineStages}
     />
   );
 }

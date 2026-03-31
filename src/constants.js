@@ -2,18 +2,18 @@
 
 // Etapas Visuais do Kanban (O fluxo ativo)
 export const PIPELINE_STAGES = [
-  'Inscrito',
   'Considerado',
-  'Entrevista I',
-  'Testes',
-  'Entrevista II',
-  'Seleção', // Equivalente ao antigo 'Selecionado'
-  'Vaga pausada' // Candidato aguardando retomada da vaga (não é reprovação nem desistência)
+  'Entrevista I realizada',
+  'Testes realizados',
+  'Entrevista II realizada',
+  'Teste de trabalho realizado',
+  'Selecionado',
 ];
 
-// Status que encerram o processo (Gatilhos)
+// Status que encerram o processo (saem do funil)
 export const CLOSING_STATUSES = [
   'Contratado',
+  'Descartado',
   'Reprovado',
   'Desistiu da vaga'
 ];
@@ -22,26 +22,10 @@ export const CLOSING_STATUSES = [
 export const ALL_STATUSES = [...PIPELINE_STAGES, ...CLOSING_STATUSES];
 
 // Etapas que exigem candidato vinculado a pelo menos uma vaga
-export const STAGES_REQUIRING_APPLICATION = ['Considerado', 'Entrevista I', 'Testes', 'Entrevista II', 'Seleção', 'Vaga pausada', 'Contratado', 'Reprovado', 'Desistiu da vaga'];
+export const STAGES_REQUIRING_APPLICATION = ['Considerado', 'Entrevista I realizada', 'Testes realizados', 'Entrevista II realizada', 'Teste de trabalho realizado', 'Selecionado', 'Contratado', 'Descartado', 'Reprovado', 'Desistiu da vaga'];
 
-// Campos obrigatórios por etapa/fechamento do funil
-// Baseado no processo:
-// Considerado → verificar Cidade, CNH
-// Entrevista I → Áreas interesse, Formação, Exp. Ant., Estado civil, Onde encontrou + Data entrevista
-// Testes → Dados dos testes
-// Entrevista II → Data 2ª entrevista
-// Seleção/Contratado → Retorno dado
-export const STAGE_REQUIRED_FIELDS = {
-  'Considerado': ['fullName', 'email', 'phone', 'city', 'hasLicense'],
-  'Entrevista I': ['fullName', 'email', 'phone', 'city', 'hasLicense', 'interestAreas', 'education', 'experience', 'maritalStatus', 'source', 'interview1Date'],
-  'Testes': ['fullName', 'email', 'phone', 'city', 'interestAreas', 'interview1Date', 'interview1Notes', 'testResults'],
-  'Entrevista II': ['fullName', 'email', 'phone', 'city', 'interestAreas', 'interview1Date', 'testResults', 'interview2Date', 'managerFeedback'],
-  'Seleção': ['fullName', 'email', 'phone', 'city', 'interestAreas', 'experience', 'interview1Date', 'interview2Date'],
-  'Vaga pausada': ['fullName', 'email', 'phone'],
-  'Contratado': ['fullName', 'email', 'phone', 'city', 'interestAreas', 'experience', 'source', 'returnSent'],
-  'Reprovado': ['fullName', 'email', 'phone', 'returnSent', 'rejectionReason'],
-  'Desistiu da vaga': ['fullName', 'email', 'phone']
-};
+// Campos obrigatórios por etapa — sem exigência de preenchimento
+export const STAGE_REQUIRED_FIELDS = {};
 
 export const JOB_STATUSES = ['Aberta', 'Preenchida', 'Cancelada', 'Fechada'];
 
@@ -76,18 +60,26 @@ export const REJECTION_REASONS = [
 ];
 
 export const STATUS_COLORS = {
-  'Inscrito': 'bg-gray-600 dark:bg-gray-700 text-white dark:text-gray-100 border-gray-500 dark:border-gray-600 font-medium',
   'Considerado': 'bg-blue-500 dark:bg-blue-600 text-white border-blue-600 dark:border-blue-700 font-medium',
+  'Entrevista I realizada': 'bg-cyan-500 dark:bg-cyan-600 text-white border-cyan-600 dark:border-cyan-700 font-medium',
+  'Testes realizados': 'bg-purple-500 dark:bg-purple-600 text-white border-purple-600 dark:border-purple-700 font-medium',
+  'Entrevista II realizada': 'bg-indigo-500 dark:bg-indigo-600 text-white border-indigo-600 dark:border-indigo-700 font-medium',
+  'Teste de trabalho realizado': 'bg-violet-500 dark:bg-violet-600 text-white border-violet-600 dark:border-violet-700 font-medium',
+  'Selecionado': 'bg-yellow-500 dark:bg-yellow-600 text-white border-yellow-600 dark:border-yellow-700 font-medium',
+
+  // Status de Fechamento (saem do funil)
+  'Contratado': 'bg-green-500 dark:bg-green-600 text-white border-green-600 dark:border-green-700 font-medium',
+  'Descartado': 'bg-orange-500 dark:bg-orange-600 text-white border-orange-600 dark:border-orange-700 font-medium',
+  'Reprovado': 'bg-red-500 dark:bg-red-600 text-white border-red-600 dark:border-red-700 font-medium',
+  'Desistiu da vaga': 'bg-gray-500 dark:bg-gray-600 text-white border-gray-600 dark:border-gray-700 font-medium',
+
+  // Legado (candidatos antigos com status antigos)
+  'Inscrito': 'bg-gray-600 dark:bg-gray-700 text-white dark:text-gray-100 border-gray-500 dark:border-gray-600 font-medium',
   'Entrevista I': 'bg-cyan-500 dark:bg-cyan-600 text-white border-cyan-600 dark:border-cyan-700 font-medium',
   'Testes': 'bg-purple-500 dark:bg-purple-600 text-white border-purple-600 dark:border-purple-700 font-medium',
   'Entrevista II': 'bg-indigo-500 dark:bg-indigo-600 text-white border-indigo-600 dark:border-indigo-700 font-medium',
   'Seleção': 'bg-yellow-500 dark:bg-yellow-600 text-white border-yellow-600 dark:border-yellow-700 font-medium',
   'Vaga pausada': 'bg-amber-700 dark:bg-amber-800 text-white border-amber-600 dark:border-amber-700 font-medium',
-
-  // Status de Fechamento
-  'Contratado': 'bg-green-500 dark:bg-green-600 text-white border-green-600 dark:border-green-700 font-medium',
-  'Reprovado': 'bg-red-500 dark:bg-red-600 text-white border-red-600 dark:border-red-700 font-medium',
-  'Desistiu da vaga': 'bg-gray-500 dark:bg-gray-600 text-white border-gray-600 dark:border-gray-700 font-medium'
 };
 
 // Mapeamento de campos do candidato

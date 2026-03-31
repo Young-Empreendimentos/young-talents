@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Kanban, List, Briefcase, Building2, MapPin, Clock, Edit3, Check, Ban, ChevronLeft, ChevronRight, Star, ChevronsLeft } from 'lucide-react';
-import { PIPELINE_STAGES, ALL_STATUSES, STATUS_COLORS } from '../constants';
+import { PIPELINE_STAGES as DEFAULT_PIPELINE_STAGES, ALL_STATUSES, STATUS_COLORS, CLOSING_STATUSES } from '../constants';
 import { getCandidateTimestamp } from '../utils/timestampUtils';
 import { normalizeCity } from '../utils/cityNormalizer';
 import { findMatchingJobs, getMatchBadgeColor } from '../utils/matching';
 import { getCandidateRecency, getRecencyRowClass } from '../utils/candidateRecency';
 
-const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filteredCount = 0, onClearFilters, candidates, jobs, onDragEnd, onEdit, onCloseStatus, companies, applications = [], interviews = [], forceViewMode = null, highlightedCandidateId = null, filters = {}, setFilters, onToggleStar }) => {
+const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filteredCount = 0, onClearFilters, candidates, jobs, onDragEnd, onEdit, onCloseStatus, companies, applications = [], interviews = [], forceViewMode = null, highlightedCandidateId = null, filters = {}, setFilters, onToggleStar, pipelineStages: pipelineStagesProp }) => {
+    const PIPELINE_STAGES = pipelineStagesProp || DEFAULT_PIPELINE_STAGES;
     const [viewMode, setViewMode] = useState(forceViewMode || 'kanban');
     const [itemsPerPage, setItemsPerPage] = useState(50);
     const [currentPage, setCurrentPage] = useState(1);

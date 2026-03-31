@@ -29,7 +29,9 @@ export default function SettingsPage({
   currentUserPhoto,
   activityLog = [],
   candidateFields = [],
-  candidates = []
+  candidates = [],
+  pipelineStages,
+  onUpdatePipelineStages,
 }) {
   // Usar toast do App se disponível
   if (onShowToast) showToast = onShowToast;
@@ -90,7 +92,7 @@ export default function SettingsPage({
           </h2>
           <div>
         {activeTab === 'campos' && <FieldsManager candidateFields={candidateFields} />}
-        {activeTab === 'pipeline' && <PipelineManager />}
+        {activeTab === 'pipeline' && <PipelineManager pipelineStages={pipelineStages} onUpdatePipelineStages={onUpdatePipelineStages} />}
         {activeTab === 'companies' && <CompaniesManager onShowToast={onShowToast} />}
         {activeTab === 'import' && <ImportExportManager onOpenCsvModal={onOpenCsvModal} onShowToast={onShowToast} />}
         {activeTab === 'users' && <UserManager userRoles={userRoles} currentUserRole={currentUserRole} onSetUserRole={onSetUserRole} onRemoveUserRole={onRemoveUserRole} onCreateUserWithPassword={onCreateUserWithPassword} currentUserEmail={currentUserEmail} currentUserName={currentUserName} currentUserPhoto={currentUserPhoto} onShowToast={onShowToast} />}
@@ -373,8 +375,9 @@ const FieldsManager = ({ candidateFields = [] }) => {
   );
 };
 
-const PipelineManager = () => {
-  const [stages, setStages] = useState(PIPELINE_STAGES);
+const PipelineManager = ({ pipelineStages: externalStages, onUpdatePipelineStages }) => {
+  const [stages, setStages] = useState(externalStages || PIPELINE_STAGES);
+  const updateStages = (updated) => { setStages(updated); if (onUpdatePipelineStages) onUpdatePipelineStages(updated); };
   const [editingStage, setEditingStage] = useState(null);
   const [newStageName, setNewStageName] = useState('');
   const [showAddStage, setShowAddStage] = useState(false);
@@ -388,11 +391,10 @@ const PipelineManager = () => {
   const handleAddStage = () => {
     if (newStageName.trim() && !stages.includes(newStageName.trim())) {
       const updated = [...stages, newStageName.trim()];
-      setStages(updated);
+      updateStages(updated);
       setNewStageName('');
       setShowAddStage(false);
       if (onShowToast) onShowToast('Etapa adicionada com sucesso', 'success');
-      // TODO: Salvar no Firestore quando implementar persistência
     } else if (stages.includes(newStageName.trim())) {
       if (onShowToast) onShowToast('Esta etapa já existe', 'error');
     }
@@ -405,19 +407,17 @@ const PipelineManager = () => {
         return;
       }
       const updated = stages.map(s => s === oldName ? newName.trim() : s);
-      setStages(updated);
+      updateStages(updated);
       setEditingStage(null);
       if (onShowToast) onShowToast('Etapa atualizada', 'success');
-      // TODO: Salvar no Firestore quando implementar persistência
     }
   };
 
   const handleDeleteStage = (stageName) => {
     if (window.confirm(`Tem certeza que deseja remover a etapa "${stageName}"?`)) {
       const updated = stages.filter(s => s !== stageName);
-      setStages(updated);
+      updateStages(updated);
       if (onShowToast) onShowToast('Etapa removida', 'success');
-      // TODO: Salvar no Firestore quando implementar persistência
     }
   };
 
