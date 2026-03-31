@@ -74,8 +74,13 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
     const processedData = useMemo(() => {
         // Filtrar registros deletados (soft delete)
         let data = Array.isArray(candidates) ? candidates.filter(c => !c.deletedAt) : [];
+        // Pipeline mostra apenas candidatos vinculados a pelo menos uma vaga
+        const candidateIdsWithJob = new Set(applications.map(a => a.candidateId));
+        data = data.filter(c => candidateIdsWithJob.has(c.id));
+
         if (statusFilter === 'active') data = data.filter(c => PIPELINE_STAGES.includes(c.status) || !c.status || LEGACY_STATUS_MAP[c.status] !== undefined);
         else if (statusFilter === 'hired') data = data.filter(c => c.status === 'Contratado');
+        else if (statusFilter === 'discarded') data = data.filter(c => c.status === 'Descartado');
         else if (statusFilter === 'rejected') data = data.filter(c => c.status === 'Reprovado');
         else if (statusFilter === 'withdrawn') data = data.filter(c => c.status === 'Desistiu da vaga');
 
@@ -154,6 +159,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
     // Estágios visíveis no kanban de acordo com o filtro de status
     const visibleStages = useMemo(() => {
         if (statusFilter === 'hired') return ['Contratado'];
+        if (statusFilter === 'discarded') return ['Descartado'];
         if (statusFilter === 'rejected') return ['Reprovado'];
         if (statusFilter === 'withdrawn') return ['Desistiu da vaga'];
         if (statusFilter === 'all') return [...PIPELINE_STAGES, ...CLOSING_STATUSES];
@@ -256,7 +262,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                     })()}
                     <input className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-foreground outline-none focus:border-brand-cyan w-48" placeholder="Buscar..." value={localSearch} onChange={e => setLocalSearch(e.target.value)} />
                     <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-foreground outline-none" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                        <option value="active">Em Andamento</option><option value="hired">Contratados</option><option value="rejected">Reprovados</option><option value="withdrawn">Desistências</option><option value="all">Todos</option>
+                        <option value="active">Em Andamento</option><option value="hired">Contratados</option><option value="discarded">Descartados</option><option value="rejected">Reprovados</option><option value="withdrawn">Desistências</option><option value="all">Todos</option>
                     </select>
                     {viewMode === 'list' && (
                         <>
