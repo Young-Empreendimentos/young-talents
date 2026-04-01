@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Kanban, List, Briefcase, Building2, MapPin, Clock, Edit3, Check, Ban, ChevronLeft, ChevronRight, Star, ChevronsLeft } from 'lucide-react';
 import { PIPELINE_STAGES as DEFAULT_PIPELINE_STAGES, ALL_STATUSES, STATUS_COLORS, CLOSING_STATUSES } from '../constants';
+import { getPhotoPublicUrl } from '../utils/urlUtils';
 import { getCandidateTimestamp } from '../utils/timestampUtils';
 import { normalizeCity } from '../utils/cityNormalizer';
 import { findMatchingJobs, getMatchBadgeColor } from '../utils/matching';
@@ -652,8 +653,19 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                         <div key={c.id} id={`candidate-${c.id}`} draggable onDragStart={(e) => handleDragStart(e, c.id)} onClick={() => onEdit(c)} className={`bg-brand-card p-3 rounded-lg border hover:border-brand-cyan cursor-grab shadow-sm group relative ${selectedIds.includes(c.id) ? 'border-brand-orange bg-brand-orange/5' : 'border-border'} ${getRecencyRowClass(recency)} ${highlightedCandidateId === c.id ? 'ring-4 ring-yellow-400 ring-opacity-75 animate-pulse border-yellow-400' : ''}`}>
                             <div className={`absolute top-2 left-2 z-20 ${selectedIds.includes(c.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} onClick={e => e.stopPropagation()}><input type="checkbox" className="accent-blue-600 dark:accent-blue-500" checked={selectedIds.includes(c.id)} onChange={() => onSelect(c.id)} /></div>
 
-                            {/* Cabeçalho com resumo: estrela à esquerda (sempre clicável) + nome e demais */}
+                            {/* Cabeçalho com resumo: foto + estrela + nome e demais */}
                             <div className="mb-2 border-b border-border/50 pb-2 flex items-start gap-2 pl-6">
+                                {/* Foto miniatura */}
+                                {(() => {
+                                    const photoUrl = getPhotoPublicUrl(c.photoUrl);
+                                    return photoUrl ? (
+                                        <img src={photoUrl} alt={c.fullName} className="w-8 h-8 rounded-full object-cover shrink-0 border border-border" referrerPolicy="no-referrer" onError={e => e.target.style.display = 'none'} />
+                                    ) : (
+                                        <div className="w-8 h-8 rounded-full bg-muted shrink-0 flex items-center justify-center text-xs font-bold text-muted-foreground border border-border">
+                                            {c.fullName?.charAt(0)?.toUpperCase() || '?'}
+                                        </div>
+                                    );
+                                })()}
                                 {onToggleStar && (
                                     <button type="button" onClick={e => { e.stopPropagation(); onToggleStar(c); }} className="shrink-0 mt-0.5 p-1 rounded hover:bg-white/10 focus:outline-none z-30 relative" title={c.starred ? 'Remover de em consideração' : 'Marcar em consideração'}>
                                         <Star size={18} className={c.starred ? 'text-amber-400 fill-amber-400' : 'text-slate-400 hover:text-amber-300'} />
@@ -672,14 +684,6 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                                             )}
                                         </div>
                                     )}
-                                    <div className="flex items-center gap-1 flex-wrap">
-                                        <span className={`px-1.5 py-0.5 rounded text-xs border ${STATUS_COLORS[c.status] || 'bg-muted text-muted-foreground border-border'}`}>{c.status || 'Inscrito'}</span>
-                                        {matchingJobs && matchingJobs.length > 0 && (
-                                            <span className={`px-1.5 py-0.5 rounded text-xs border font-medium ${getMatchBadgeColor(topMatch?.matchLevel || 'low')}`} title={`${matchingJobs.length} vaga(s) com match. Melhor match: ${topMatch?.matchScore || 0}%`}>
-                                                {matchingJobs.length} match
-                                            </span>
-                                        )}
-                                    </div>
                                     {c.city && (
                                         <div className="text-muted-foreground flex items-center gap-1">
                                             <MapPin size={10} /> <span className="break-words">{c.city}</span>
