@@ -32,7 +32,9 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
     const [localSort, setLocalSort] = useState('recent');
     const [statusFilter, setStatusFilter] = useState('active'); // active, hired, rejected
     const [pipelineStatusFilter, setPipelineStatusFilter] = useState('all'); // Filtro específico por etapa
-    const [jobFilter, setJobFilter] = useState('all');
+    const [selectedJobIds, setSelectedJobIds] = useState([]);
+    const [jobSearch, setJobSearch] = useState('');
+    const [jobDropdownOpen, setJobDropdownOpen] = useState(false);
     const [collapsedColumns, setCollapsedColumns] = useState(new Set());
 
     const toggleColumn = (stage) => setCollapsedColumns(prev => {
@@ -66,7 +68,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
     useEffect(() => {
         setSelectedIds([]);
         setCurrentPage(1); // Reset página ao mudar filtros
-    }, [candidates, statusFilter, localSearch, localSort, pipelineStatusFilter, jobFilter, companyFilter, cityFilter]);
+    }, [candidates, statusFilter, localSearch, localSort, pipelineStatusFilter, selectedJobIds, companyFilter, cityFilter]);
 
     const handleSelect = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
     const handleSelectAll = () => selectedIds.length === processedData.length ? setSelectedIds([]) : setSelectedIds(processedData.map(c => c.id));
@@ -88,18 +90,14 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
         if (pipelineStatusFilter !== 'all') {
             data = data.filter(c => (c.status || 'Inscrito') === pipelineStatusFilter);
         }
-        if (jobFilter !== 'all') {
-            data = data.filter(c => c.jobId === jobFilter);
+        if (selectedJobIds.length > 0) {
+            const jobFilteredIds = new Set(applications.filter(a => selectedJobIds.includes(a.jobId)).map(a => a.candidateId));
+            data = data.filter(c => jobFilteredIds.has(c.id));
         }
         if (companyFilter !== 'all') {
-            const job = jobs.find(j => j.id === jobFilter);
-            if (job) {
-                data = data.filter(c => c.jobId === jobFilter);
-            } else {
-                // Filtra por empresa da vaga
-                const companyJobs = jobs.filter(j => j.company === companyFilter).map(j => j.id);
-                data = data.filter(c => companyJobs.includes(c.jobId));
-            }
+            const companyJobIds = new Set(jobs.filter(j => j.company === companyFilter).map(j => j.id));
+            const companyIds = new Set(applications.filter(a => companyJobIds.has(a.jobId)).map(a => a.candidateId));
+            data = data.filter(c => companyIds.has(c.id));
         }
         if (cityFilter !== 'all') {
             // Normaliza cidade para comparação case-insensitive usando a função de normalização
@@ -129,7 +127,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
             return 0;
         });
         return data;
-    }, [candidates, statusFilter, localSearch, localSort, pipelineStatusFilter, jobFilter, companyFilter, cityFilter, jobs, applications, interviews]);
+    }, [candidates, statusFilter, localSearch, localSort, pipelineStatusFilter, selectedJobIds, companyFilter, cityFilter, jobs, applications, interviews]);
 
     // Dados paginados para modo lista
     const paginatedListData = useMemo(() => {
@@ -264,15 +262,57 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                     <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-foreground outline-none" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
                         <option value="active">Em Andamento</option><option value="hired">Contratados</option><option value="discarded">Descartados</option><option value="rejected">Reprovados</option><option value="withdrawn">Desistências</option><option value="all">Todos</option>
                     </select>
+                    {/* Combobox multi-select de vagas */}
+                    <div className="relative">
+                        <div
+                            className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-foreground outline-none cursor-pointer flex items-center gap-2 min-w-[160px]"
+                            onClick={() => setJobDropdownOpen(v => !v)}
+                        >
+                            <Briefcase size={13} className="text-muted-foreground shrink-0" />
+                            <span className="truncate flex-1">
+                                {selectedJobIds.length === 0 ? 'Todas as Vagas' : selectedJobIds.length === 1 ? (jobs.find(j => j.id === selectedJobIds[0])?.title || '1 vaga') : `${selectedJobIds.length} vagas`}
+                            </span>
+                            {selectedJobIds.length > 0 && (
+                                <button type="button" onClick={e => { e.stopPropagation(); setSelectedJobIds([]); setJobSearch(''); }} className="text-muted-foreground hover:text-foreground shrink-0">✕</button>
+                            )}
+                        </div>
+                        {jobDropdownOpen && (
+                            <div className="absolute top-full left-0 mt-1 w-72 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden">
+                                <div className="p-2 border-b border-border">
+                                    <input
+                                        autoFocus
+                                        className="w-full bg-brand-card border border-border rounded px-2 py-1.5 text-sm text-foreground outline-none focus:border-brand-cyan"
+                                        placeholder="Buscar vaga..."
+                                        value={jobSearch}
+                                        onChange={e => setJobSearch(e.target.value)}
+                                        onClick={e => e.stopPropagation()}
+                                    />
+                                </div>
+                                <div className="max-h-52 overflow-y-auto custom-scrollbar">
+                                    {jobs.filter(j => !jobSearch || j.title.toLowerCase().includes(jobSearch.toLowerCase())).map(j => (
+                                        <label key={j.id} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="accent-blue-600"
+                                                checked={selectedJobIds.includes(j.id)}
+                                                onChange={() => setSelectedJobIds(prev => prev.includes(j.id) ? prev.filter(id => id !== j.id) : [...prev, j.id])}
+                                            />
+                                            <span className="truncate text-foreground">{j.title}</span>
+                                        </label>
+                                    ))}
+                                    {jobs.filter(j => !jobSearch || j.title.toLowerCase().includes(jobSearch.toLowerCase())).length === 0 && (
+                                        <div className="px-3 py-2 text-sm text-muted-foreground">Nenhuma vaga encontrada</div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                        {jobDropdownOpen && <div className="fixed inset-0 z-40" onClick={() => setJobDropdownOpen(false)} />}
+                    </div>
                     {viewMode === 'list' && (
                         <>
                             <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-foreground outline-none" value={pipelineStatusFilter} onChange={e => setPipelineStatusFilter(e.target.value)}>
                                 <option value="all">Todas as Etapas</option>
                                 {PIPELINE_STAGES.map(stage => <option key={stage} value={stage}>{stage}</option>)}
-                            </select>
-                            <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-foreground outline-none" value={jobFilter} onChange={e => setJobFilter(e.target.value)}>
-                                <option value="all">Todas as Vagas</option>
-                                {jobs.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
                             </select>
                             <select className="bg-brand-card border border-border rounded px-3 py-1.5 text-sm text-foreground outline-none" value={companyFilter} onChange={e => setCompanyFilter(e.target.value)}>
                                 <option value="all">Todas as Empresas</option>
@@ -633,25 +673,7 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                                         </div>
                                     )}
                                     <div className="flex items-center gap-1 flex-wrap">
-                                        {onDragEnd ? (
-                                            <select
-                                                value={c.status || 'Inscrito'}
-                                                onChange={(e) => {
-                                                    e.stopPropagation();
-                                                    onDragEnd(c.id, e.target.value);
-                                                }}
-                                                onClick={(e) => e.stopPropagation()}
-                                                className={`px-1.5 py-0.5 rounded text-xs border font-medium cursor-pointer transition-colors text-white ${STATUS_COLORS[c.status] || 'bg-slate-700 border-slate-600'} hover:opacity-80`}
-                                            >
-                                                {ALL_STATUSES.map(status => (
-                                                    <option key={status} value={status} className="bg-card text-foreground">
-                                                        {status}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        ) : (
-                                            <span className={`px-1.5 py-0.5 rounded text-xs border ${STATUS_COLORS[c.status] || 'bg-muted text-muted-foreground border-border'}`}>{c.status || 'Inscrito'}</span>
-                                        )}
+                                        <span className={`px-1.5 py-0.5 rounded text-xs border ${STATUS_COLORS[c.status] || 'bg-muted text-muted-foreground border-border'}`}>{c.status || 'Inscrito'}</span>
                                         {matchingJobs && matchingJobs.length > 0 && (
                                             <span className={`px-1.5 py-0.5 rounded text-xs border font-medium ${getMatchBadgeColor(topMatch?.matchLevel || 'low')}`} title={`${matchingJobs.length} vaga(s) com match. Melhor match: ${topMatch?.matchScore || 0}%`}>
                                                 {matchingJobs.length} match
@@ -661,11 +683,6 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                                     {c.city && (
                                         <div className="text-muted-foreground flex items-center gap-1">
                                             <MapPin size={10} /> <span className="break-words">{c.city}</span>
-                                        </div>
-                                    )}
-                                    {c.interestAreas && (
-                                        <div className="text-muted-foreground flex items-center gap-1">
-                                            <Building2 size={10} /> <span className="break-words">{c.interestAreas}</span>
                                         </div>
                                     )}
                                     {primaryJob && primaryJob.company && (
@@ -678,7 +695,6 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                             </div>
 
                             <div className="grid grid-cols-1 gap-1 pl-6">
-                                <div className="text-xs text-slate-400 truncate flex gap-1">📞 {c.phone || 'N/D'}</div>
                                 {c.score && <div className="text-xs text-blue-600 dark:text-blue-400 font-bold">Match: {c.score}%</div>}
                                 {(() => {
                                     const ts = getCandidateTimestamp(c);
