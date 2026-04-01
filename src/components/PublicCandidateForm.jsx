@@ -704,17 +704,13 @@ const PublicCandidateForm = () => {
       // Garantir que não há submission_id (caso tenha sido adicionado em algum lugar)
       delete normalizedData.submission_id;
 
-      // Enviar para Supabase (view public.candidates redireciona para young_talents.candidates)
-      // O ID gerado automaticamente pelo Supabase será usado para identificar este envio
-      const { data: insertedData, error } = await supabase
-        .from('talents_candidates')
-        .insert([normalizedData])
-        .select('id')
-        .single();
-      
+      // Usar RPC SECURITY DEFINER para contornar restrições de RLS no insert público
+      const { data: rpcData, error } = await supabase
+        .rpc('public_submit_candidate', { candidate_data: normalizedData });
+
       if (error) throw error;
-      
-      console.log('Candidato criado com ID:', insertedData?.id);
+
+      console.log('Candidato criado com ID:', rpcData?.id);
 
       localStorage.setItem('lastFormSubmit', Date.now().toString());
       setSubmitSuccess(true);
