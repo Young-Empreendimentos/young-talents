@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, CalendarCheck, ChevronUp, ChevronDown, Edit3, Star, Download } from 'lucide-react';
+import { Search, Filter, CalendarCheck, ChevronUp, ChevronDown, Edit3, Star, Download, UserPlus } from 'lucide-react';
 import ExportCandidatesCsvModal from './modals/ExportCandidatesCsvModal';
+import AddCandidateModal from './AddCandidateModal';
 import { STATUS_COLORS, ALL_STATUSES } from '../constants';
 import { getCandidateTimestamp } from '../utils/timestampUtils';
 import { getCandidateRecency, getRecencyRowClass } from '../utils/candidateRecency';
 
-const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filteredCount = 0, onClearFilters, candidates, jobs, companies, onEdit, applications = [], onStatusChange, filters = {}, setFilters, onToggleStar }) => {
+const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filteredCount = 0, onClearFilters, candidates, jobs, companies, onEdit, applications = [], onStatusChange, filters = {}, setFilters, onToggleStar, onAddCandidate, isSaving = false, interestAreas = [] }) => {
+    const [showAddModal, setShowAddModal] = useState(false);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
     const [localSearch, setLocalSearch] = useState('');
@@ -164,6 +166,17 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
+                        {/* Adicionar Candidato */}
+                        {onAddCandidate && (
+                            <button
+                                type="button"
+                                onClick={() => setShowAddModal(true)}
+                                className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium text-white bg-brand-orange hover:bg-brand-orange/90 transition-colors"
+                            >
+                                <UserPlus size={16} />
+                                Adicionar
+                            </button>
+                        )}
                         {typeof setFilters === 'function' && (() => {
                             const activeStar = filters.starredFilter ?? (filters.starred === true ? 'starred' : 'all');
                             return (
@@ -464,6 +477,16 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                 onClose={() => setIsExportCsvModalOpen(false)}
                 candidates={processedData}
             />
+            {showAddModal && (
+                <AddCandidateModal
+                    onClose={() => setShowAddModal(false)}
+                    onSave={data => {
+                        if (onAddCandidate) onAddCandidate(data, () => setShowAddModal(false));
+                    }}
+                    isSaving={isSaving}
+                    interestAreas={interestAreas}
+                />
+            )}
         </div>
     );
 };
