@@ -346,7 +346,7 @@ const Dashboard = ({
                 </button>
             {scorecardsExpanded && <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div onClick={() => onNavigateToCandidates && onNavigateToCandidates('/candidates?starred=1')} className="cursor-pointer bg-gradient-to-br from-amber-500/20 to-amber-500/10 p-4 rounded-lg border border-amber-500/30 hover:scale-[1.01] transition-transform shadow-sm">
-                    <div className="text-muted-foreground text-sm font-medium">Em consideração</div>
+                    <div className="text-muted-foreground text-sm font-medium">Mapeados como interesse</div>
                     <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-2">{filteredCandidatesByPeriod.filter(c => c.starred === true).length}</div>
                     <div className="text-xs text-gray-500 dark:text-slate-500 mt-1">Marcados com estrela</div>
                 </div>

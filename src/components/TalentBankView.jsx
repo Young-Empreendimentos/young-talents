@@ -181,7 +181,7 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                             const activeStar = filters.starredFilter ?? (filters.starred === true ? 'starred' : 'all');
                             return (
                             <div className="flex items-center rounded-lg border border-border bg-card p-0.5" role="group" aria-label="Filtro por estrela">
-                                <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'starred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'starred' ? 'bg-muted shadow-sm' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}`} title="Somente com estrela (em consideração)">
+                                <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'starred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'starred' ? 'bg-muted shadow-sm' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}`} title="Somente com estrela (mapeado como interesse)">
                                     <Star size={16} className="text-amber-400 fill-amber-400" />
                                 </button>
                                 <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'unstarred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'unstarred' ? 'bg-muted shadow-sm' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}`} title="Somente sem estrela">
@@ -350,7 +350,7 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                             <th className="p-3 text-left text-xs font-bold text-muted-foreground uppercase border-b border-border w-10">
                                 <input type="checkbox" className="accent-blue-600 dark:accent-blue-500" />
                             </th>
-                            <th className="p-3 text-left text-xs font-bold text-muted-foreground uppercase border-b border-border w-12" title="Em consideração"><Star size={14} className="inline text-amber-500" /></th>
+                            <th className="p-3 text-left text-xs font-bold text-muted-foreground uppercase border-b border-border w-12" title="Mapeado como interesse"><Star size={14} className="inline text-amber-500" /></th>
                             <th className="p-3 text-left text-xs font-bold text-muted-foreground uppercase border-b border-border w-10"></th>
                             <th className="p-3 text-left text-xs font-bold text-muted-foreground uppercase border-b border-border cursor-pointer hover:bg-muted select-none" onClick={() => handleSort('fullName')}>Nome {sortField === 'fullName' && (sortOrder === 'asc' ? <ChevronUp size={12} className="inline" /> : <ChevronDown size={12} className="inline" />)}</th>
                             <th className="p-3 text-left text-xs font-bold text-muted-foreground uppercase border-b border-border min-w-[160px] cursor-pointer hover:bg-muted select-none" onClick={() => handleSort('status')}>Status {sortField === 'status' && (sortOrder === 'asc' ? <ChevronUp size={12} className="inline" /> : <ChevronDown size={12} className="inline" />)}</th>
@@ -383,7 +383,7 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                                     </td>
                                     <td className="p-3">
                                         {onToggleStar ? (
-                                            <button type="button" onClick={(e) => { e.stopPropagation(); onToggleStar(c); }} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none" title={c.starred ? 'Remover de em consideração' : 'Marcar em consideração'}>
+                                            <button type="button" onClick={(e) => { e.stopPropagation(); onToggleStar(c); }} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none" title={c.starred ? 'Remover mapeado como interesse' : 'Mapear como interesse'}>
                                                 <Star size={16} className={c.starred ? 'text-amber-400 fill-amber-400' : 'text-gray-400 hover:text-amber-300'} />
                                             </button>
                                         ) : (

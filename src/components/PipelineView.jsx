@@ -247,7 +247,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                         const activeStar = filters.starredFilter ?? (filters.starred === true ? 'starred' : 'all');
                         return (
                         <div className="flex items-center rounded-lg border border-border bg-brand-card p-0.5" role="group" aria-label="Filtro por estrela">
-                            <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'starred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'starred' ? 'bg-card shadow-sm' : 'hover:bg-white/10'}`} title="Somente com estrela (em consideração)">
+                            <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'starred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'starred' ? 'bg-card shadow-sm' : 'hover:bg-white/10'}`} title="Somente com estrela (mapeado como interesse)">
                                 <Star size={16} className="text-amber-400 fill-amber-400" />
                             </button>
                             <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'unstarred' }))} className={`p-2 rounded-md transition-colors ${activeStar === 'unstarred' ? 'bg-card shadow-sm' : 'hover:bg-white/10'}`} title="Somente sem estrela">
@@ -436,7 +436,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                             <thead className="bg-brand-card text-foreground font-bold sticky top-0 z-10 shadow-sm">
                                 <tr>
                                     <th className="p-4 w-10"><input type="checkbox" className="accent-blue-600 dark:accent-blue-500" checked={selectedIds.length > 0 && selectedIds.length === processedData.length} onChange={handleSelectAll} /></th>
-                                    <th className="p-4 w-12" title="Em consideração"><Star size={14} className="inline text-amber-400" /></th>
+                                    <th className="p-4 w-12" title="Mapeado como interesse"><Star size={14} className="inline text-amber-400" /></th>
                                     <th className="p-4">Nome</th>
                                     <th className="p-4 min-w-[160px]">Status</th>
                                     <th className="p-4">Candidatura</th>
@@ -468,7 +468,7 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
                                             <td className="p-4"><input type="checkbox" className="accent-blue-600 dark:accent-blue-500" checked={selectedIds.includes(c.id)} onChange={() => handleSelect(c.id)} /></td>
                                             <td className="p-4">
                                                 {onToggleStar ? (
-                                                    <button type="button" onClick={(e) => { e.stopPropagation(); onToggleStar(c); }} className="p-1 rounded hover:bg-brand-card focus:outline-none" title={c.starred ? 'Remover de em consideração' : 'Marcar em consideração'}>
+                                                    <button type="button" onClick={(e) => { e.stopPropagation(); onToggleStar(c); }} className="p-1 rounded hover:bg-brand-card focus:outline-none" title={c.starred ? 'Remover mapeado como interesse' : 'Mapear como interesse'}>
                                                         <Star size={16} className={c.starred ? 'text-amber-400 fill-amber-400' : 'text-slate-400 hover:text-amber-300'} />
                                                     </button>
                                                 ) : (
@@ -667,7 +667,7 @@ const KanbanColumn = ({ stage, allCandidates, displayedCandidates, total, displa
                                     );
                                 })()}
                                 {onToggleStar && (
-                                    <button type="button" onClick={e => { e.stopPropagation(); onToggleStar(c); }} className="shrink-0 mt-0.5 p-1 rounded hover:bg-white/10 focus:outline-none z-30 relative" title={c.starred ? 'Remover de em consideração' : 'Marcar em consideração'}>
+                                    <button type="button" onClick={e => { e.stopPropagation(); onToggleStar(c); }} className="shrink-0 mt-0.5 p-1 rounded hover:bg-white/10 focus:outline-none z-30 relative" title={c.starred ? 'Remover mapeado como interesse' : 'Mapear como interesse'}>
                                         <Star size={18} className={c.starred ? 'text-amber-400 fill-amber-400' : 'text-slate-400 hover:text-amber-300'} />
                                     </button>
                                 )}

@@ -648,7 +648,7 @@ export default function App() {
     try {
       const { error } = await supabase.from('talents_candidates').update({ starred: !c.starred }).eq('id', c.id);
       if (error) throw error;
-      await recordActivity('update', c.starred ? 'Removido de em consideração' : 'Marcado em consideração', 'candidate', c.id);
+      await recordActivity('update', c.starred ? 'Removido de mapeado como interesse' : 'Mapeado como interesse', 'candidate', c.id);
       showToast('Atualizado.', 'success');
     } catch (err) {
       console.error('Erro ao marcar estrela:', err);
