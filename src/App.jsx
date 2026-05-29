@@ -973,13 +973,25 @@ export default function App() {
     const metaKeys = ['createdAtPreset', 'customDateStart', 'customDateEnd', 'tags', 'dashboardFilter', 'starredFilter', 'starred', 'ageMin', 'ageMax'];
     Object.keys(filters).forEach(k => {
       if (filters[k] === 'all' || filters[k] === null || filters[k] === '' || metaKeys.includes(k)) return;
-      const field = k === 'interestArea' ? 'interestAreas' : k;
+      const fieldMap = {
+        'interestArea': 'interestAreas',
+        'schooling': 'schoolingLevel',
+        'marital': 'maritalStatus',
+        'cnh': 'hasLicense'
+      };
+      const field = fieldMap[k] || k;
       if (Array.isArray(filters[k])) {
         if (field === 'interestAreas') {
           data = data.filter(c => {
             const v = String(c.interestAreas || '').toLowerCase();
             return filters[k].some(sel => v.includes(String(sel).toLowerCase()));
           });
+        } else if (field === 'hasLicense') {
+          // Convert 'Sim'/'Não' to boolean for hasLicense
+          data = data.filter(c => c[field] != null && filters[k].some(sel => {
+            const boolVal = sel === 'Sim' ? true : sel === 'Não' ? false : null;
+            return boolVal != null && c[field] === boolVal;
+          }));
         } else {
           data = data.filter(c => c[field] != null && filters[k].includes(c[field]));
         }
