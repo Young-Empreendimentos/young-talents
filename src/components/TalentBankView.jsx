@@ -164,7 +164,6 @@ const TalentBankView = ({
                 {/* Linha 1: Título + Ações */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="flex items-center gap-3">
-                        <h2 className="text-xl sm:text-2xl font-bold text-foreground">Banco de Talentos</h2>
                         <span className="px-2.5 py-0.5 bg-muted text-muted-foreground rounded-full text-xs font-semibold tabular-nums">
                             {processedData.length} candidato{processedData.length !== 1 ? 's' : ''}
                         </span>
