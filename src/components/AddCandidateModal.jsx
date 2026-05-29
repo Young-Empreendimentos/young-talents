@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { X, UserPlus } from 'lucide-react';
 import PhotoUpload from './ui/PhotoUpload';
-import { PIPELINE_STAGES } from '../constants';
+import { PIPELINE_STAGES, CLOSING_STATUSES } from '../constants';
+
+const ALL_MANUAL_STATUSES = ['Inscrito', ...PIPELINE_STAGES, ...CLOSING_STATUSES];
 
 const INTEREST_AREAS_OPTIONS = [
     'Administrativo', 'Comercial', 'Financeiro', 'Jurídico', 'Logística',
@@ -172,7 +174,7 @@ export default function AddCandidateModal({ onClose, onSave, isSaving, interestA
                                 onChange={e => set('status', e.target.value)}
                                 className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange"
                             >
-                                {PIPELINE_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                                {ALL_MANUAL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                             </select>
                         </div>
                         <div>
