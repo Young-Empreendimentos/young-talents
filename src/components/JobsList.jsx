@@ -162,40 +162,12 @@ const JobsList = ({ jobs, candidates, applications = [], onAdd, onEdit, onToggle
 
     return (
         <div className="space-y-5">
-            {/* Header */}
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-3 flex-wrap flex-1">
-                    {/* Busca */}
-                    <div className="relative">
-                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
-                        <input
-                            type="text"
-                            placeholder="Buscar vaga, empresa, cidade..."
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            className="pl-8 pr-3 py-2 bg-card border border-border rounded-lg text-sm text-foreground outline-none focus:border-brand-orange/50 w-56"
-                        />
-                    </div>
-                    {/* Empresa */}
-                    {uniqueCompanies.length > 0 && (
-                        <select value={companyFilter} onChange={e => setCompanyFilter(e.target.value)}
-                            className="bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-brand-orange/50">
-                            <option value="all">Todas as empresas</option>
-                            {uniqueCompanies.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                    )}
-                </div>
-                <button onClick={onAdd}
-                    className="flex items-center gap-2 px-4 py-2 bg-brand-orange text-white rounded-lg text-sm font-medium hover:bg-brand-orange/90 transition-colors shadow-sm flex-shrink-0">
-                    <Plus size={16} /> Abrir Vaga
-                </button>
-            </div>
-
-            {/* Chips de status */}
+            {/* Toolbar única: chips + busca + empresa + botão */}
             <div className="flex items-center gap-2 flex-wrap">
+                {/* Chips de status */}
                 <button
                     onClick={() => setStatusFilter('all')}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${statusFilter === 'all' ? 'bg-brand-orange text-white border-brand-orange' : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-brand-orange/40'}`}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors flex-shrink-0 ${statusFilter === 'all' ? 'bg-brand-orange text-white border-brand-orange' : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-brand-orange/40'}`}
                 >
                     Todas <span className="ml-1 opacity-70">({activeJobs.length})</span>
                 </button>
@@ -204,19 +176,47 @@ const JobsList = ({ jobs, candidates, applications = [], onAdd, onEdit, onToggle
                     const count = countByStatus[s] || 0;
                     return (
                         <button key={s} onClick={() => setStatusFilter(statusFilter === s ? 'all' : s)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors flex-shrink-0 ${
                                 statusFilter === s
                                     ? 'bg-brand-orange text-white border-brand-orange'
                                     : `bg-card border-border text-muted-foreground hover:text-foreground ${count === 0 ? 'opacity-40' : 'hover:border-brand-orange/40'}`
                             }`}
                         >
-                            <span className="flex items-center gap-1.5">
-                                <span className={`w-1.5 h-1.5 rounded-full inline-block ${style.dot}`} />
-                                {s} <span className="opacity-70">({count})</span>
-                            </span>
+                            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${style.dot}`} />
+                            {s} <span className="opacity-70">({count})</span>
                         </button>
                     );
                 })}
+
+                {/* Separador */}
+                <span className="h-6 w-px bg-border mx-1 flex-shrink-0" />
+
+                {/* Busca */}
+                <div className="relative flex-shrink-0">
+                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
+                    <input
+                        type="text"
+                        placeholder="Buscar..."
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        className="pl-7 pr-3 py-1.5 bg-card border border-border rounded-lg text-sm text-foreground outline-none focus:border-brand-orange/50 w-40"
+                    />
+                </div>
+
+                {/* Empresa */}
+                {uniqueCompanies.length > 0 && (
+                    <select value={companyFilter} onChange={e => setCompanyFilter(e.target.value)}
+                        className="bg-card border border-border rounded-lg px-3 py-1.5 text-sm text-foreground outline-none focus:border-brand-orange/50 flex-shrink-0">
+                        <option value="all">Todas as empresas</option>
+                        {uniqueCompanies.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                )}
+
+                {/* Botão */}
+                <button onClick={onAdd}
+                    className="flex items-center gap-1.5 px-4 py-1.5 bg-brand-orange text-white rounded-lg text-sm font-medium hover:bg-brand-orange/90 transition-colors flex-shrink-0 ml-auto">
+                    <Plus size={15} /> Abrir Vaga
+                </button>
             </div>
 
             {/* Grid de vagas agrupadas por status */}
