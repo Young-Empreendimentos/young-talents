@@ -241,7 +241,6 @@ const AppRoutes = ({
                             setIsSidebarOpen={setIsSidebarOpen}
                             isSidebarCollapsed={isSidebarCollapsed}
                             setIsSidebarCollapsed={setIsSidebarCollapsed}
-                            setIsFilterSidebarOpen={setIsFilterSidebarOpen}
                             onRefreshData={refreshData}
                             candidatesLoading={candidatesLoading}
                             toggleTheme={toggleTheme}

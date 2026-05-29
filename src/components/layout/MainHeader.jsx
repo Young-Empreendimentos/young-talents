@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, ChevronLeft, Filter, Sun, Moon, RefreshCw } from 'lucide-react';
+import { Menu, ChevronLeft, Sun, Moon, RefreshCw } from 'lucide-react';
 
 const MainHeader = ({
     activeTab,
@@ -7,7 +7,6 @@ const MainHeader = ({
     setIsSidebarOpen,
     isSidebarCollapsed,
     setIsSidebarCollapsed,
-    setIsFilterSidebarOpen,
     onRefreshData,
     candidatesLoading,
     toggleTheme,
@@ -45,7 +44,7 @@ const MainHeader = ({
                     {isSidebarCollapsed ? <Menu size={20} className="text-muted-foreground" /> : <ChevronLeft size={20} className="text-muted-foreground" />}
                 </button>
                 <h2 className="text-lg font-bold text-foreground ml-2">
-                    {activeTab === 'pipeline' ? 'Pipeline de Talentos' : activeTab === 'candidates' ? 'Banco de Talentos' : ['jobs', 'companies', 'positions', 'sectors', 'cities'].includes(activeTab) ? 'Gerenciar Vagas' : activeTab === 'applications' ? 'Candidaturas' : activeTab === 'settings' ? 'Configurações' : activeTab === 'reports' ? 'Relatórios' : 'Dashboard'}
+                    {activeTab === 'pipeline' ? 'Pipeline de Talentos' : activeTab === 'candidates' ? 'Banco de Talentos' : activeTab === 'mappings' ? 'Mapeamentos' : ['jobs', 'companies', 'positions', 'sectors', 'cities'].includes(activeTab) ? 'Gerenciar Vagas' : activeTab === 'applications' ? 'Candidaturas' : activeTab === 'settings' ? 'Configurações' : activeTab === 'reports' ? 'Relatórios' : 'Dashboard'}
                 </h2>
             </div>
             <div className="flex items-center gap-2">
@@ -60,9 +59,6 @@ const MainHeader = ({
                         <RefreshCw size={14} className={candidatesLoading ? 'animate-spin' : ''} /> Atualizar
                     </button>
                 )}
-                <button onClick={() => setIsFilterSidebarOpen(true)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary font-medium px-3 py-1.5 rounded-md border border-input hover:border-primary transition-colors">
-                    <Filter size={14} /> Filtros
-                </button>
                 <button onClick={toggleTheme} className="p-2 text-muted-foreground hover:text-primary rounded-md border border-input hover:border-primary transition-colors">
                     {isDark ? <Sun size={16} /> : <Moon size={16} />}
                 </button>
