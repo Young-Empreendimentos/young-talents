@@ -35,7 +35,7 @@ export function mapCandidateFromSupabase(row) {
     professionalReferences: row.professional_references,
     typeOfApp: row.type_of_app,
     freeField: row.free_field,
-    status: row.status ?? 'Inscrito',
+    status: row.status || 'Inscrito',
     starred: row.starred === true,
     interview1Date: row.interview1_date ?? null,
     interview1Notes: row.interview1_notes ?? null,

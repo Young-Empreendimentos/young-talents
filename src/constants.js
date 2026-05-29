@@ -1,6 +1,9 @@
 // src/constants.js
 
-// Etapas Visuais do Kanban (O fluxo ativo)
+// Status padrão ao cadastrar/importar candidato — NÃO aparece no pipeline
+export const DEFAULT_CANDIDATE_STATUS = 'Inscrito';
+
+// Etapas Visuais do Kanban (O fluxo ativo) — só aparecem quando vinculado a uma vaga
 export const PIPELINE_STAGES = [
   'Considerado',
   'Entrevista I realizada',
@@ -19,7 +22,8 @@ export const CLOSING_STATUSES = [
 ];
 
 // Todos os status possíveis (para validação e cores)
-export const ALL_STATUSES = [...PIPELINE_STAGES, ...CLOSING_STATUSES];
+// 'Inscrito' fica primeiro — é o estado inicial de todo candidato
+export const ALL_STATUSES = ['Inscrito', ...PIPELINE_STAGES, ...CLOSING_STATUSES];
 
 // Etapas que exigem candidato vinculado a pelo menos uma vaga
 export const STAGES_REQUIRING_APPLICATION = ['Considerado', 'Entrevista I realizada', 'Testes realizados', 'Entrevista II realizada', 'Teste de trabalho realizado', 'Selecionado', 'Contratado', 'Descartado', 'Reprovado', 'Desistiu da vaga'];
@@ -60,6 +64,7 @@ export const REJECTION_REASONS = [
 ];
 
 export const STATUS_COLORS = {
+  'Inscrito': 'bg-slate-500 dark:bg-slate-600 text-white border-slate-600 dark:border-slate-700 font-medium',
   'Considerado': 'bg-blue-500 dark:bg-blue-600 text-white border-blue-600 dark:border-blue-700 font-medium',
   'Entrevista I realizada': 'bg-cyan-500 dark:bg-cyan-600 text-white border-cyan-600 dark:border-cyan-700 font-medium',
   'Testes realizados': 'bg-purple-500 dark:bg-purple-600 text-white border-purple-600 dark:border-purple-700 font-medium',
@@ -74,7 +79,6 @@ export const STATUS_COLORS = {
   'Desistiu da vaga': 'bg-gray-500 dark:bg-gray-600 text-white border-gray-600 dark:border-gray-700 font-medium',
 
   // Legado (candidatos antigos com status antigos)
-  'Inscrito': 'bg-gray-600 dark:bg-gray-700 text-white dark:text-gray-100 border-gray-500 dark:border-gray-600 font-medium',
   'Entrevista I': 'bg-cyan-500 dark:bg-cyan-600 text-white border-cyan-600 dark:border-cyan-700 font-medium',
   'Testes': 'bg-purple-500 dark:bg-purple-600 text-white border-purple-600 dark:border-purple-700 font-medium',
   'Entrevista II': 'bg-indigo-500 dark:bg-indigo-600 text-white border-indigo-600 dark:border-indigo-700 font-medium',

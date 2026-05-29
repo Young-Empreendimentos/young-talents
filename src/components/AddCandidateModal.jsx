@@ -25,7 +25,7 @@ export default function AddCandidateModal({ onClose, onSave, isSaving, interestA
         interestAreas: '',
         schoolingLevel: '',
         experience: '',
-        status: 'Considerado',
+        status: 'Inscrito',
         source: 'Cadastro Manual',
     });
     const [errors, setErrors] = useState({});

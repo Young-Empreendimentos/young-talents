@@ -9,13 +9,15 @@ import { getCandidateRecency, getRecencyRowClass } from '../utils/candidateRecen
 
 // Mapeamento de status antigos para os novos nomes de etapa
 const LEGACY_STATUS_MAP = {
-    'Inscrito': 'Considerado',
     'Vaga pausada': 'Considerado',
     'Entrevista I': 'Entrevista I realizada',
     'Testes': 'Testes realizados',
     'Entrevista II': 'Entrevista II realizada',
     'Seleção': 'Selecionado',
 };
+// Status que não participam do pipeline (não aparecem em nenhuma coluna)
+const NON_PIPELINE_STATUSES = new Set(['Inscrito']);
+
 const resolveStage = (status, pipelineStages) => {
     if (!status) return pipelineStages[0] || 'Considerado';
     if (pipelineStages.includes(status)) return status;
@@ -80,6 +82,9 @@ const PipelineView = ({ candidatesLoading = false, candidatesTotal = 0, filtered
         // Pipeline mostra apenas candidatos vinculados a pelo menos uma vaga
         const candidateIdsWithJob = new Set(applications.map(a => a.candidateId));
         data = data.filter(c => candidateIdsWithJob.has(c.id));
+
+        // Candidatos com status 'Inscrito' nunca aparecem no pipeline
+        data = data.filter(c => !NON_PIPELINE_STATUSES.has(c.status));
 
         if (statusFilter === 'active') data = data.filter(c => PIPELINE_STAGES.includes(c.status) || !c.status || LEGACY_STATUS_MAP[c.status] !== undefined);
         else if (statusFilter === 'hired') data = data.filter(c => c.status === 'Contratado');

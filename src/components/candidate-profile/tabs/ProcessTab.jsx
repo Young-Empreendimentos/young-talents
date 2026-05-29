@@ -1,6 +1,6 @@
 import React from 'react';
 import { FileText, Briefcase, Calendar, History, TrendingUp, CheckCircle, XCircle, Clock as ClockIcon } from 'lucide-react';
-import { STATUS_COLORS, PIPELINE_STAGES, ALL_STATUSES } from '../../../constants';
+import { STATUS_COLORS, PIPELINE_STAGES, ALL_STATUSES, DEFAULT_CANDIDATE_STATUS } from '../../../constants';
 
 export default function ProcessTab({
     candidate,

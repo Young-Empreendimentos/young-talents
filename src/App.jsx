@@ -761,10 +761,15 @@ export default function App() {
     const candidate = candidates.find(c => c.id === candidateId);
     const job = jobs.find(j => j.id === jobId);
     try {
-      const payload = { candidate_id: candidateId, job_id: jobId, candidate_name: candidate?.fullName || 'Candidato', candidate_email: candidate?.email || '', job_title: job?.title || 'Vaga', job_company: job?.company || '', status: 'Inscrito', applied_at: new Date().toISOString(), created_by: effectiveUser.email, created_at: new Date().toISOString() };
+      const payload = { candidate_id: candidateId, job_id: jobId, candidate_name: candidate?.fullName || 'Candidato', candidate_email: candidate?.email || '', job_title: job?.title || 'Vaga', job_company: job?.company || '', status: 'Considerado', applied_at: new Date().toISOString(), created_by: effectiveUser.email, created_at: new Date().toISOString() };
       const { data, error } = await schema().from('talents_applications').insert(payload).select('*').single();
       if (error) throw error;
-      await recordActivity('update', 'Candidatura criada', 'candidate', candidateId);
+      // Se candidato ainda estava como 'Inscrito', promove para 'Considerado' automaticamente
+      if (candidate?.status === 'Inscrito') {
+        await schema().from('talents_candidates').update({ status: 'Considerado', updated_at: new Date().toISOString() }).eq('id', candidateId);
+        await loadCandidates();
+      }
+      await recordActivity('update', 'Candidatura criada — promovido para Considerado', 'candidate', candidateId);
       showToast('Vinculado com sucesso!', 'success');
       await loadApplications();
       return data;
@@ -937,7 +942,9 @@ export default function App() {
   const handleDragEnd = async (cId, stage) => {
     const candidate = candidates.find(c => c.id === cId);
     if (!candidate || candidate.status === stage) return;
-    if (PIPELINE_STAGES.indexOf(stage) >= PIPELINE_STAGES.indexOf('Considerado')) {
+    // 'Inscrito' nunca entra no pipeline — qualquer tentativa de mover exige vincular a vaga
+    const requiresJob = stage === 'Inscrito' ? false : PIPELINE_STAGES.indexOf(stage) >= PIPELINE_STAGES.indexOf('Considerado');
+    if (requiresJob) {
       if (!applications.some(a => a.candidateId === cId)) {
         setLinkToJobCandidate({ candidate, toStage: stage });
         return;
