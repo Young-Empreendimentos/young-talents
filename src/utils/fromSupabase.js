@@ -120,6 +120,47 @@ export function mapApplicationsFromSupabase(rows) {
   return (rows ?? []).map(mapApplicationFromSupabase).filter(Boolean);
 }
 
+// --- Mappings ---
+
+export function mapMappingFromSupabase(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    candidateId: row.candidate_id,
+    positionId: row.position_id,
+    positionName: row.position_name,
+    city: row.city,
+    notes: row.notes,
+    priority: row.priority ?? 'Média',
+    status: row.status ?? 'Ativo',
+    mappedBy: row.mapped_by,
+    mappedByName: row.mapped_by_name,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+export function mapMappingsFromSupabase(rows) {
+  return (rows ?? []).map(mapMappingFromSupabase).filter(Boolean);
+}
+
+export function mappingToSupabase(d) {
+  if (!d) return null;
+  const row = {
+    candidate_id: d.candidateId,
+    position_id: d.positionId ?? null,
+    position_name: d.positionName ?? null,
+    city: d.city ?? null,
+    notes: d.notes ?? null,
+    priority: d.priority ?? 'Média',
+    status: d.status ?? 'Ativo',
+    mapped_by: d.mappedBy ?? null,
+    mapped_by_name: d.mappedByName ?? null,
+  };
+  if (d.id) row.id = d.id;
+  return row;
+}
+
 // --- Payloads app (camelCase) → Supabase (snake_case) para INSERT/UPDATE ---
 
 export function jobToSupabase(d) {

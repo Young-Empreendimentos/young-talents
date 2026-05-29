@@ -19,6 +19,7 @@ import ReportsPage from '../components/ReportsPage';
 import DocumentationPage from '../components/DocumentationPage';
 import SobrePage from '../components/SobrePage';
 import DiagnosticPage from '../components/DiagnosticPage';
+import MappingsPage from '../components/MappingsPage';
 import SettingsPage from '../components/SettingsPage';
 import JobModal from '../components/JobModal';
 import CandidateModal from '../components/CandidateModal';
@@ -129,6 +130,10 @@ const AppRoutes = ({
     loadInteractions,
     deleteInteraction,
     handleToggleStar,
+    mappings,
+    addMapping,
+    updateMappingStatus,
+    deleteMapping,
     refreshData,
     toggleTheme,
     isDark,
@@ -184,6 +189,11 @@ const AppRoutes = ({
                     showToast={showToast}
                     onCreateApplication={createApplication}
                     loadCandidates={loadCandidates}
+                    mappings={mappings}
+                    addMapping={addMapping}
+                    updateMappingStatus={updateMappingStatus}
+                    deleteMapping={deleteMapping}
+                    positions={roles}
                     onAdvanceStage={(candidate, newStage) => {
                         const missingFields = computeMissingFields(candidate, newStage);
                         const isConclusion = CLOSING_STATUSES.includes(newStage);
@@ -268,6 +278,7 @@ const AppRoutes = ({
                     {activeTab === 'dashboard' && <div className="p-6 overflow-y-auto h-full"><Dashboard candidatesLoading={candidatesLoading} filteredJobs={jobs} filteredCandidates={filteredCandidates} totalCandidatesCount={uniqueCandidatesByEmail.length} totalSubmissionsCount={candidates.filter(c => !c.deletedAt).length} onOpenCandidates={setDashboardModalCandidates} onSetModalTitle={setDashboardModalTitle} onNavigateToCandidates={(path) => navigate(path)} onNavigateToJobs={(path) => navigate(path)} statusMovements={statusMovements} applications={applications} onViewJob={openJobCandidatesModal} interviews={interviews} onScheduleInterview={(candidate) => setInterviewModalData({ candidate })} /></div>}
                     {activeTab === 'pipeline' && <PipelineView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onDragEnd={handleDragEnd} onEdit={openCandidateProfile} onCloseStatus={handleCloseStatus} applications={applications} interviews={interviews} forceViewMode="kanban" highlightedCandidateId={highlightedCandidateId} filters={filters} setFilters={setFilters} onToggleStar={handleToggleStar} pipelineStages={pipelineStages} />}
                     {activeTab === 'candidates' && <TalentBankView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onEdit={openCandidateProfile} applications={applications} onStatusChange={handleDragEnd} filters={filters} setFilters={setFilters} onToggleStar={handleToggleStar} onAddCandidate={(data, closeFn) => handleSaveGeneric('candidates', data, closeFn)} isSaving={isSaving} interestAreas={interestAreas} showToast={showToast} />}
+                    {activeTab === 'mappings' && <MappingsPage mappings={mappings} candidates={candidates} positions={roles} onUpdateStatus={updateMappingStatus} onDelete={deleteMapping} showToast={showToast} />}
                     {activeTab === 'submissions' && <SubmissionsView candidatesLoading={candidatesLoading} candidates={candidates.filter(c => !c.deletedAt)} onEdit={openCandidateProfile} />}
                     {(activeTab === 'jobs' || activeTab === 'companies' || activeTab === 'positions' || activeTab === 'sectors' || activeTab === 'cities') && !/^\/jobs\/[^/]+$/.test(location.pathname) && (
                         <JobsManagementPage

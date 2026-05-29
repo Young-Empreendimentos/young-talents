@@ -29,6 +29,8 @@ import {
   mapJobLevelsFromSupabase,
   mapActivityAreasFromSupabase,
   mapApplicationsFromSupabase,
+  mapMappingsFromSupabase,
+  mappingToSupabase,
   jobToSupabase
 } from './utils/fromSupabase';
 
@@ -103,7 +105,7 @@ export default function App() {
     const path = location.pathname;
     if (path === '/' || path === '') return 'dashboard';
     const slug = path.replace(/^\//, '').split('/')[0];
-    const validTabs = ['dashboard', 'pipeline', 'candidates', 'submissions', 'jobs', 'applications', 'companies', 'positions', 'sectors', 'cities', 'job_levels', 'activity_areas', 'reports', 'help', 'sobre', 'settings', 'diagnostic'];
+    const validTabs = ['dashboard', 'pipeline', 'candidates', 'mappings', 'submissions', 'jobs', 'applications', 'companies', 'positions', 'sectors', 'cities', 'job_levels', 'activity_areas', 'reports', 'help', 'sobre', 'settings', 'diagnostic'];
     return validTabs.includes(slug) ? slug : 'dashboard';
   };
 
@@ -204,6 +206,7 @@ export default function App() {
   const [applications, setApplications] = useState([]);
   const [interviews, setInterviews] = useState([]);
   const [interactions, setInteractions] = useState([]);
+  const [mappings, setMappings] = useState([]);
   const [interactionTypes, setInteractionTypes] = useState([]);
   const [userRoles, setUserRoles] = useState([{ email: DEV_USER.email, role: 'admin' }]);
   const [userRolesLoaded, setUserRolesLoaded] = useState(false);
@@ -462,6 +465,12 @@ export default function App() {
     if (!error) setApplications(mapApplicationsFromSupabase(data ?? []));
   }, []);
 
+  const loadMappings = React.useCallback(async () => {
+    if (!supabase) return;
+    const { data, error } = await schema().from('talents_mappings').select('*').order('created_at', { ascending: false });
+    if (!error) setMappings(mapMappingsFromSupabase(data ?? []));
+  }, []);
+
   const loadInteractionTypes = React.useCallback(async () => {
     if (!supabase) return;
     const { data, error } = await schema().from('talents_interaction_types').select('*').eq('is_active', true).order('created_at');
@@ -539,8 +548,8 @@ export default function App() {
   }, []);
 
   const loadAllData = React.useCallback(async () => {
-    await Promise.all([loadCandidates(), loadJobs(), loadCompanies(), loadCities(), loadSectors(), loadRoles(), loadJobLevels(), loadActivityAreas(), loadApplications(), loadInteractionTypes()]);
-  }, [loadCandidates, loadJobs, loadCompanies, loadCities, loadSectors, loadRoles, loadJobLevels, loadActivityAreas, loadApplications, loadInteractionTypes]);
+    await Promise.all([loadCandidates(), loadJobs(), loadCompanies(), loadCities(), loadSectors(), loadRoles(), loadJobLevels(), loadActivityAreas(), loadApplications(), loadInteractionTypes(), loadMappings()]);
+  }, [loadCandidates, loadJobs, loadCompanies, loadCities, loadSectors, loadRoles, loadJobLevels, loadActivityAreas, loadApplications, loadInteractionTypes, loadMappings]);
 
   /** Painel interno: cadastro explícito em user_roles como admin, editor ou viewer (somente leitura). */
   const hasStaffRole = useMemo(() => {
@@ -878,6 +887,51 @@ export default function App() {
     }
   };
 
+  // Mappings CRUD
+  const addMapping = React.useCallback(async (data) => {
+    if (!supabase) return null;
+    const payload = mappingToSupabase({
+      ...data,
+      mappedBy: effectiveUser?.email || null,
+      mappedByName: userRoleDoc?.name || effectiveUser?.displayName || effectiveUser?.user_metadata?.full_name || effectiveUser?.email?.split('@')[0] || null,
+    });
+    try {
+      const { data: inserted, error } = await schema().from('talents_mappings').insert(payload).select('*').single();
+      if (error) throw error;
+      await loadMappings();
+      await recordActivity('create', 'Mapeamento de interesse criado', 'candidate', data.candidateId);
+      showToast('Mapeamento registrado.', 'success');
+      return inserted;
+    } catch (err) {
+      showToast(translateSupabaseError(err?.message).text || 'Erro ao criar mapeamento.', 'error');
+      return null;
+    }
+  }, [effectiveUser, userRoleDoc, loadMappings]);
+
+  const updateMappingStatus = React.useCallback(async (id, status) => {
+    if (!supabase) return;
+    try {
+      const { error } = await schema().from('talents_mappings').update({ status, updated_at: new Date().toISOString() }).eq('id', id);
+      if (error) throw error;
+      await loadMappings();
+      showToast('Status atualizado.', 'success');
+    } catch (err) {
+      showToast(translateSupabaseError(err?.message).text || 'Erro ao atualizar.', 'error');
+    }
+  }, [loadMappings]);
+
+  const deleteMapping = React.useCallback(async (id) => {
+    if (!supabase) return;
+    try {
+      const { error } = await schema().from('talents_mappings').delete().eq('id', id);
+      if (error) throw error;
+      await loadMappings();
+      showToast('Mapeamento removido.', 'success');
+    } catch (err) {
+      showToast(translateSupabaseError(err?.message).text || 'Erro ao remover.', 'error');
+    }
+  }, [loadMappings]);
+
   const computeMissingFields = (c, stage) => (STAGE_REQUIRED_FIELDS[stage] || []).filter(f => !c[f]);
 
   const handleDragEnd = async (cId, stage) => {
@@ -1039,6 +1093,7 @@ export default function App() {
       interactions={interactions} interactionTypes={interactionTypes}
       addInteraction={addInteraction} loadInteractions={loadInteractions} deleteInteraction={deleteInteraction}
       handleToggleStar={handleToggleStar}
+      mappings={mappings} addMapping={addMapping} updateMappingStatus={updateMappingStatus} deleteMapping={deleteMapping}
       refreshData={refreshData}
       toggleTheme={toggleTheme} isDark={isDark} setUserRole={setUserRole} removeUserRole={removeUserRole}
       createUserWithPassword={createUserWithPassword} handleDragEnd={handleDragEnd}

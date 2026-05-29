@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   ArrowLeft, User, Briefcase, FileText, Phone, GraduationCap,
   ExternalLink, Edit3, Save, X, MessageSquare, Plus, Trash2,
-  AlertCircle, Loader2, Car, Heart, Users, Camera
+  AlertCircle, Loader2, Car, Heart, Users, Camera, MapPin
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import { mapCandidateFromSupabase } from '../utils/candidateFromSupabase';
@@ -67,6 +67,11 @@ export default function CandidateProfilePage({
   onCreateApplication,
   onAdvanceStage,
   loadCandidates,
+  mappings = [],
+  addMapping,
+  updateMappingStatus,
+  deleteMapping,
+  positions = [],
 }) {
   const { id, tab } = useParams();
   const navigate = useNavigate();
@@ -88,6 +93,41 @@ export default function CandidateProfilePage({
   const [showLinkJob, setShowLinkJob] = useState(false);
   const [linkJobId, setLinkJobId] = useState('');
   const [photoLightbox, setPhotoLightbox] = useState(false);
+
+  // Mapeamento de Interesse
+  const [showMappingForm, setShowMappingForm] = useState(false);
+  const [newMapping, setNewMapping] = useState({ positionId: '', positionName: '', city: '', priority: 'Média', notes: '' });
+  const [savingMapping, setSavingMapping] = useState(false);
+
+  const candidateMappings = useMemo(() =>
+    mappings.filter(m => m.candidateId === id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+    [mappings, id]
+  );
+
+  const handleAddMapping = async () => {
+    if (!newMapping.positionName && !newMapping.positionId) {
+      if (showToast) showToast('Selecione um cargo.', 'error');
+      return;
+    }
+    setSavingMapping(true);
+    try {
+      const position = positions.find(p => p.id === newMapping.positionId);
+      await addMapping({
+        candidateId: id,
+        positionId: newMapping.positionId || null,
+        positionName: position?.name || newMapping.positionName,
+        city: newMapping.city,
+        priority: newMapping.priority,
+        notes: newMapping.notes,
+      });
+      setShowMappingForm(false);
+      setNewMapping({ positionId: '', positionName: '', city: '', priority: 'Média', notes: '' });
+    } catch (e) {
+      if (showToast) showToast('Erro ao criar mapeamento.', 'error');
+    } finally {
+      setSavingMapping(false);
+    }
+  };
 
   // Buscar candidato
   useEffect(() => {
@@ -486,6 +526,143 @@ export default function CandidateProfilePage({
                 <p className="text-sm text-muted-foreground italic">Nenhuma interação registrada.</p>
               )}
             </div>
+
+            {/* Mapeamento de Interesse */}
+            {addMapping && (
+              <div className="bg-card border border-border rounded-xl p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <MapPin size={13} className="text-brand-orange" /> Mapeamento de Interesse ({candidateMappings.length})
+                  </p>
+                  <button onClick={() => setShowMappingForm(!showMappingForm)} className="text-xs text-young-orange hover:underline flex items-center gap-1">
+                    <Plus size={12} /> Mapear
+                  </button>
+                </div>
+
+                {/* Formulário novo mapeamento */}
+                {showMappingForm && (
+                  <div className="mb-4 p-4 bg-muted rounded-lg space-y-3 border border-border">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs text-muted-foreground mb-1">Cargo *</label>
+                        <select
+                          value={newMapping.positionId}
+                          onChange={e => {
+                            const pos = positions.find(p => p.id === e.target.value);
+                            setNewMapping(p => ({ ...p, positionId: e.target.value, positionName: pos?.name || '' }));
+                          }}
+                          className="w-full text-sm border border-input rounded px-2 py-1.5 bg-background text-foreground outline-none focus:ring-1 focus:ring-young-orange"
+                        >
+                          <option value="">Selecione...</option>
+                          {positions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-muted-foreground mb-1">Cidade</label>
+                        <input
+                          type="text"
+                          value={newMapping.city}
+                          onChange={e => setNewMapping(p => ({ ...p, city: e.target.value }))}
+                          placeholder="Ex: Porto Alegre/RS"
+                          className="w-full text-sm border border-input rounded px-2 py-1.5 bg-background text-foreground outline-none focus:ring-1 focus:ring-young-orange"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-muted-foreground mb-1">Prioridade</label>
+                        <select
+                          value={newMapping.priority}
+                          onChange={e => setNewMapping(p => ({ ...p, priority: e.target.value }))}
+                          className="w-full text-sm border border-input rounded px-2 py-1.5 bg-background text-foreground outline-none focus:ring-1 focus:ring-young-orange"
+                        >
+                          <option value="Alta">Alta</option>
+                          <option value="Média">Média</option>
+                          <option value="Baixa">Baixa</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-muted-foreground mb-1">Observações</label>
+                      <textarea
+                        value={newMapping.notes}
+                        onChange={e => setNewMapping(p => ({ ...p, notes: e.target.value }))}
+                        placeholder="Ex: Excelente perfil técnico, aguardar vaga no Q3..."
+                        rows={2}
+                        className="w-full text-sm border border-input rounded px-2 py-2 bg-background text-foreground outline-none focus:ring-1 focus:ring-young-orange resize-none"
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <button onClick={() => setShowMappingForm(false)} className="text-sm px-3 py-1.5 text-muted-foreground hover:text-foreground">Cancelar</button>
+                      <button
+                        onClick={handleAddMapping}
+                        disabled={savingMapping || !newMapping.positionId}
+                        className="text-sm px-4 py-1.5 bg-young-orange text-white rounded disabled:opacity-50 flex items-center gap-1.5"
+                      >
+                        {savingMapping ? <Loader2 size={13} className="animate-spin" /> : <MapPin size={13} />}
+                        Mapear
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Lista de mapeamentos */}
+                {candidateMappings.length > 0 ? (
+                  <div className="space-y-2">
+                    {candidateMappings.map(m => {
+                      const priorityColor = m.priority === 'Alta' ? 'text-red-500' : m.priority === 'Baixa' ? 'text-green-500' : 'text-amber-500';
+                      return (
+                        <div key={m.id} className={`flex gap-3 px-3 py-3 rounded-lg border border-border bg-background group ${m.status === 'Descartado' ? 'opacity-50' : ''}`}>
+                          <div className="w-7 h-7 rounded-full bg-brand-orange/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <MapPin size={14} className="text-brand-orange" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-medium text-foreground">{m.positionName || 'Cargo não definido'}</p>
+                                {m.city && <span className="text-xs text-muted-foreground">— {m.city}</span>}
+                                <span className={`text-[10px] font-bold uppercase ${priorityColor}`}>{m.priority}</span>
+                              </div>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                {updateMappingStatus && m.status === 'Ativo' && (
+                                  <select
+                                    value={m.status}
+                                    onChange={e => updateMappingStatus(m.id, e.target.value)}
+                                    className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded px-1.5 py-0.5 border-0 outline-none cursor-pointer"
+                                  >
+                                    <option value="Ativo">Ativo</option>
+                                    <option value="Contratado">Contratado</option>
+                                    <option value="Descartado">Descartado</option>
+                                  </select>
+                                )}
+                                {m.status !== 'Ativo' && (
+                                  <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${m.status === 'Contratado' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
+                                    {m.status}
+                                  </span>
+                                )}
+                                {deleteMapping && (
+                                  <button
+                                    onClick={() => { if (window.confirm('Remover este mapeamento?')) deleteMapping(m.id); }}
+                                    className="opacity-0 group-hover:opacity-100 p-0.5 text-muted-foreground hover:text-red-500 transition-opacity"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            {m.notes && <p className="text-xs text-muted-foreground mt-0.5 whitespace-pre-wrap">{m.notes}</p>}
+                            <p className="text-[10px] text-muted-foreground/60 mt-1">
+                              {m.mappedByName && `por ${m.mappedByName} · `}
+                              {new Date(m.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">Nenhum mapeamento registrado. Clique em "Mapear" para guardar este candidato para futuras vagas.</p>
+                )}
+              </div>
+            )}
           </>
         )}
 
