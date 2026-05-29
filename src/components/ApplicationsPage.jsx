@@ -282,21 +282,21 @@ export default function ApplicationsPage({
           </button>
         </div>
 
-        {/* Filtros */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50"/>
+        {/* Filtros — linha única com scroll horizontal em telas pequenas */}
+        <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-0.5">
+          <div className="relative flex-shrink-0">
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50"/>
             <input
               type="text"
-              placeholder="Buscar candidato, vaga..."
+              placeholder="Buscar..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="pl-8 pr-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground outline-none focus:border-brand-orange/50 w-48 sm:w-56"
+              className="pl-7 pr-3 py-1.5 bg-background border border-border rounded-lg text-sm text-foreground outline-none focus:border-brand-orange/50 w-36"
             />
           </div>
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-            className="bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-brand-orange/50">
-            <option value="all">Todos os Status</option>
+            className="bg-background border border-border rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-brand-orange/50 flex-shrink-0">
+            <option value="all">Status</option>
             <optgroup label="Em Processo">
               {PIPELINE_STAGES.map(s => <option key={s} value={s}>{s} ({stats.byStatus[s] || 0})</option>)}
             </optgroup>
@@ -305,18 +305,18 @@ export default function ApplicationsPage({
             </optgroup>
           </select>
           <select value={jobFilter} onChange={e => setJobFilter(e.target.value)}
-            className="bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-brand-orange/50">
-            <option value="all">Todas as Vagas</option>
+            className="bg-background border border-border rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-brand-orange/50 flex-shrink-0">
+            <option value="all">Vaga</option>
             {uniqueJobs.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
           </select>
           <select value={companyFilter} onChange={e => setCompanyFilter(e.target.value)}
-            className="bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-brand-orange/50">
-            <option value="all">Todas as Empresas</option>
+            className="bg-background border border-border rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-brand-orange/50 flex-shrink-0">
+            <option value="all">Empresa</option>
             {uniqueCompanies.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
           <select value={periodFilter} onChange={e => setPeriodFilter(e.target.value)}
-            className="bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-brand-orange/50">
-            <option value="all">Todo Período</option>
+            className="bg-background border border-border rounded-lg px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-brand-orange/50 flex-shrink-0">
+            <option value="all">Período</option>
             <option value="today">Hoje</option>
             <option value="week">7 dias</option>
             <option value="month">30 dias</option>
@@ -324,11 +324,11 @@ export default function ApplicationsPage({
           </select>
           {hasActiveFilters && (
             <button onClick={clearFilters}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-              <X size={14}/> Limpar
+              className="flex items-center gap-1 px-2.5 py-1.5 text-sm text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex-shrink-0">
+              <X size={13}/> Limpar
             </button>
           )}
-          <span className="ml-auto text-xs text-muted-foreground">
+          <span className="ml-auto pl-2 text-xs text-muted-foreground flex-shrink-0 whitespace-nowrap">
             {filteredApplications.length}{hasActiveFilters ? ` / ${applications.length}` : ''} candidatura{filteredApplications.length !== 1 ? 's' : ''}
           </span>
         </div>
