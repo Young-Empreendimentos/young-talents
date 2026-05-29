@@ -661,6 +661,7 @@ export default function App() {
   const handleSaveGeneric = async (col, d, closeFn, options = {}) => {
     const { omitApprovedBy = false } = options;
     if (!supabase) return;
+    setIsSaving(true);
     try {
       if (col === 'jobs') {
         let payload = jobToSupabase(d);
@@ -722,6 +723,8 @@ export default function App() {
       if (col === 'jobs' && isApprovedByMissing && !omitApprovedBy && window.confirm('O campo "Quem autorizou a abertura" fica na tela de edição da vaga, na seção de gestão (abaixo de "Recrutador Responsável"). Deseja salvar a vaga mesmo assim sem preencher esse campo?')) {
         await handleSaveGeneric(col, d, closeFn, { omitApprovedBy: true });
       }
+    } finally {
+      setIsSaving(false);
     }
   };
 

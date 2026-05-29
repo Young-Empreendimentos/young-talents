@@ -66,6 +66,7 @@ export default function CandidateProfilePage({
   showToast,
   onCreateApplication,
   onAdvanceStage,
+  loadCandidates,
 }) {
   const { id, tab } = useParams();
   const navigate = useNavigate();
@@ -147,18 +148,27 @@ export default function CandidateProfilePage({
 
   const handleSave = async () => {
     if (!candidate || !id) return;
+    // Validar campos obrigatórios (NOT NULL no banco)
+    if (!editData.email || !editData.email.trim()) {
+      if (showToast) showToast('E-mail é obrigatório.', 'error');
+      return;
+    }
+    if (!editData.phone || !editData.phone.trim()) {
+      if (showToast) showToast('Telefone é obrigatório.', 'error');
+      return;
+    }
     setSaving(true);
     try {
-      const { error } = await supabase.from('talents_candidates').update({
-        full_name: editData.fullName,
+      const { data: updated, error } = await supabase.from('talents_candidates').update({
+        full_name: editData.fullName || candidate.fullName,
         birth_date: editData.birthDate || null,
         age: editData.age || null,
         marital_status: editData.maritalStatus || null,
         children_count: editData.childrenCount || null,
         has_license: editData.hasLicense || null,
         city: editData.city || null,
-        phone: editData.phone || null,
-        email: editData.email || null,
+        phone: editData.phone.trim(),
+        email: editData.email.trim(),
         education: editData.education || null,
         schooling_level: editData.schoolingLevel || null,
         institution: editData.institution || null,
@@ -172,11 +182,17 @@ export default function CandidateProfilePage({
         cv_url: editData.cvUrl || null,
         portfolio_url: editData.portfolioUrl || null,
         updated_at: new Date().toISOString(),
-      }).eq('id', id);
+      }).eq('id', id).select('id').single();
       if (error) throw error;
+      if (!updated) {
+        if (showToast) showToast('Sem permissão para salvar. Contate o administrador.', 'error');
+        return;
+      }
       setCandidate({ ...candidate, ...editData });
       setIsEditing(false);
       if (showToast) showToast('Perfil salvo.', 'success');
+      // Atualizar lista global de candidatos
+      if (loadCandidates) await loadCandidates();
     } catch (e) {
       console.error(e);
       if (showToast) showToast('Erro ao salvar.', 'error');
