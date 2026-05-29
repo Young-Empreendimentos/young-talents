@@ -994,11 +994,8 @@ export default function App() {
             return filters[k].some(sel => v.includes(String(sel).toLowerCase()));
           });
         } else if (field === 'hasLicense') {
-          // Convert 'Sim'/'Não' to boolean for hasLicense
-          data = data.filter(c => c[field] != null && filters[k].some(sel => {
-            const boolVal = sel === 'Sim' ? true : sel === 'Não' ? false : null;
-            return boolVal != null && c[field] === boolVal;
-          }));
+          // has_license é string 'Sim'/'Não' no banco — comparação direta
+          data = data.filter(c => c[field] != null && filters[k].includes(c[field]));
         } else {
           data = data.filter(c => c[field] != null && filters[k].includes(c[field]));
         }
