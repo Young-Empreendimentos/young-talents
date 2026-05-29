@@ -330,6 +330,11 @@ const AppRoutes = ({
                         loadInteractions={loadInteractions}
                         deleteInteraction={deleteInteraction}
                         showToast={showToast}
+                        mappings={mappings}
+                        addMapping={addMapping}
+                        updateMappingStatus={updateMappingStatus}
+                        deleteMapping={deleteMapping}
+                        positions={roles}
                         onAdvanceStage={async (candidate, newStage) => {
                             const missingFields = computeMissingFields(candidate, newStage);
                             const isConclusion = CLOSING_STATUSES.includes(newStage);
