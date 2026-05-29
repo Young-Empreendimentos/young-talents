@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, CalendarCheck, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Edit3, Star, Download, UserPlus, X, Users } from 'lucide-react';
+import { Search, Filter, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Edit3, Star, Download, UserPlus, X, Users, SlidersHorizontal } from 'lucide-react';
 import ExportCandidatesCsvModal from './modals/ExportCandidatesCsvModal';
 import AddCandidateModal from './AddCandidateModal';
 import { STATUS_COLORS, ALL_STATUSES } from '../constants';
@@ -11,7 +11,37 @@ const SortIcon = ({ field, sortField, sortOrder }) => {
     return sortOrder === 'asc' ? <ChevronUp size={12} className="inline ml-0.5" /> : <ChevronDown size={12} className="inline ml-0.5" />;
 };
 
-const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filteredCount = 0, onClearFilters, candidates, jobs, companies, onEdit, applications = [], onStatusChange, filters = {}, setFilters, onToggleStar, onAddCandidate, isSaving = false, interestAreas = [], showToast }) => {
+// Labels legíveis para filtros globais
+const FILTER_LABELS = {
+    status: 'Status',
+    city: 'Cidade',
+    interestArea: 'Área',
+    company: 'Empresa',
+    jobId: 'Vaga',
+    origin: 'Origem',
+    schooling: 'Escolaridade',
+    marital: 'Estado Civil',
+    cnh: 'CNH',
+    createdAtPreset: 'Período',
+    tags: 'Tags',
+};
+
+const PRESET_LABELS = {
+    today: 'Hoje',
+    yesterday: 'Ontem',
+    '7d': '7 dias',
+    '30d': '30 dias',
+    '90d': '90 dias',
+    custom: 'Personalizado',
+};
+
+const TalentBankView = ({
+    candidatesLoading = false, candidatesTotal = 0, filteredCount = 0,
+    onClearFilters, candidates, jobs, companies, onEdit, applications = [],
+    onStatusChange, filters = {}, setFilters, onToggleStar, onAddCandidate,
+    isSaving = false, interestAreas = [], showToast,
+    onOpenFilterSidebar,
+}) => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [itemsPerPage, setItemsPerPage] = useState(25);
     const [currentPage, setCurrentPage] = useState(1);
@@ -20,38 +50,16 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
     const [sortField, setSortField] = useState(null);
     const [sortOrder, setSortOrder] = useState('asc');
     const [selectedIds, setSelectedIds] = useState([]);
+    const [isExportCsvModalOpen, setIsExportCsvModalOpen] = useState(false);
+
     const handleSort = (field) => {
         if (sortField === field) setSortOrder(o => o === 'asc' ? 'desc' : 'asc');
         else { setSortField(field); setSortOrder('asc'); }
     };
-    const [dateFilter, setDateFilter] = useState('all');
-    const [customDateStart, setCustomDateStart] = useState('');
-    const [customDateEnd, setCustomDateEnd] = useState('');
-    const [showFilters, setShowFilters] = useState(false);
-    const [isExportCsvModalOpen, setIsExportCsvModalOpen] = useState(false);
 
+    // Processamento de dados (busca local + ordenação — sem filtro de período duplicado)
     const processedData = useMemo(() => {
         let data = candidates.filter(c => !c.deletedAt);
-
-        if (dateFilter !== 'all') {
-            const now = Date.now() / 1000;
-            if (dateFilter === 'custom' && customDateStart && customDateEnd) {
-                const startDate = new Date(customDateStart).getTime() / 1000;
-                const endDate = new Date(customDateEnd).getTime() / 1000 + 86400;
-                data = data.filter(c => {
-                    const ts = getCandidateTimestamp(c);
-                    if (!ts) return false;
-                    return ts >= startDate && ts <= endDate;
-                });
-            } else {
-                const periods = { 'today': 86400, '7d': 604800, '30d': 2592000, '90d': 7776000 };
-                const cutoff = now - (periods[dateFilter] || 0);
-                data = data.filter(c => {
-                    const ts = getCandidateTimestamp(c);
-                    return ts ? ts >= cutoff : false;
-                });
-            }
-        }
 
         if (localSearch) {
             const s = localSearch.toLowerCase();
@@ -84,7 +92,7 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
             });
         }
         return data;
-    }, [candidates, localSearch, localSort, sortField, sortOrder, dateFilter, customDateStart, customDateEnd]);
+    }, [candidates, localSearch, localSort, sortField, sortOrder]);
 
     const paginatedData = useMemo(() => {
         const start = (currentPage - 1) * itemsPerPage;
@@ -93,14 +101,28 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
 
     const totalPages = Math.ceil(processedData.length / itemsPerPage);
 
-    const activeFiltersCount = useMemo(() => {
-        let count = 0;
-        if (dateFilter !== 'all') count++;
-        if (localSearch) count++;
-        return count;
-    }, [dateFilter, localSearch]);
+    // Filtros globais ativos (vindos da FilterSidebar)
+    const activeGlobalFilters = useMemo(() => {
+        const active = [];
+        const skip = ['dashboardFilter', 'starredFilter', 'starred', 'customDateStart', 'customDateEnd', 'ageMin', 'ageMax'];
+        Object.entries(filters).forEach(([key, val]) => {
+            if (skip.includes(key)) return;
+            if (val === 'all' || val === null || val === '' || val === undefined) return;
+            if (Array.isArray(val) && val.length === 0) return;
+            if (key === 'createdAtPreset') {
+                active.push({ key, label: 'Período', value: PRESET_LABELS[val] || val });
+            } else if (Array.isArray(val)) {
+                active.push({ key, label: FILTER_LABELS[key] || key, value: val.join(', ') });
+            } else {
+                active.push({ key, label: FILTER_LABELS[key] || key, value: String(val) });
+            }
+        });
+        return active;
+    }, [filters]);
 
     const activeStar = filters.starredFilter ?? (filters.starred === true ? 'starred' : 'all');
+    const hasAnyFilter = activeGlobalFilters.length > 0 || activeStar !== 'all' || !!localSearch;
+    const globalFilterCount = activeGlobalFilters.length + (activeStar !== 'all' ? 1 : 0);
 
     // Estados vazios
     if (candidatesLoading) {
@@ -117,7 +139,7 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                 <Users size={40} className="mb-3 opacity-40" />
                 <p className="mb-1 font-medium text-foreground">Nenhum candidato encontrado</p>
                 <p className="mb-4 text-sm">Os filtros atuais não correspondem a nenhum registro.</p>
-                <button type="button" onClick={onClearFilters} className="px-5 py-2 bg-brand-orange text-white rounded-lg text-sm font-medium hover:bg-brand-orange/90 transition-colors">
+                <button type="button" onClick={() => { onClearFilters(); setLocalSearch(''); }} className="px-5 py-2 bg-brand-orange text-white rounded-lg text-sm font-medium hover:bg-brand-orange/90 transition-colors">
                     Limpar filtros
                 </button>
             </div>
@@ -139,7 +161,7 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
             {/* ===== HEADER ===== */}
             <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 space-y-3 border-b border-border bg-card/50">
 
-                {/* Linha 1: Título + Ações principais */}
+                {/* Linha 1: Título + Ações */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="flex items-center gap-3">
                         <h2 className="text-xl sm:text-2xl font-bold text-foreground">Banco de Talentos</h2>
@@ -170,7 +192,7 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                     </div>
                 </div>
 
-                {/* Linha 2: Busca + Controles */}
+                {/* Linha 2: Busca + Estrela + Ordenação + botão Filtros */}
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:items-center">
                     {/* Busca */}
                     <div className="relative flex-1 max-w-md">
@@ -214,74 +236,58 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                             <option value="za">Z-A</option>
                         </select>
 
-                        {/* Período */}
-                        <select
-                            className="bg-card border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange"
-                            value={dateFilter}
-                            onChange={e => {
-                                setDateFilter(e.target.value);
-                                setCurrentPage(1);
-                                if (e.target.value !== 'custom') { setCustomDateStart(''); setCustomDateEnd(''); }
-                            }}
-                        >
-                            <option value="all">Todo o período</option>
-                            <option value="today">Hoje</option>
-                            <option value="7d">Últimos 7 dias</option>
-                            <option value="30d">Últimos 30 dias</option>
-                            <option value="90d">Últimos 90 dias</option>
-                            <option value="custom">Personalizado</option>
-                        </select>
-
-                        {/* Itens por página */}
-                        <select
-                            className="bg-card border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange"
-                            value={itemsPerPage}
-                            onChange={e => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                        >
-                            <option value={10}>10 / pág</option>
-                            <option value={25}>25 / pág</option>
-                            <option value={50}>50 / pág</option>
-                            <option value={100}>100 / pág</option>
-                            <option value={500}>500 / pág</option>
-                        </select>
+                        {/* Botão Filtros — abre a FilterSidebar */}
+                        {onOpenFilterSidebar && (
+                            <button
+                                type="button"
+                                onClick={onOpenFilterSidebar}
+                                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                                    globalFilterCount > 0
+                                        ? 'bg-brand-orange text-white shadow-sm'
+                                        : 'bg-card text-muted-foreground border border-border hover:bg-muted'
+                                }`}
+                            >
+                                <SlidersHorizontal size={14} />
+                                Filtros
+                                {globalFilterCount > 0 && (
+                                    <span className="bg-white/20 px-1.5 py-0.5 rounded-full text-[10px] font-bold">{globalFilterCount}</span>
+                                )}
+                            </button>
+                        )}
                     </div>
                 </div>
 
-                {/* Datas personalizadas (quando selecionado) */}
-                {dateFilter === 'custom' && (
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <CalendarCheck size={14} className="text-muted-foreground" />
-                        <input type="date" className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs text-foreground outline-none focus:ring-2 focus:ring-brand-orange/30" value={customDateStart} onChange={e => setCustomDateStart(e.target.value)} />
-                        <span className="text-xs text-muted-foreground">até</span>
-                        <input type="date" className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs text-foreground outline-none focus:ring-2 focus:ring-brand-orange/30" value={customDateEnd} onChange={e => setCustomDateEnd(e.target.value)} />
-                    </div>
-                )}
+                {/* Linha 3 (condicional): Badges de filtros ativos */}
+                {hasAnyFilter && (
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[11px] text-muted-foreground mr-0.5">Filtros:</span>
 
-                {/* Badges de filtros ativos */}
-                {(activeFiltersCount > 0 || activeStar !== 'all') && (
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs text-muted-foreground">Filtros:</span>
                         {localSearch && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-[11px]">
                                 Busca: "{localSearch}"
-                                <button onClick={() => setLocalSearch('')}><X size={12} /></button>
+                                <button onClick={() => setLocalSearch('')} className="hover:text-blue-900 dark:hover:text-blue-100"><X size={11} /></button>
                             </span>
                         )}
-                        {dateFilter !== 'all' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded text-xs">
-                                Período: {dateFilter === 'today' ? 'Hoje' : dateFilter === '7d' ? '7 dias' : dateFilter === '30d' ? '30 dias' : dateFilter === '90d' ? '90 dias' : 'Personalizado'}
-                                <button onClick={() => { setDateFilter('all'); setCustomDateStart(''); setCustomDateEnd(''); }}><X size={12} /></button>
-                            </span>
-                        )}
+
                         {activeStar !== 'all' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded text-xs">
-                                {activeStar === 'starred' ? 'Com estrela' : 'Sem estrela'}
-                                <button onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'all' }))}><X size={12} /></button>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded text-[11px]">
+                                {activeStar === 'starred' ? '★ Com estrela' : '☆ Sem estrela'}
+                                <button onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'all' }))} className="hover:text-amber-900 dark:hover:text-amber-100"><X size={11} /></button>
                             </span>
                         )}
+
+                        {activeGlobalFilters.map(f => (
+                            <span key={f.key} className="inline-flex items-center gap-1 px-2 py-0.5 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 rounded text-[11px]">
+                                {f.label}: {f.value.length > 20 ? f.value.slice(0, 20) + '…' : f.value}
+                                <button onClick={() => {
+                                    setFilters(prev => ({ ...prev, [f.key]: f.key === 'createdAtPreset' ? 'all' : Array.isArray(prev[f.key]) ? [] : 'all' }));
+                                }} className="hover:text-violet-900 dark:hover:text-violet-100"><X size={11} /></button>
+                            </span>
+                        ))}
+
                         <button
-                            onClick={() => { setLocalSearch(''); setDateFilter('all'); setCustomDateStart(''); setCustomDateEnd(''); if (onClearFilters) onClearFilters(); }}
-                            className="text-xs text-muted-foreground hover:text-foreground underline"
+                            onClick={() => { setLocalSearch(''); if (onClearFilters) onClearFilters(); }}
+                            className="text-[11px] text-muted-foreground hover:text-foreground underline ml-1"
                         >
                             Limpar todos
                         </button>
@@ -291,7 +297,7 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
 
             {/* ===== TABELA ===== */}
             <div className="flex-1 overflow-auto">
-                <table className="w-full border-collapse min-w-[900px]">
+                <table className="w-full border-collapse min-w-[700px]">
                     <thead className="bg-muted/60 sticky top-0 z-[1]">
                         <tr>
                             <th className="px-3 py-2.5 text-left w-10">
@@ -306,9 +312,6 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                             <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground select-none min-w-[140px]" onClick={() => handleSort('status')}>
                                 Status <SortIcon field="status" sortField={sortField} sortOrder={sortOrder} />
                             </th>
-                            <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground select-none" onClick={() => handleSort('email')}>
-                                Email <SortIcon field="email" sortField={sortField} sortOrder={sortOrder} />
-                            </th>
                             <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground select-none" onClick={() => handleSort('phone')}>
                                 Telefone <SortIcon field="phone" sortField={sortField} sortOrder={sortOrder} />
                             </th>
@@ -318,13 +321,10 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                             <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground select-none" onClick={() => handleSort('interestAreas')}>
                                 Área <SortIcon field="interestAreas" sortField={sortField} sortOrder={sortOrder} />
                             </th>
-                            <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground select-none" onClick={() => handleSort('source')}>
-                                Fonte <SortIcon field="source" sortField={sortField} sortOrder={sortOrder} />
-                            </th>
                             <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground select-none whitespace-nowrap" onClick={() => handleSort('created_at')}>
                                 Cadastro <SortIcon field="created_at" sortField={sortField} sortOrder={sortOrder} />
                             </th>
-                            <th className="px-3 py-2.5 text-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider w-16">
+                            <th className="px-3 py-2.5 text-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider w-14">
                             </th>
                         </tr>
                     </thead>
@@ -357,7 +357,7 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                                             {recency && (
                                                 <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${recency === 'today' ? 'bg-green-500 animate-pulse' : recency === 'yesterday' ? 'bg-green-400' : 'bg-green-400/60'}`} />
                                             )}
-                                            <span className="font-medium text-sm text-foreground hover:text-brand-orange transition-colors truncate max-w-[200px]">
+                                            <span className="font-medium text-sm text-foreground hover:text-brand-orange transition-colors truncate max-w-[220px]">
                                                 {c.fullName || 'Sem nome'}
                                             </span>
                                         </div>
@@ -379,11 +379,9 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                                             </span>
                                         )}
                                     </td>
-                                    <td className="px-3 py-2.5 text-sm text-muted-foreground truncate max-w-[180px]">{c.email || '—'}</td>
                                     <td className="px-3 py-2.5 text-sm text-muted-foreground whitespace-nowrap">{c.phone || '—'}</td>
                                     <td className="px-3 py-2.5 text-sm text-muted-foreground">{c.city || '—'}</td>
                                     <td className="px-3 py-2.5 text-sm text-muted-foreground truncate max-w-[150px]" title={c.interestAreas}>{c.interestAreas || '—'}</td>
-                                    <td className="px-3 py-2.5 text-sm text-muted-foreground">{c.source || '—'}</td>
                                     <td className="px-3 py-2.5 text-xs text-muted-foreground whitespace-nowrap">
                                         {(() => {
                                             const ts = getCandidateTimestamp(c);
@@ -403,14 +401,27 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                 </table>
             </div>
 
-            {/* ===== PAGINAÇÃO ===== */}
+            {/* ===== PAGINAÇÃO + ITENS POR PÁGINA ===== */}
             <div className="px-4 sm:px-6 py-3 border-t border-border bg-card/50 flex flex-col sm:flex-row items-center justify-between gap-2">
-                <p className="text-xs text-muted-foreground tabular-nums">
-                    {processedData.length > 0
-                        ? `${(currentPage - 1) * itemsPerPage + 1}–${Math.min(currentPage * itemsPerPage, processedData.length)} de ${processedData.length}`
-                        : '0 resultados'
-                    }
-                </p>
+                <div className="flex items-center gap-3">
+                    <p className="text-xs text-muted-foreground tabular-nums">
+                        {processedData.length > 0
+                            ? `${(currentPage - 1) * itemsPerPage + 1}–${Math.min(currentPage * itemsPerPage, processedData.length)} de ${processedData.length}`
+                            : '0 resultados'
+                        }
+                    </p>
+                    <select
+                        className="bg-card border border-border rounded px-2 py-1 text-[11px] text-muted-foreground outline-none focus:ring-1 focus:ring-brand-orange/30"
+                        value={itemsPerPage}
+                        onChange={e => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                    >
+                        <option value={10}>10 / pág</option>
+                        <option value={25}>25 / pág</option>
+                        <option value={50}>50 / pág</option>
+                        <option value={100}>100 / pág</option>
+                        <option value={500}>500 / pág</option>
+                    </select>
+                </div>
                 {totalPages > 1 && (
                     <div className="flex items-center gap-1">
                         <button
@@ -427,8 +438,6 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                         >
                             <ChevronLeft size={14} />
                         </button>
-
-                        {/* Números de página */}
                         {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                             let page;
                             if (totalPages <= 5) page = i + 1;
@@ -449,7 +458,6 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                                 </button>
                             );
                         })}
-
                         <button
                             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages}
@@ -484,7 +492,6 @@ const TalentBankView = ({ candidatesLoading = false, candidatesTotal = 0, filter
                                 setShowAddModal(false);
                                 if (onClearFilters) onClearFilters();
                                 setLocalSearch('');
-                                setDateFilter('all');
                                 setCurrentPage(1);
                             });
                         } catch (err) {
