@@ -205,7 +205,6 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
     <div className="p-6 overflow-y-auto h-full bg-background text-foreground">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-wrap justify-between items-center gap-4">
-          <h1 className="text-2xl font-bold">Relatórios</h1>
           <div className="flex items-center gap-3 flex-wrap">
             <label className="text-sm text-muted-foreground">Período:</label>
             <select

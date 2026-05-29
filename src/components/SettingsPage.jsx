@@ -65,7 +65,6 @@ export default function SettingsPage({
       {/* Se nenhuma aba selecionada ou aba não encontrada, mostra grid de botões */}
       {!currentTab ? (
         <div className="p-6 space-y-6">
-          <h2 className="text-2xl font-bold text-foreground">Configurações</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {tabs.map(tab => (
               <button
