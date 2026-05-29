@@ -256,308 +256,208 @@ export default function ApplicationsPage({
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header com Resumo */}
-      <div className="bg-card border-b border-border p-6">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">Candidaturas</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Gerencie todas as candidaturas de candidatos às vagas
-            </p>
+      {/* Header compacto com stats inline */}
+      <div className="bg-card border-b border-border px-4 sm:px-6 py-3 flex-shrink-0">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-4 overflow-x-auto custom-scrollbar pb-1 flex-1">
+            {[
+              { label: 'Total',       value: stats.total,          color: 'text-blue-500'  },
+              { label: 'Em processo', value: stats.inProcess,      color: 'text-amber-500' },
+              { label: 'Contratados', value: stats.hired,          color: 'text-green-500' },
+              { label: 'Reprovados',  value: stats.rejected,       color: 'text-red-500'   },
+              { label: 'Desistências',value: stats.withdrawn,      color: 'text-gray-500'  },
+              { label: 'Conversão',   value: `${stats.conversionRate}%`, color: 'text-purple-500' },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="flex items-center gap-2 flex-shrink-0 pr-4 border-r border-border last:border-0">
+                <span className={`text-xl font-bold ${color}`}>{value}</span>
+                <span className="text-xs text-muted-foreground">{label}</span>
+              </div>
+            ))}
           </div>
           <button
             onClick={() => setShowNewApplicationModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-brand-orange hover:bg-brand-orange/90 text-white rounded-lg text-sm font-medium transition-colors flex-shrink-0"
           >
-            <Plus size={18}/> Nova Candidatura
+            <Plus size={16}/> Nova Candidatura
           </button>
         </div>
-        
-        {/* Cards de Métricas */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <FileText size={20} className="opacity-80"/>
-              <span className="text-sm font-medium opacity-90">Total</span>
-            </div>
-            <div className="text-3xl font-bold">{stats.total}</div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg p-4 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock size={20} className="opacity-80"/>
-              <span className="text-sm font-medium opacity-90">Em Processo</span>
-            </div>
-            <div className="text-3xl font-bold">{stats.inProcess}</div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg p-4 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <CheckCircle size={20} className="opacity-80"/>
-              <span className="text-sm font-medium opacity-90">Contratados</span>
-            </div>
-            <div className="text-3xl font-bold">{stats.hired}</div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-red-500 to-rose-500 rounded-lg p-4 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <XCircle size={20} className="opacity-80"/>
-              <span className="text-sm font-medium opacity-90">Reprovados</span>
-            </div>
-            <div className="text-3xl font-bold">{stats.rejected}</div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-gray-500 to-gray-600 rounded-lg p-4 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertCircle size={20} className="opacity-80"/>
-              <span className="text-sm font-medium opacity-90">Desistências</span>
-            </div>
-            <div className="text-3xl font-bold">{stats.withdrawn}</div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-purple-500 to-violet-500 rounded-lg p-4 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp size={20} className="opacity-80"/>
-              <span className="text-sm font-medium opacity-90">Taxa Conversão</span>
-            </div>
-            <div className="text-3xl font-bold">{stats.conversionRate}%</div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Barra de Filtros */}
-      <div className="bg-gray-50 dark:bg-gray-900/50 border-b border-border p-4">
-        <div className="flex flex-wrap gap-3 items-center">
-          {/* Busca */}
-          <div className="relative flex-1 min-w-[250px]">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
+
+        {/* Filtros */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50"/>
             <input
               type="text"
-              placeholder="Buscar por candidato, email, vaga ou empresa..."
+              placeholder="Buscar candidato, vaga..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-foreground"
+              className="pl-8 pr-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground outline-none focus:border-brand-orange/50 w-48 sm:w-56"
             />
           </div>
-          
-          {/* Filtro Rápido por Status */}
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-            className="px-4 py-2.5 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-foreground"
-          >
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+            className="bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-brand-orange/50">
             <option value="all">Todos os Status</option>
             <optgroup label="Em Processo">
-              {PIPELINE_STAGES.map(s => (
-                <option key={s} value={s}>{s} ({stats.byStatus[s] || 0})</option>
-              ))}
+              {PIPELINE_STAGES.map(s => <option key={s} value={s}>{s} ({stats.byStatus[s] || 0})</option>)}
             </optgroup>
             <optgroup label="Fechamento">
-              {CLOSING_STATUSES.map(s => (
-                <option key={s} value={s}>{s} ({stats.byStatus[s] || 0})</option>
-              ))}
+              {CLOSING_STATUSES.map(s => <option key={s} value={s}>{s} ({stats.byStatus[s] || 0})</option>)}
             </optgroup>
           </select>
-          
-          {/* Filtro por Vaga */}
-          <select
-            value={jobFilter}
-            onChange={e => setJobFilter(e.target.value)}
-            className="px-4 py-2.5 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-foreground"
-          >
+          <select value={jobFilter} onChange={e => setJobFilter(e.target.value)}
+            className="bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-brand-orange/50">
             <option value="all">Todas as Vagas</option>
-            {uniqueJobs.map(job => (
-              <option key={job.id} value={job.id}>{job.title}</option>
-            ))}
+            {uniqueJobs.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
           </select>
-          
-          {/* Filtro por Empresa */}
-          <select
-            value={companyFilter}
-            onChange={e => setCompanyFilter(e.target.value)}
-            className="px-4 py-2.5 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-foreground"
-          >
+          <select value={companyFilter} onChange={e => setCompanyFilter(e.target.value)}
+            className="bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-brand-orange/50">
             <option value="all">Todas as Empresas</option>
-            {uniqueCompanies.map(company => (
-              <option key={company} value={company}>{company}</option>
-            ))}
+            {uniqueCompanies.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
-          
-          {/* Filtro por Período */}
-          <select
-            value={periodFilter}
-            onChange={e => setPeriodFilter(e.target.value)}
-            className="px-4 py-2.5 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-foreground"
-          >
+          <select value={periodFilter} onChange={e => setPeriodFilter(e.target.value)}
+            className="bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-brand-orange/50">
             <option value="all">Todo Período</option>
             <option value="today">Hoje</option>
-            <option value="week">Última Semana</option>
-            <option value="month">Último Mês</option>
-            <option value="quarter">Últimos 3 Meses</option>
+            <option value="week">7 dias</option>
+            <option value="month">30 dias</option>
+            <option value="quarter">90 dias</option>
           </select>
-          
-          {/* Limpar Filtros */}
           {hasActiveFilters && (
-            <button
-              onClick={clearFilters}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-            >
-              <X size={16}/> Limpar
+            <button onClick={clearFilters}
+              className="flex items-center gap-1.5 px-3 py-2 text-sm text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+              <X size={14}/> Limpar
             </button>
           )}
-        </div>
-        
-        {/* Contagem de resultados */}
-        <div className="mt-3 text-sm text-muted-foreground">
-          {filteredApplications.length} candidatura(s) encontrada(s)
-          {hasActiveFilters && ` (de ${applications.length} total)`}
+          <span className="ml-auto text-xs text-muted-foreground">
+            {filteredApplications.length}{hasActiveFilters ? ` / ${applications.length}` : ''} candidatura{filteredApplications.length !== 1 ? 's' : ''}
+          </span>
         </div>
       </div>
-      
-      {/* Tabela de Candidaturas */}
-      <div className="flex-1 overflow-auto p-4">
+
+      {/* Tabela */}
+      <div className="flex-1 overflow-auto custom-scrollbar">
         {filteredApplications.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-            <FileText size={48} className="mb-4 opacity-30"/>
-            <p className="text-lg font-medium">Nenhuma candidatura encontrada</p>
-            <p className="text-sm mt-1">
+            <FileText size={40} className="mb-3 opacity-20"/>
+            <p className="font-medium">Nenhuma candidatura encontrada</p>
+            <p className="text-sm mt-1 opacity-70">
               {hasActiveFilters ? 'Tente ajustar os filtros' : 'As candidaturas aparecerão aqui quando candidatos forem vinculados às vagas'}
             </p>
           </div>
         ) : (
-          <div className="bg-card rounded-lg border border-border overflow-hidden">
+          <div className="min-w-[640px]">
             {/* Header da Tabela */}
-            <div className="bg-gray-50 dark:bg-gray-900/50 border-b border-border px-4 py-3 grid grid-cols-12 gap-4 text-sm font-semibold text-muted-foreground">
-              <button 
-                onClick={() => toggleSort('candidateName')}
-                className="col-span-3 flex items-center gap-1 hover:text-gray-900 dark:hover:text-white"
-              >
-                Candidato
-                {sortField === 'candidateName' && (sortDirection === 'asc' ? <ChevronUp size={14}/> : <ChevronDown size={14}/>)}
-              </button>
-              <button 
-                onClick={() => toggleSort('jobTitle')}
-                className="col-span-3 flex items-center gap-1 hover:text-gray-900 dark:hover:text-white"
-              >
-                Vaga / Empresa
-                {sortField === 'jobTitle' && (sortDirection === 'asc' ? <ChevronUp size={14}/> : <ChevronDown size={14}/>)}
-              </button>
-              <button 
-                onClick={() => toggleSort('status')}
-                className="col-span-2 flex items-center gap-1 hover:text-gray-900 dark:hover:text-white"
-              >
-                Status
-                {sortField === 'status' && (sortDirection === 'asc' ? <ChevronUp size={14}/> : <ChevronDown size={14}/>)}
-              </button>
-              <button 
-                onClick={() => toggleSort('appliedAt')}
-                className="col-span-2 flex items-center gap-1 hover:text-gray-900 dark:hover:text-white"
-              >
-                Data
-                {sortField === 'appliedAt' && (sortDirection === 'asc' ? <ChevronUp size={14}/> : <ChevronDown size={14}/>)}
-              </button>
-              <div className="col-span-2 text-right">Ações</div>
-            </div>
-            
-            {/* Linhas */}
-            <div className="divide-y divide-gray-100 dark:divide-gray-700">
-              {filteredApplications.map(app => {
+            <table className="w-full text-sm text-foreground">
+              <thead className="bg-muted/50 border-b border-border sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground w-[30%]">
+                    <button onClick={() => toggleSort('candidateName')} className="flex items-center gap-1 hover:text-foreground">
+                      Candidato {sortField === 'candidateName' && (sortDirection === 'asc' ? <ChevronUp size={13}/> : <ChevronDown size={13}/>)}
+                    </button>
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground w-[28%]">
+                    <button onClick={() => toggleSort('jobTitle')} className="flex items-center gap-1 hover:text-foreground">
+                      Vaga / Empresa {sortField === 'jobTitle' && (sortDirection === 'asc' ? <ChevronUp size={13}/> : <ChevronDown size={13}/>)}
+                    </button>
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground w-[22%]">
+                    <button onClick={() => toggleSort('status')} className="flex items-center gap-1 hover:text-foreground">
+                      Status {sortField === 'status' && (sortDirection === 'asc' ? <ChevronUp size={13}/> : <ChevronDown size={13}/>)}
+                    </button>
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground w-[12%]">
+                    <button onClick={() => toggleSort('appliedAt')} className="flex items-center gap-1 hover:text-foreground">
+                      Data {sortField === 'appliedAt' && (sortDirection === 'asc' ? <ChevronUp size={13}/> : <ChevronDown size={13}/>)}
+                    </button>
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground w-[8%]">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+            {filteredApplications.map(app => {
                 const candidate = candidates.find(c => c.id === app.candidateId);
                 const job = jobs.find(j => j.id === app.jobId);
                 const isExpanded = expandedApp === app.id;
-                
+
                 return (
-                  <div key={app.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                    {/* Linha Principal */}
-                    <div className="px-4 py-3 grid grid-cols-12 gap-4 items-center">
+                  <React.Fragment key={app.id}>
+                    <tr className="hover:bg-muted/30 transition-colors">
                       {/* Candidato */}
-                      <div className="col-span-3 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                          {candidate?.photoUrl ? (
-                            <img src={candidate.photoUrl} alt="" className="w-full h-full object-cover"/>
-                          ) : (
-                            <User size={20} className="text-gray-500"/>
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <button 
-                            onClick={() => onEditCandidate && candidate && onEditCandidate(candidate)}
-                            className="font-medium text-foreground hover:text-blue-600 dark:hover:text-blue-400 truncate block text-left"
-                          >
-                            {app.candidateName || 'Sem nome'}
-                          </button>
-                          <div className="text-xs text-muted-foreground truncate">
-                            {app.candidateEmail}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            {candidate?.photoUrl
+                              ? <img src={candidate.photoUrl} alt="" className="w-full h-full object-cover"/>
+                              : <User size={16} className="text-muted-foreground"/>}
+                          </div>
+                          <div className="min-w-0">
+                            <button onClick={() => onEditCandidate && candidate && onEditCandidate(candidate)}
+                              className="font-medium text-foreground hover:text-brand-orange transition-colors truncate block text-left text-sm">
+                              {app.candidateName || 'Sem nome'}
+                            </button>
+                            <div className="text-xs text-muted-foreground truncate">{app.candidateEmail}</div>
                           </div>
                         </div>
-                      </div>
-                      
+                      </td>
+
                       {/* Vaga / Empresa */}
-                      <div className="col-span-3">
-                        <button 
-                          onClick={() => onViewJob && job && onViewJob(job)}
-                          className="font-medium text-foreground hover:text-blue-600 dark:hover:text-blue-400 truncate block text-left"
-                        >
-                          {app.jobTitle || 'Sem vaga'}
+                      <td className="px-4 py-3">
+                        <button onClick={() => onViewJob && job && onViewJob(job)}
+                          className="font-medium text-foreground hover:text-brand-orange transition-colors truncate block text-left text-sm">
+                          {app.jobTitle || '—'}
                         </button>
                         <div className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Building2 size={12}/> {app.jobCompany || 'Sem empresa'}
+                          <Building2 size={11}/> {app.jobCompany || '—'}
                         </div>
-                      </div>
-                      
+                      </td>
+
                       {/* Status */}
-                      <div className="col-span-2">
+                      <td className="px-4 py-3">
                         <select
-                          value={app.status || 'Inscrito'}
+                          value={app.status || 'Considerado'}
                           onChange={e => handleStatusChange(app.id, e.target.value)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border-0 outline-none cursor-pointer ${STATUS_COLORS[app.status] || 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-medium outline-none cursor-pointer border-0 ${STATUS_COLORS[app.status] || 'bg-muted text-muted-foreground'}`}
                         >
                           <optgroup label="Funil">
-                            {PIPELINE_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                            {PIPELINE_STAGES.map(s => <option key={s} value={s} className="bg-card text-foreground">{s}</option>)}
                           </optgroup>
                           <optgroup label="Fechamento">
-                            {CLOSING_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                            {CLOSING_STATUSES.map(s => <option key={s} value={s} className="bg-card text-foreground">{s}</option>)}
                           </optgroup>
                         </select>
-                      </div>
-                      
+                      </td>
+
                       {/* Data */}
-                      <div className="col-span-2 text-sm text-muted-foreground">
-                        <div>{formatDate(app.appliedAt)}</div>
-                        {app.updatedAt && app.updatedAt !== app.appliedAt && (
-                          <div className="text-xs opacity-70">Atualizado: {formatDate(app.updatedAt)}</div>
-                        )}
-                      </div>
-                      
+                      <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                        {formatDate(app.appliedAt)}
+                      </td>
+
                       {/* Ações */}
-                      <div className="col-span-2 flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => setExpandedApp(isExpanded ? null : app.id)}
-                          className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-muted rounded-lg transition-colors"
-                          title={isExpanded ? 'Recolher' : 'Expandir'}
-                        >
-                          {isExpanded ? <ChevronUp size={18}/> : <ChevronDown size={18}/>}
-                        </button>
-                        <button
-                          onClick={() => onEditCandidate && candidate && onEditCandidate(candidate)}
-                          className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                          title="Ver candidato"
-                        >
-                          <Eye size={18}/>
-                        </button>
-                        <button
-                          onClick={() => onRemoveApplication && onRemoveApplication(app.id)}
-                          className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                          title="Remover candidatura"
-                        >
-                          <Trash2 size={18}/>
-                        </button>
-                      </div>
-                    </div>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <button onClick={() => setExpandedApp(isExpanded ? null : app.id)}
+                            className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                            title={isExpanded ? 'Recolher' : 'Expandir'}>
+                            {isExpanded ? <ChevronUp size={15}/> : <ChevronDown size={15}/>}
+                          </button>
+                          <button onClick={() => onEditCandidate && candidate && onEditCandidate(candidate)}
+                            className="p-1.5 text-muted-foreground hover:text-brand-orange hover:bg-brand-orange/10 rounded-lg transition-colors"
+                            title="Ver candidato">
+                            <Eye size={15}/>
+                          </button>
+                          <button onClick={() => onRemoveApplication && onRemoveApplication(app.id)}
+                            className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                            title="Remover candidatura">
+                            <Trash2 size={15}/>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                     
                     {/* Seção Expandida */}
                     {isExpanded && (
-                      <div className="px-4 pb-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30">
+                      <tr className="bg-muted/20">
+                      <td colSpan={5} className="px-4 pb-4 border-b border-border">
                         <div className="pt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
                           {/* Info do Candidato */}
                           <div>
@@ -678,31 +578,29 @@ export default function ApplicationsPage({
                             </div>
                           </div>
                         )}
-                      </div>
+                      </td>
+                      </tr>
                     )}
-                  </div>
+                  </React.Fragment>
                 );
               })}
-            </div>
+              </tbody>
+            </table>
           </div>
         )}
       </div>
-      
-      {/* Resumo por Status na Lateral (Footer fixo) */}
-      <div className="bg-card border-t border-border p-4">
-        <div className="flex flex-wrap gap-2 justify-center">
+
+      {/* Footer: chips de status rápido */}
+      <div className="bg-card border-t border-border px-4 py-2.5 flex-shrink-0">
+        <div className="flex flex-wrap gap-1.5">
           {Object.entries(stats.byStatus)
-            .filter(([_, count]) => count > 0)
+            .filter(([, count]) => count > 0)
             .map(([status, count]) => (
-              <button
-                key={status}
+              <button key={status}
                 onClick={() => setStatusFilter(statusFilter === status ? 'all' : status)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  statusFilter === status 
-                    ? 'ring-2 ring-offset-2 ring-blue-500 dark:ring-offset-gray-800' 
-                    : ''
-                } ${STATUS_COLORS[status] || 'bg-gray-200 text-gray-700'}`}
-              >
+                className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                  statusFilter === status ? 'ring-2 ring-brand-orange ring-offset-1 dark:ring-offset-card' : ''
+                } ${STATUS_COLORS[status] || 'bg-muted text-muted-foreground'}`}>
                 {status}: {count}
               </button>
             ))}

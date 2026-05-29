@@ -8,6 +8,7 @@ const JOBS_PAGE_TAB_MAP = { jobs: 'vagas', companies: 'companies', cities: 'citi
 const JobsManagementPage = ({
     jobs,
     candidates,
+    applications = [],
     companies,
     cities,
     sectors,
@@ -41,33 +42,35 @@ const JobsManagementPage = ({
         { id: 'activity_areas', label: 'Áreas de atuação', icon: BarChart3 },
     ];
     return (
-        <div className="p-6 overflow-y-auto h-full flex flex-col">
-            <div className="flex border-b border-border mb-4 gap-1">
+        <div className="p-4 sm:p-6 overflow-y-auto h-full flex flex-col gap-4">
+            {/* Abas — scroll horizontal em mobile */}
+            <div className="flex gap-1 border-b border-border overflow-x-auto pb-0 custom-scrollbar">
                 {tabs.map(({ id, label, icon: Icon }) => (
                     <button
                         key={id}
                         onClick={() => setJobsPageTab(id)}
-                        className={`flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-t-lg transition-colors ${jobsPageTab === id
-                            ? 'bg-blue-600 text-white dark:bg-blue-500'
-                            : 'text-muted-foreground hover:bg-muted hover:text-gray-900 dark:hover:text-white'
-                            }`}
+                        className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors flex-shrink-0 ${
+                            jobsPageTab === id
+                                ? 'border-brand-orange text-brand-orange'
+                                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                        }`}
                     >
-                        <Icon size={18} />
+                        <Icon size={15} />
                         {label}
                     </button>
                 ))}
             </div>
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 overflow-y-auto">
                 {jobsPageTab === 'vagas' && (
                     <JobsList
                         jobs={jobs}
                         candidates={candidates}
+                        applications={applications}
                         companies={companies}
                         onAdd={() => onOpenJobModal({})}
                         onEdit={(j) => onOpenJobModal(j)}
                         onDelete={(id) => onDeleteGeneric('jobs', id)}
                         onToggleStatus={onSaveGeneric}
-                        onFilterPipeline={() => { setFilters({ ...filters, jobId: 'mock_id' }); setActiveTab('candidates'); }}
                         onViewCandidates={onViewCandidates}
                         initialStatusFilter={initialJobStatusFilter}
                     />

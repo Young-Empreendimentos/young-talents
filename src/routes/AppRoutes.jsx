@@ -283,6 +283,7 @@ const AppRoutes = ({
                         <JobsManagementPage
                             jobs={jobs}
                             candidates={candidates}
+                            applications={applications}
                             companies={companies}
                             cities={cities}
                             sectors={sectors}
