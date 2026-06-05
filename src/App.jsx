@@ -761,6 +761,19 @@ export default function App() {
     const candidate = candidates.find(c => c.id === candidateId);
     const job = jobs.find(j => j.id === jobId);
     try {
+      // Avisa sobre automação se candidato vai ser promovido para Considerado
+      if (candidate?.status === 'Inscrito') {
+        const confirmar = window.confirm(
+          `⚠️ Automação ativa\n\n` +
+          `Ao vincular "${candidate.fullName}" a esta vaga, o status será alterado para "Considerado" e o candidato receberá automaticamente:\n\n` +
+          `📧 Email: "Você avançou no processo seletivo"\n` +
+          `🎥 Vídeo 1: Boas-vindas à Young Empreendimentos\n\n` +
+          `O email será enviado para: ${candidate.email}\n\n` +
+          `Deseja continuar?`
+        );
+        if (!confirmar) return null;
+      }
+
       const payload = { candidate_id: candidateId, job_id: jobId, candidate_name: candidate?.fullName || 'Candidato', candidate_email: candidate?.email || '', job_title: job?.title || 'Vaga', job_company: job?.company || '', status: 'Considerado', applied_at: new Date().toISOString(), created_by: effectiveUser.email, created_at: new Date().toISOString() };
       const { data, error } = await schema().from('talents_applications').insert(payload).select('*').single();
       if (error) throw error;
@@ -942,6 +955,20 @@ export default function App() {
   const handleDragEnd = async (cId, stage) => {
     const candidate = candidates.find(c => c.id === cId);
     if (!candidate || candidate.status === stage) return;
+
+    // Aviso de automação ao mover para Considerado
+    if (stage === 'Considerado' && candidate.status === 'Inscrito') {
+      const confirmar = window.confirm(
+        `⚠️ Automação ativa\n\n` +
+        `Ao mover "${candidate.fullName}" para "Considerado", o candidato receberá automaticamente:\n\n` +
+        `📧 Email: "Você avançou no processo seletivo"\n` +
+        `🎥 Vídeo 1: Boas-vindas à Young Empreendimentos\n\n` +
+        `O email será enviado para: ${candidate.email}\n\n` +
+        `Deseja continuar?`
+      );
+      if (!confirmar) return;
+    }
+
     // 'Inscrito' nunca entra no pipeline — qualquer tentativa de mover exige vincular a vaga
     const requiresJob = stage === 'Inscrito' ? false : PIPELINE_STAGES.indexOf(stage) >= PIPELINE_STAGES.indexOf('Considerado');
     if (requiresJob) {
