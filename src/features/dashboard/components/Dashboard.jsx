@@ -30,6 +30,70 @@ const PERIOD_OPTIONS = [
     { value: 'custom', label: 'Período' },
 ];
 
+const ACCESS_ROLE_OPTIONS = [
+    { value: 'viewer', label: 'Visualizador' },
+    { value: 'editor', label: 'Editor' },
+    { value: 'admin', label: 'Administrador' },
+];
+
+const AccessRequestRow = ({ req, onApprove, onReject }) => {
+    const [role, setRole] = useState('viewer');
+    const [busy, setBusy] = useState(false);
+    const act = async (fn) => { setBusy(true); try { await fn(); } finally { setBusy(false); } };
+    return (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between p-3 rounded-lg border border-border bg-background">
+            <div className="min-w-0">
+                <p className="font-medium text-foreground truncate">{req.full_name || req.email || 'Usuário'}</p>
+                <p className="text-sm text-muted-foreground truncate">{req.email}</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+                <select
+                    value={role}
+                    onChange={e => setRole(e.target.value)}
+                    disabled={busy}
+                    className="px-2.5 py-1.5 bg-card border border-border rounded-lg text-sm text-foreground outline-none focus:border-brand-orange"
+                >
+                    {ACCESS_ROLE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+                <button
+                    type="button"
+                    onClick={() => act(() => onApprove?.(req.id, role))}
+                    disabled={busy}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium disabled:opacity-50"
+                >
+                    <UserCheck size={15} /> Aprovar
+                </button>
+                <button
+                    type="button"
+                    onClick={() => act(() => onReject?.(req.id))}
+                    disabled={busy}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:text-red-600 hover:border-red-300 text-sm font-medium disabled:opacity-50"
+                >
+                    <UserX size={15} /> Recusar
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const AccessRequestsCard = ({ requests, onApprove, onReject }) => {
+    if (!requests || requests.length === 0) return null;
+    return (
+        <div className="rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4">
+            <div className="flex items-center gap-2 mb-3">
+                <Clock size={18} className="text-amber-600 dark:text-amber-400" />
+                <h3 className="font-semibold text-foreground">Solicitações de acesso</h3>
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-600 text-white text-xs font-semibold">{requests.length}</span>
+            </div>
+            <div className="space-y-2">
+                {requests.map(req => (
+                    <AccessRequestRow key={req.id} req={req} onApprove={onApprove} onReject={onReject} />
+                ))}
+            </div>
+        </div>
+    );
+};
+
 const Dashboard = ({
     candidatesLoading = false,
     filteredJobs,
@@ -44,7 +108,11 @@ const Dashboard = ({
     applications: applicationsProp = [],
     onViewJob,
     interviews = [],
-    onScheduleInterview
+    onScheduleInterview,
+    currentUserRole,
+    accessRequests = [],
+    onApproveAccess,
+    onRejectAccess
 }) => {
     const applications = applicationsProp || [];
     const [periodFilter, setPeriodFilter] = useState('today');
@@ -158,6 +226,11 @@ const Dashboard = ({
 
     return (
         <div className="text-foreground space-y-5 pb-8">
+
+            {/* Card admin: solicitações de acesso pendentes (padrão Paver) */}
+            {currentUserRole === 'admin' && (
+                <AccessRequestsCard requests={accessRequests} onApprove={onApproveAccess} onReject={onRejectAccess} />
+            )}
 
             {/* Filtro de período — chips */}
             <div className="flex items-center gap-1.5 flex-wrap">

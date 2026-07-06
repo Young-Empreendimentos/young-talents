@@ -23,7 +23,8 @@ export default function SettingsPage({
   currentUserRole = 'admin',
   onSetUserRole,
   onRemoveUserRole,
-  onCreateUserWithPassword,
+  onAuthorizeUserByEmail,
+  onSetUserActive,
   currentUserEmail,
   currentUserName,
   currentUserPhoto,
@@ -94,7 +95,7 @@ export default function SettingsPage({
         {activeTab === 'pipeline' && <PipelineManager pipelineStages={pipelineStages} onUpdatePipelineStages={onUpdatePipelineStages} />}
         {activeTab === 'companies' && <CompaniesManager onShowToast={onShowToast} />}
         {activeTab === 'import' && <ImportExportManager onOpenCsvModal={onOpenCsvModal} onShowToast={onShowToast} />}
-        {activeTab === 'users' && <UserManager userRoles={userRoles} currentUserRole={currentUserRole} onSetUserRole={onSetUserRole} onRemoveUserRole={onRemoveUserRole} onCreateUserWithPassword={onCreateUserWithPassword} currentUserEmail={currentUserEmail} currentUserName={currentUserName} currentUserPhoto={currentUserPhoto} onShowToast={onShowToast} />}
+        {activeTab === 'users' && <UserManager userRoles={userRoles} currentUserRole={currentUserRole} onSetUserRole={onSetUserRole} onRemoveUserRole={onRemoveUserRole} onAuthorizeUserByEmail={onAuthorizeUserByEmail} onSetUserActive={onSetUserActive} currentUserEmail={currentUserEmail} currentUserName={currentUserName} currentUserPhoto={currentUserPhoto} onShowToast={onShowToast} />}
         {activeTab === 'emails' && (
           <>
             <div className="mb-4 px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-gray-400 text-sm">
@@ -714,13 +715,12 @@ const ImportExportManager = ({ onOpenCsvModal, onShowToast }) => {
 );
 };
 
-const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveUserRole, onCreateUserWithPassword, currentUserEmail, currentUserName, currentUserPhoto, onShowToast }) => {
+const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveUserRole, onAuthorizeUserByEmail, onSetUserActive, currentUserEmail, currentUserName, currentUserPhoto, onShowToast }) => {
   const [showAddUser, setShowAddUser] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
-  const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState('editor');
-  const [addUserMode, setAddUserMode] = useState('google'); // 'google' | 'password'
+  const [addingUser, setAddingUser] = useState(false);
 
   const ROLES = [
     { value: 'admin', label: 'Administrador', color: 'bg-purple-900/30 text-purple-300 border-purple-800', desc: 'Acesso total ao sistema' },
@@ -728,36 +728,33 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
     { value: 'viewer', label: 'Visualizador', color: 'bg-gray-900/30 text-gray-300 border-gray-700', desc: 'Apenas visualização, sem edição' }
   ];
 
+  const resetAddUser = () => {
+    setNewUserEmail('');
+    setNewUserName('');
+    setShowAddUser(false);
+  };
+
   const handleAddUser = async () => {
     if (!newUserEmail.trim() || !newUserEmail.includes('@')) {
       if (onShowToast) onShowToast('Digite um email válido', 'error');
       return;
     }
-
-    if (addUserMode === 'password') {
-      if (!newUserPassword || newUserPassword.length < 6) {
-        if (onShowToast) onShowToast('A senha deve ter pelo menos 6 caracteres', 'error');
-        return;
+    const email = newUserEmail.trim().toLowerCase();
+    const name = newUserName.trim();
+    setAddingUser(true);
+    try {
+      // Se a conta já logou ao menos uma vez, libera via RPC (fecha pedido pendente).
+      const res = onAuthorizeUserByEmail
+        ? await onAuthorizeUserByEmail(email, newUserRole, { silentNoAccount: true })
+        : { ok: false, noAccount: true };
+      if (res.ok) { resetAddUser(); return; }
+      // Senão, pré-autoriza por e-mail (vale antes do 1º login).
+      if (res.noAccount && onSetUserRole) {
+        await onSetUserRole(email, newUserRole, name);
+        resetAddUser();
       }
-      if (onCreateUserWithPassword) {
-        const ok = await onCreateUserWithPassword(newUserEmail.trim().toLowerCase(), newUserPassword, newUserRole, newUserName.trim());
-        if (ok) {
-          setNewUserEmail('');
-          setNewUserName('');
-          setNewUserPassword('');
-          setShowAddUser(false);
-        }
-      } else {
-        if (onShowToast) onShowToast('Criação com senha requer a Edge Function create-user. Faça o deploy em Supabase.', 'error');
-      }
-      return;
-    }
-
-    if (onSetUserRole) {
-      await onSetUserRole(newUserEmail.trim().toLowerCase(), newUserRole, newUserName.trim());
-      setNewUserEmail('');
-      setNewUserName('');
-      setShowAddUser(false);
+    } finally {
+      setAddingUser(false);
     }
   };
 
@@ -787,51 +784,21 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
       {/* Formulário de adicionar usuário */}
       {showAddUser && isAdmin && (
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 space-y-4">
-          <h4 className="font-medium text-blue-800 dark:text-blue-300">Novo Usuário</h4>
-          <div className="flex gap-2 mb-2">
-            <button
-              type="button"
-              onClick={() => setAddUserMode('google')}
-              className={`px-3 py-1.5 rounded text-sm font-medium ${addUserMode === 'google' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-muted-foreground'}`}
-            >
-              Login com Google
-            </button>
-            <button
-              type="button"
-              onClick={() => setAddUserMode('password')}
-              className={`px-3 py-1.5 rounded text-sm font-medium ${addUserMode === 'password' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-muted-foreground'}`}
-            >
-              Email e senha
-            </button>
-          </div>
+          <h4 className="font-medium text-blue-800 dark:text-blue-300">Liberar acesso por e-mail</h4>
           <p className="text-xs text-blue-700 dark:text-blue-400">
-            {addUserMode === 'google'
-              ? 'O usuário deve fazer login com Google usando o email cadastrado. O nome e foto serão atualizados automaticamente no primeiro login.'
-              : 'Cria uma conta com email e senha. O usuário poderá fazer login em /login com essas credenciais.'}
+            O login é feito com Google. Informe o e-mail da conta Young: se a pessoa já entrou ao menos uma vez, o acesso é liberado na hora (e o pedido pendente é encerrado); caso contrário, fica pré-autorizado e vale no primeiro login. Nome e foto são preenchidos automaticamente.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2">
               <label className="block text-xs font-medium text-muted-foreground mb-1">Email *</label>
               <input
                 type="email"
-                placeholder={addUserMode === 'google' ? 'usuario@gmail.com' : 'usuario@empresa.com'}
+                placeholder="usuario@youngempreendimentos.com.br"
                 value={newUserEmail}
                 onChange={e => setNewUserEmail(e.target.value)}
                 className="w-full px-3 py-2 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            {addUserMode === 'password' && (
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">Senha * (mín. 6 caracteres)</label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={newUserPassword}
-                  onChange={e => setNewUserPassword(e.target.value)}
-                  className="w-full px-3 py-2 bg-card border border-input rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            )}
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Nome (opcional)</label>
               <input
@@ -856,11 +823,11 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <button onClick={() => { setShowAddUser(false); setNewUserEmail(''); setNewUserName(''); setNewUserPassword(''); }} className="px-4 py-2 text-muted-foreground hover:text-gray-900 dark:hover:text-foreground">
+            <button onClick={resetAddUser} disabled={addingUser} className="px-4 py-2 text-muted-foreground hover:text-gray-900 dark:hover:text-foreground disabled:opacity-50">
               Cancelar
             </button>
-            <button onClick={handleAddUser} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700">
-              Adicionar
+            <button onClick={handleAddUser} disabled={addingUser} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50">
+              {addingUser ? 'Liberando…' : 'Liberar acesso'}
             </button>
           </div>
         </div>
@@ -939,35 +906,53 @@ const UserManager = ({ userRoles = [], currentUserRole, onSetUserRole, onRemoveU
                   </div>
                 </td>
                 <td className="p-4">
-                  {isAdmin && userRole.email !== currentUserEmail ? (
-                    <select
-                      value={userRole.role}
-                      onChange={e => onSetUserRole && onSetUserRole(userRole.email, e.target.value)}
-                      className={`px-2 py-1 rounded text-xs border cursor-pointer ${getRoleInfo(userRole.role).color}`}
-                    >
-                      {ROLES.map(r => (
-                        <option key={r.value} value={r.value}>{r.label}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <span className={`px-2 py-1 rounded text-xs border ${getRoleInfo(userRole.role).color}`}>
-                      {getRoleInfo(userRole.role).label}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {isAdmin && userRole.email !== currentUserEmail ? (
+                      <select
+                        value={userRole.role}
+                        onChange={e => onSetUserRole && onSetUserRole(userRole.email, e.target.value)}
+                        className={`px-2 py-1 rounded text-xs border cursor-pointer ${getRoleInfo(userRole.role).color}`}
+                      >
+                        {ROLES.map(r => (
+                          <option key={r.value} value={r.value}>{r.label}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className={`px-2 py-1 rounded text-xs border ${getRoleInfo(userRole.role).color}`}>
+                        {getRoleInfo(userRole.role).label}
+                      </span>
+                    )}
+                    {userRole.ativo === false && (
+                      <span className="px-2 py-0.5 rounded text-xs border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">
+                        Inativo
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="p-4 text-muted-foreground text-xs">
                   {userRole.createdAt?.toDate ? userRole.createdAt.toDate().toLocaleDateString('pt-BR') : 'N/A'}
                 </td>
                 {isAdmin && (
-                  <td className="p-4 text-right">
+                  <td className="p-4">
                     {userRole.email !== currentUserEmail && (
-                      <button
-                        onClick={() => onRemoveUserRole && onRemoveUserRole(userRole.id)}
-                        className="text-red-500 hover:text-red-700 p-1"
-                        title="Remover acesso"
-                      >
-                        <Trash2 size={16}/>
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => onSetUserActive && onSetUserActive(userRole.id, userRole.ativo === false)}
+                          className={`px-2 py-1 rounded text-xs font-medium border ${userRole.ativo === false
+                            ? 'text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+                            : 'text-amber-600 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20'}`}
+                          title={userRole.ativo === false ? 'Reativar acesso' : 'Desativar acesso (mantém o cadastro)'}
+                        >
+                          {userRole.ativo === false ? 'Reativar' : 'Desativar'}
+                        </button>
+                        <button
+                          onClick={() => onRemoveUserRole && onRemoveUserRole(userRole.id)}
+                          className="text-red-500 hover:text-red-700 p-1"
+                          title="Remover acesso"
+                        >
+                          <Trash2 size={16}/>
+                        </button>
+                      </div>
                     )}
                   </td>
                 )}

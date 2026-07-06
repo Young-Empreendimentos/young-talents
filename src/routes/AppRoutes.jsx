@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import LoginPage from '../components/LoginPage';
+import AccessPendingPage from '../components/AccessPendingPage';
 import ResetPasswordPage from '../components/ResetPasswordPage';
 import PublicCandidateForm from '../components/PublicCandidateForm';
 import FormSubmitTestPage from '../components/FormSubmitTestPage';
@@ -104,8 +105,14 @@ const AppRoutes = ({
     origins,
     userRoles,
     currentUserRole,
-    hasStaffRole,
+    hasActiveAccess,
     authStaffReady,
+    accessRequests,
+    accessRequestStatus,
+    approveAccessRequest,
+    rejectAccessRequest,
+    authorizeUserByEmail,
+    setUserActive,
 
     // Handlers
     handleSaveGeneric,
@@ -164,9 +171,9 @@ const AppRoutes = ({
                     ? <Navigate to="/login" replace />
                     : !authStaffReady
                     ? <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground"><Loader2 className="animate-spin mr-2" /> Verificando permissões…</div>
-                    : hasStaffRole
+                    : hasActiveAccess
                     ? <Navigate to="/dashboard" replace />
-                    : <Navigate to="/apply" replace />
+                    : <AccessPendingPage user={effectiveUser} status={accessRequestStatus} />
             } />
 
             <Route path="/candidate/:id/:tab?" element={
@@ -174,8 +181,8 @@ const AppRoutes = ({
                     ? <Navigate to="/login" replace />
                     : !authStaffReady
                     ? <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground"><Loader2 className="animate-spin mr-2" /> Verificando permissões…</div>
-                    : !hasStaffRole
-                    ? <Navigate to="/apply" replace />
+                    : !hasActiveAccess
+                    ? <AccessPendingPage user={effectiveUser} status={accessRequestStatus} />
                     : (
                 <CandidateProfilePage
                     candidates={candidates}
@@ -215,8 +222,8 @@ const AppRoutes = ({
                     ? <Navigate to="/login" replace />
                     : !authStaffReady
                     ? <div className="flex h-screen items-center justify-center bg-background text-muted-foreground"><Loader2 className="animate-spin mr-2" /> Verificando permissões…</div>
-                    : !hasStaffRole
-                    ? <Navigate to="/apply" replace />
+                    : !hasActiveAccess
+                    ? <AccessPendingPage user={effectiveUser} status={accessRequestStatus} />
                     : <AppLayout
                     isSidebarCollapsed={isSidebarCollapsed}
                     SidebarComponent={
@@ -274,7 +281,7 @@ const AppRoutes = ({
                         </div>
                     )}
 
-                    {activeTab === 'dashboard' && <div className="p-6 overflow-y-auto h-full"><Dashboard candidatesLoading={candidatesLoading} filteredJobs={jobs} filteredCandidates={filteredCandidates} totalCandidatesCount={uniqueCandidatesByEmail.length} totalSubmissionsCount={candidates.filter(c => !c.deletedAt).length} onOpenCandidates={setDashboardModalCandidates} onSetModalTitle={setDashboardModalTitle} onNavigateToCandidates={(path) => navigate(path)} onNavigateToJobs={(path) => navigate(path)} statusMovements={statusMovements} applications={applications} onViewJob={openJobCandidatesModal} interviews={interviews} onScheduleInterview={(candidate) => setInterviewModalData({ candidate })} /></div>}
+                    {activeTab === 'dashboard' && <div className="p-6 overflow-y-auto h-full"><Dashboard candidatesLoading={candidatesLoading} filteredJobs={jobs} filteredCandidates={filteredCandidates} totalCandidatesCount={uniqueCandidatesByEmail.length} totalSubmissionsCount={candidates.filter(c => !c.deletedAt).length} onOpenCandidates={setDashboardModalCandidates} onSetModalTitle={setDashboardModalTitle} onNavigateToCandidates={(path) => navigate(path)} onNavigateToJobs={(path) => navigate(path)} statusMovements={statusMovements} applications={applications} onViewJob={openJobCandidatesModal} interviews={interviews} onScheduleInterview={(candidate) => setInterviewModalData({ candidate })} currentUserRole={currentUserRole} accessRequests={accessRequests} onApproveAccess={approveAccessRequest} onRejectAccess={rejectAccessRequest} /></div>}
                     {activeTab === 'pipeline' && <PipelineView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onDragEnd={handleDragEnd} onEdit={openCandidateProfile} onCloseStatus={handleCloseStatus} applications={applications} interviews={interviews} forceViewMode="kanban" highlightedCandidateId={highlightedCandidateId} filters={filters} setFilters={setFilters} onToggleStar={handleToggleStar} pipelineStages={pipelineStages} />}
                     {activeTab === 'candidates' && <TalentBankView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onEdit={openCandidateProfile} applications={applications} onStatusChange={handleDragEnd} filters={filters} setFilters={setFilters} onToggleStar={handleToggleStar} onAddCandidate={(data, closeFn) => handleSaveGeneric('candidates', data, closeFn)} isSaving={isSaving} interestAreas={interestAreas} showToast={showToast} onOpenFilterSidebar={() => setIsFilterSidebarOpen(true)} />}
                     {activeTab === 'mappings' && <MappingsPage mappings={mappings} candidates={candidates} positions={roles} onUpdateStatus={updateMappingStatus} onDelete={deleteMapping} showToast={showToast} />}
@@ -309,7 +316,7 @@ const AppRoutes = ({
                     {activeTab === 'diagnostic' && <div className="p-6 overflow-y-auto h-full"><DiagnosticPage candidates={candidates} /></div>}
                     {activeTab === 'settings' && (currentUserRole === 'viewer'
                         ? <Navigate to="/dashboard" replace />
-                        : <div className="p-0 h-full"><SettingsPage {...optionsProps} onOpenCsvModal={openCsvModal} activeSettingsTab={route.settingsTab} onSettingsTabChange={(tab) => { const params = new URLSearchParams(location.search); params.set('settingsTab', tab); navigate(`${location.pathname}?${params.toString()}`); setRoute(prev => ({ ...prev, settingsTab: tab })); }} onShowToast={showToast} userRoles={userRoles} currentUserRole={currentUserRole} onSetUserRole={setUserRole} onRemoveUserRole={removeUserRole} onCreateUserWithPassword={createUserWithPassword} currentUserEmail={effectiveUser?.email} currentUserName={effectiveUser?.displayName} currentUserPhoto={effectiveUser?.photoURL} activityLog={activityLog} candidateFields={CANDIDATE_FIELDS} candidates={candidates} pipelineStages={pipelineStages} onUpdatePipelineStages={onUpdatePipelineStages} /></div>)}
+                        : <div className="p-0 h-full"><SettingsPage {...optionsProps} onOpenCsvModal={openCsvModal} activeSettingsTab={route.settingsTab} onSettingsTabChange={(tab) => { const params = new URLSearchParams(location.search); params.set('settingsTab', tab); navigate(`${location.pathname}?${params.toString()}`); setRoute(prev => ({ ...prev, settingsTab: tab })); }} onShowToast={showToast} userRoles={userRoles} currentUserRole={currentUserRole} onSetUserRole={setUserRole} onRemoveUserRole={removeUserRole} onCreateUserWithPassword={createUserWithPassword} onAuthorizeUserByEmail={authorizeUserByEmail} onSetUserActive={setUserActive} currentUserEmail={effectiveUser?.email} currentUserName={effectiveUser?.displayName} currentUserPhoto={effectiveUser?.photoURL} activityLog={activityLog} candidateFields={CANDIDATE_FIELDS} candidates={candidates} pipelineStages={pipelineStages} onUpdatePipelineStages={onUpdatePipelineStages} /></div>)}
 
                     <FilterSidebar isOpen={isFilterSidebarOpen} onClose={() => setIsFilterSidebarOpen(false)} filters={filters} setFilters={setFilters} clearFilters={() => setFilters(initialFilters)} options={optionsProps} candidates={candidates} />
 

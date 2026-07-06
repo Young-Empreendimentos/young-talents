@@ -208,8 +208,11 @@ export default function App() {
   const [interactions, setInteractions] = useState([]);
   const [mappings, setMappings] = useState([]);
   const [interactionTypes, setInteractionTypes] = useState([]);
-  const [userRoles, setUserRoles] = useState([{ email: DEV_USER.email, role: 'admin' }]);
+  const [userRoles, setUserRoles] = useState([{ email: DEV_USER.email, role: 'admin', ativo: true }]);
   const [userRolesLoaded, setUserRolesLoaded] = useState(false);
+  // Padrão Paver: fila de solicitações de acesso (admin) + status do próprio usuário
+  const [accessRequests, setAccessRequests] = useState([]);
+  const [accessRequestStatus, setAccessRequestStatus] = useState(null);
   const [activityLog, setActivityLog] = useState([]);
   const activityLogUnavailableRef = React.useRef(false);
   const dataLoadedForUserRef = useRef(false);
@@ -547,6 +550,17 @@ export default function App() {
     }
   }, []);
 
+  // Padrão Paver: solicitações de acesso pendentes (para o card de aprovação na home).
+  const loadAccessRequests = React.useCallback(async () => {
+    if (!supabase) return;
+    const { data, error } = await supabase
+      .from('talents_solicitacao_acesso')
+      .select('*')
+      .eq('status', 'pending')
+      .order('requested_at', { ascending: true });
+    if (!error) setAccessRequests(data ?? []);
+  }, []);
+
   const loadAllData = React.useCallback(async () => {
     await Promise.all([loadCandidates(), loadJobs(), loadCompanies(), loadCities(), loadSectors(), loadRoles(), loadJobLevels(), loadActivityAreas(), loadApplications(), loadInteractionTypes(), loadMappings()]);
   }, [loadCandidates, loadJobs, loadCompanies, loadCities, loadSectors, loadRoles, loadJobLevels, loadActivityAreas, loadApplications, loadInteractionTypes, loadMappings]);
@@ -558,6 +572,12 @@ export default function App() {
     const r = userRoleDoc?.role;
     return r === 'admin' || r === 'editor' || r === 'viewer';
   }, [isDeveloper, effectiveUser, userRoleDoc]);
+
+  /** 2ª validação (padrão Paver): além do papel, exige ativo=true (soft-disable). */
+  const hasActiveAccess = useMemo(() => {
+    if (isDeveloper) return true;
+    return hasStaffRole && userRoleDoc?.ativo !== false;
+  }, [isDeveloper, hasStaffRole, userRoleDoc]);
 
   /** Evita redirect para /login antes do fetch de user_roles (comum após OAuth). */
   const authStaffReady = useMemo(() => {
@@ -571,8 +591,8 @@ export default function App() {
       dataLoadedForUserRef.current = false;
       return;
     }
-    // Só carrega dados do app interno quando usuário tem role em user_roles (ou é dev)
-    if (!hasStaffRole) {
+    // Só carrega dados do app interno quando usuário tem acesso ATIVO (papel + ativo) ou é dev
+    if (!hasActiveAccess) {
       dataLoadedForUserRef.current = false;
       return;
     }
@@ -581,7 +601,10 @@ export default function App() {
       loadAllData().then(() => {
         dataLoadedForUserRef.current = true;
       });
-      if (currentUserRole === 'admin') loadActivityLog();
+      if (currentUserRole === 'admin') {
+        loadActivityLog();
+        loadAccessRequests();
+      }
     }
     if (supabase) {
       channel = supabase.channel('candidates_changes').on('postgres_changes', { event: '*', schema: 'public', table: 'talents_candidates' }, () => { loadCandidates(); }).subscribe();
@@ -589,7 +612,7 @@ export default function App() {
     return () => {
       if (supabase && channel) supabase.removeChannel(channel);
     };
-  }, [effectiveUser, loadAllData, loadActivityLog, currentUserRole, hasStaffRole, loadCandidates]);
+  }, [effectiveUser, loadAllData, loadActivityLog, loadAccessRequests, currentUserRole, hasActiveAccess, loadCandidates]);
 
   // Sync user_roles
   const prevUserEmailRef = useRef(null);
@@ -639,6 +662,30 @@ export default function App() {
     })();
     return () => { cancelled = true; };
   }, [user]);
+
+  // Onboarding automático (padrão Paver): logou sem acesso ativo → registra/reabre
+  // pedido em talents_solicitacao_acesso e busca o status próprio para a tela.
+  useEffect(() => {
+    if (!supabase || !user || user.email === DEV_USER.email || !userRolesLoaded) return;
+    if (hasActiveAccess) { setAccessRequestStatus(null); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        await supabase.rpc('talents_registrar_solicitacao_acesso');
+      } catch (e) { console.warn('registrar_solicitacao_acesso:', e?.message); }
+      try {
+        const { data } = await supabase
+          .from('talents_solicitacao_acesso')
+          .select('status')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (!cancelled) setAccessRequestStatus(data?.status || 'pending');
+      } catch (_e) {
+        if (!cancelled) setAccessRequestStatus('pending');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user, userRolesLoaded, hasActiveAccess]);
 
   // Handlers
   const recordActivity = async (activityType, description, entityType = null, entityId = null, metadata = {}) => {
@@ -858,6 +905,60 @@ export default function App() {
       const { data } = await schema().from('talents_user_roles').select('*').order('created_at', { ascending: false });
       if (data) setUserRoles(data);
     } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao remover.', 'error'); }
+  };
+
+  // Padrão Paver: aprovar / recusar solicitação de acesso e liberar por e-mail.
+  const reloadUserRoles = async () => {
+    const { data } = await schema().from('talents_user_roles').select('*').order('created_at', { ascending: false });
+    if (data) setUserRoles(data);
+  };
+
+  const approveAccessRequest = async (id, role = 'viewer') => {
+    try {
+      const { error } = await supabase.rpc('talents_aprovar_solicitacao', { p_id: id, p_role: role });
+      if (error) throw error;
+      showToast('Acesso aprovado.', 'success');
+      await loadAccessRequests();
+      await reloadUserRoles();
+    } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao aprovar.', 'error'); }
+  };
+
+  const rejectAccessRequest = async (id) => {
+    try {
+      const { error } = await supabase.rpc('talents_recusar_solicitacao', { p_id: id });
+      if (error) throw error;
+      showToast('Solicitação recusada.', 'success');
+      await loadAccessRequests();
+    } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao recusar.', 'error'); }
+  };
+
+  // Libera uma conta que JÁ logou (fecha pedido pendente). Retorna {ok, noAccount}
+  // para o chamador decidir o fallback (pré-cadastro por e-mail via setUserRole).
+  const authorizeUserByEmail = async (email, role = 'viewer', { silentNoAccount = false } = {}) => {
+    try {
+      const { error } = await supabase.rpc('talents_authorize_user', { p_email: email, p_role: role });
+      if (error) throw error;
+      showToast('Usuário liberado.', 'success');
+      await reloadUserRoles();
+      await loadAccessRequests();
+      return { ok: true, noAccount: false };
+    } catch (err) {
+      const msg = err?.message || '';
+      const noAccount = err?.code === 'no_data_found' || /nenhuma conta encontrada/i.test(msg);
+      if (!(silentNoAccount && noAccount)) {
+        showToast(translateSupabaseError(msg).text || 'Erro ao liberar usuário.', 'error');
+      }
+      return { ok: false, noAccount };
+    }
+  };
+
+  const setUserActive = async (id, ativo) => {
+    try {
+      const { error } = await schema().from('talents_user_roles').update({ ativo, updated_at: new Date().toISOString() }).eq('id', id);
+      if (error) throw error;
+      showToast(ativo ? 'Usuário reativado.' : 'Usuário desativado.', 'success');
+      await reloadUserRoles();
+    } catch (err) { showToast(translateSupabaseError(err?.message).text || 'Erro ao atualizar status.', 'error'); }
   };
 
   const createUserWithPassword = async (email, password, role, name) => {
@@ -1125,7 +1226,10 @@ export default function App() {
       highlightedCandidateId={highlightedCandidateId} setHighlightedCandidateId={setHighlightedCandidateId}
       interviewModalData={interviewModalData} setInterviewModalData={setInterviewModalData}
       toast={toast} optionsProps={optionsProps} schooling={schooling} marital={marital} origins={origins}
-      interestAreas={interestAreas} userRoles={userRoles} currentUserRole={currentUserRole} hasStaffRole={hasStaffRole} authStaffReady={authStaffReady}
+      interestAreas={interestAreas} userRoles={userRoles} currentUserRole={currentUserRole} hasStaffRole={hasStaffRole} hasActiveAccess={hasActiveAccess} authStaffReady={authStaffReady}
+      accessRequests={accessRequests} accessRequestStatus={accessRequestStatus}
+      approveAccessRequest={approveAccessRequest} rejectAccessRequest={rejectAccessRequest}
+      authorizeUserByEmail={authorizeUserByEmail} setUserActive={setUserActive}
       handleSaveGeneric={handleSaveGeneric} handleDeleteGeneric={handleDeleteGeneric}
       openCandidateProfile={openCandidateProfile} openJobModal={openJobModal} closeJobModal={closeJobModal}
       openCsvModal={openCsvModal} closeCsvModal={closeCsvModal}
