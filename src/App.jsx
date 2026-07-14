@@ -202,7 +202,6 @@ export default function App() {
   const [schooling, setSchooling] = useState([]);
   const [marital, setMarital] = useState([]);
   const [tags, setTags] = useState([]);
-  const [statusMovements, setStatusMovements] = useState([]);
   const [applications, setApplications] = useState([]);
   const [interviews, setInterviews] = useState([]);
   const [interactions, setInteractions] = useState([]);
@@ -215,6 +214,37 @@ export default function App() {
   const [accessRequestStatus, setAccessRequestStatus] = useState(null);
   const [activityLog, setActivityLog] = useState([]);
   const activityLogUnavailableRef = React.useRef(false);
+
+  // Movimentações de status derivadas do activity_log (o app nunca populou um
+  // estado próprio de statusMovements). Cada mudança de status vira uma
+  // "movimentação"; o status anterior é inferido encadeando, em ordem
+  // cronológica, as mudanças do mesmo candidato. Alimenta o card de
+  // Relatórios, o funil do Dashboard e a Timeline da ficha do candidato.
+  // Obs.: o activity_log é carregado com limite de 500 registros recentes.
+  const statusMovements = useMemo(() => {
+    const parseNewStatus = (desc = '') => {
+      if (/promovido para Considerado/i.test(desc)) return 'Considerado';
+      const m = desc.match(/(?:Status alterado|Candidatura atualizada)\s+para\s+(.+?)\s*$/i);
+      return m ? m[1].trim() : null;
+    };
+    const changes = (activityLog || [])
+      .filter(l => l.entityType === 'candidate' && parseNewStatus(l.description))
+      .map(l => ({
+        id: l.id,
+        candidateId: l.entityId,
+        newStatus: parseNewStatus(l.description),
+        timestamp: l.timestamp,
+        userName: l.userName,
+        userEmail: l.userEmail,
+      }))
+      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const lastByCandidate = {};
+    for (const mv of changes) {
+      mv.previousStatus = lastByCandidate[mv.candidateId] || null;
+      lastByCandidate[mv.candidateId] = mv.newStatus;
+    }
+    return changes;
+  }, [activityLog]);
   const dataLoadedForUserRef = useRef(false);
   const [candidatesLoading, setCandidatesLoading] = useState(false);
 

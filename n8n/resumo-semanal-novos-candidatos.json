@@ -1,0 +1,376 @@
+{
+  "name": "Young Talents - Resumo semanal de novos candidatos",
+  "active": false,
+  "settings": {
+    "timezone": "America/Sao_Paulo",
+    "executionOrder": "v1"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "sched-0001",
+      "name": "Toda segunda 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://vvtympzatclvjaqucebr.supabase.co/rest/v1/rpc/talents_resumo_candidatos_semana",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{}",
+        "options": {}
+      },
+      "id": "fetch-0002",
+      "name": "Buscar candidatos (7 dias)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        140,
+        300
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "REPLACE_SUPABASE_CRED_ID",
+          "name": "Supabase Young (service_role)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cond-total",
+              "leftValue": "={{ $json.total }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-0003",
+      "name": "Tem candidato?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        360,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "candidatos",
+        "options": {}
+      },
+      "id": "split-0004",
+      "name": "Separar candidatos",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        560,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const cv = ($json.cv_url || '') + '';\nconst isDrive = cv.indexOf('drive.google.com') !== -1 || cv.indexOf('docs.google.com') !== -1;\nlet id = '';\nif (isDrive) {\n  if (cv.indexOf('/d/') !== -1) { id = cv.split('/d/')[1].split('/')[0].split('?')[0]; }\n  else if (cv.indexOf('id=') !== -1) { id = cv.split('id=')[1].split('&')[0]; }\n}\nreturn { json: Object.assign({}, $json, { driveFileId: id || 'SEM_ARQUIVO', temDrive: !!id }) };"
+      },
+      "id": "code-0005",
+      "name": "Extrair Drive ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.driveFileId }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "gdrive-0006",
+      "name": "Baixar CV (Drive)",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        960,
+        220
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "REPLACE_GDRIVE_CRED_ID",
+          "name": "Google Drive Young"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const cand = $('Extrair Drive ID').all().map(i => i.json);\nconst cur = $input.all();\nconst MAX_CV = 25;\nconst fileParts = [];\nfunction tcase(s) {\n  return s.split(' ').map(function (w) { return w ? (w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()) : w; }).join(' ');\n}\nfor (let i = 0; i < cand.length; i++) {\n  const c = cand[i];\n  const it = cur[i] || {};\n  const bkeys = it.binary ? Object.keys(it.binary) : [];\n  const meta = bkeys.length ? it.binary[bkeys[0]] : null;\n  const mt = meta && meta.mimeType ? meta.mimeType : '';\n  const okType = mt.indexOf('application/pdf') === 0 || mt.indexOf('image/') === 0;\n  const hasErr = it.json && it.json.error ? true : false;\n  let b64 = '';\n  if (meta && okType && !hasErr && fileParts.length < MAX_CV) {\n    try {\n      const buff = await this.helpers.getBinaryDataBuffer(i, bkeys[0]);\n      b64 = buff ? buff.toString('base64') : '';\n    } catch (e) { b64 = ''; }\n  }\n  const raw = (c.area_interesse || '').split(',').map(function (s) { return tcase(s.trim()); }).filter(function (s) { if (!s.length) return false; const t = s.toLowerCase(); return t.indexOf('estag') !== 0 && t.indexOf('está') !== 0; });\n  // >>> EDITE: area (em minusculas) -> grupo/vaga onde ela aparece.\n  const MAP_GRUPO = { 'marketing': 'Comercial' };\n  function grupoVaga(a) { return MAP_GRUPO[a.toLowerCase()] || a; }\n  const vlist = raw.length ? Array.from(new Set(raw.map(grupoVaga))) : ['Nao informado'];\n  c._vaga = vlist[0];\n  c._areaMarcada = raw.length ? raw[0] : 'Nao informado';\n  c._outras = vlist.slice(1);\n  c._cvLido = !!b64;\n  if (b64) {\n    fileParts.push({ text: '\\n=== Curriculo (n ' + (i + 1) + ') de ' + (c.nome || 'candidato') + ' ===' });\n    fileParts.push({ inlineData: { mimeType: mt, data: b64 } });\n  }\n}\nconst dados = cand.map(function (c, idx) {\n  return {\n    n: idx + 1, nome: c.nome, cidade: c.cidade, idade: c.idade, foto: c.foto || null,\n    vaga: c._vaga, area_marcada: c._areaMarcada, outras_areas_marcadas: c._outras, cv_lido: c._cvLido, cv_url: c.cv_url,\n    escolaridade: c.escolaridade, formacao: c.formacao, instituicao: c.instituicao, esta_estudando: c.esta_estudando,\n    experiencia: c.experiencia, cursos: c.cursos, certificacoes: c.certificacoes,\n    pretensao_salarial: c.pretensao_salarial, disponivel_mudanca: c.disponivel_mudanca, cnh: c.cnh\n  };\n});\n// >>> EDITE AQUI: areas da Young (usadas so no campo onde_agrega).\nconst areasYoung = ['Comercial / Vendas','Engenharia e Obras','Projetos e Licenciamento','Captacao e Novos Negocios','Pos-venda','Financeiro e Cobranca','RH / Gente (recrutamento e contratacoes)','Administrativo, Registros e Documentacao','Marketing','TI / Sistemas'];\nconst instrucao = [\n  'Voce e analista de RH da Young Empreendimentos (incorporadora e loteadora).',\n  'Analise os candidatos e RETORNE APENAS JSON valido (sem texto fora do JSON e sem cercas de codigo) neste formato:',\n  '{ \"vagas\": [ { \"vaga\": \"<nome exato da vaga>\", \"candidatos\": [ { \"n\": <n>, \"nivel\": \"Efetivo|Estagio|Jovem Aprendiz\", \"posicao\": <inteiro, 1 = topo>, \"ranking_justificativa\": \"<curto; vazio se so 1 na vaga>\", \"perfil\": \"<2 a 3 frases>\", \"onde_agrega\": \"<1 a 2 frases>\" } ] } ] }',\n  'Regras:',\n  '- Cada candidato aparece em UMA UNICA vaga: use o campo \"vaga\" (ja vem agrupado; ex.: Marketing entra em Comercial). NAO repita o candidato em outras vagas.',\n  '- Classifique o \"nivel\" com base em IDADE e EXPERIENCIA (e escolaridade/esta_estudando): \"Jovem Aprendiz\" (muito jovem, sem/pouca experiencia), \"Estagio\" (estudante/estagiario), \"Efetivo\" (perfil para cargo efetivo, com formacao/experiencia).',\n  '- Dentro de cada vaga defina \"posicao\" (1 = topo): PRIMEIRO os mais qualificados; a ordem segue Efetivo, depois Estagio, depois Jovem Aprendiz; dentro do mesmo nivel, do mais qualificado ao menos. Se houver so 1 candidato, posicao=1 e ranking_justificativa vazio.',\n  '- \"perfil\": resuma experiencia, formacao, cursos e certificacoes. Se houver curriculo anexado (arquivo com o mesmo n), baseie-se PRINCIPALMENTE nele.',\n  '- \"onde_agrega\": considere a \"area_marcada\" (o interesse real da pessoa, ex.: Marketing) para indicar a atuacao; pode apontar OUTRA area da Young se o perfil encaixar melhor. Areas da Young: ' + areasYoung.join('; ') + '.',\n  '- Use o \"n\" exatamente como veio. Nao invente dados.',\n  'DADOS (JSON):',\n  JSON.stringify(dados)\n].join('\\n');\nreturn [{ json: { dados: dados, geminiBody: { contents: [{ parts: [{ text: instrucao }].concat(fileParts) }], generationConfig: { temperature: 0.3, maxOutputTokens: 32768, thinkingConfig: { thinkingBudget: 0 }, responseMimeType: 'application/json' } } } }];"
+      },
+      "id": "code-0007",
+      "name": "Montar prompt (Gemini)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.geminiBody) }}",
+        "options": {}
+      },
+      "id": "gemini-0008",
+      "name": "Gerar resumo (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1360,
+        220
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "REPLACE_GEMINI_CRED_ID",
+          "name": "Gemini API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const src = $('Montar prompt (Gemini)').first().json;\nconst dados = src.dados || [];\nconst byN = {};\ndados.forEach(function (d) { byN[d.n] = d; });\nlet ai = { vagas: [] };\ntry { ai = JSON.parse($json.candidates[0].content.parts[0].text); } catch (e) { ai = { vagas: [] }; }\nconst total = dados.length;\nconst lidos = dados.filter(function (d) { return d.cv_lido; }).length;\nconst LARANJA = '#fe5009';\nfunction esc(s) { return String(s == null ? '' : s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;'); }\nfunction isFoto(u) { return typeof u === 'string' && u.indexOf('supabase.co/storage') !== -1; }\nfunction iniciais(nome) { const p = String(nome || '?').trim().split(' ').filter(Boolean); return ((p[0] || '?').charAt(0) + (p.length > 1 ? p[p.length - 1].charAt(0) : '')).toUpperCase(); }\nfunction avatar(d) {\n  if (isFoto(d.foto)) { return '<img src=\"' + esc(d.foto) + '\" width=\"52\" height=\"52\" alt=\"\" style=\"width:52px;height:52px;border-radius:50%;object-fit:cover;display:block;border:2px solid #f0f0f0;\">'; }\n  return '<div style=\"width:52px;height:52px;border-radius:50%;background:' + LARANJA + ';color:#fff;font-weight:700;font-size:18px;line-height:52px;text-align:center;\">' + esc(iniciais(d.nome)) + '</div>';\n}\nfunction selo(d) {\n  return d.cv_lido\n    ? '<span style=\"background:#e6f4ea;color:#1e7e34;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;\">CV lido</span>'\n    : '<span style=\"background:#fdecea;color:#b3261e;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;\">so link</span>';\n}\nfunction nivelBadge(nv) {\n  if (!nv) return '';\n  const s = String(nv).toLowerCase();\n  let cor = '#555', bg = '#eee';\n  if (s.indexOf('efet') !== -1) { cor = '#0b57d0'; bg = '#e8f0fe'; }\n  else if (s.indexOf('estag') !== -1 || s.indexOf('está') !== -1) { cor = '#6a1b9a'; bg = '#f3e8fd'; }\n  else if (s.indexOf('aprendiz') !== -1) { cor = '#00695c'; bg = '#e0f2f1'; }\n  return '<span style=\"background:' + bg + ';color:' + cor + ';font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:6px;\">' + esc(nv) + '</span>';\n}\nfunction card(item, grupo) {\n  const d = byN[item.n] || {};\n  const sub = [d.cidade, (d.idade ? d.idade + ' anos' : null)].filter(Boolean).join(' - ');\n  const at = (d.area_marcada && d.area_marcada !== 'Nao informado' && d.area_marcada !== grupo) ? d.area_marcada : null;\n  const atTag = at ? ' &middot; <strong style=\"color:#6a1b9a;\">Atuacao: ' + esc(at) + '</strong>' : '';\n  const pos = item.posicao ? '<span style=\"background:' + LARANJA + ';color:#fff;font-weight:700;font-size:12px;width:22px;height:22px;line-height:22px;text-align:center;border-radius:50%;display:inline-block;\">' + esc(item.posicao) + '</span> ' : '';\n  const link = (!d.cv_lido && d.cv_url) ? ' &middot; <a href=\"' + esc(d.cv_url) + '\" style=\"color:' + LARANJA + ';\">abrir CV</a>' : '';\n  return '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #eee;border-radius:10px;margin:8px 0;background:#fff;\"><tr>'\n    + '<td width=\"64\" valign=\"top\" style=\"padding:12px;\">' + avatar(d) + '</td>'\n    + '<td valign=\"top\" style=\"padding:12px 12px 12px 0;font-family:Arial,sans-serif;color:#222;\">'\n    + '<div style=\"font-size:15px;font-weight:700;\">' + pos + esc(d.nome || 'Candidato') + ' ' + selo(d) + nivelBadge(item.nivel) + '</div>'\n    + ((sub || at || link) ? '<div style=\"font-size:12px;color:#777;margin-top:2px;\">' + esc(sub) + atTag + link + '</div>' : '')\n    + (item.perfil ? '<div style=\"font-size:13px;margin-top:8px;\"><strong>Perfil:</strong> ' + esc(item.perfil) + '</div>' : '')\n    + (item.onde_agrega ? '<div style=\"font-size:13px;margin-top:4px;\"><strong>Onde agrega:</strong> ' + esc(item.onde_agrega) + '</div>' : '')\n    + (item.ranking_justificativa ? '<div style=\"font-size:12px;color:#555;margin-top:4px;font-style:italic;\">' + esc(item.ranking_justificativa) + '</div>' : '')\n    + '</td></tr></table>';\n}\nlet bodyHtml = '';\n(ai.vagas || []).forEach(function (v) {\n  const cands = (v.candidatos || []).slice().sort(function (a, b) { return (a.posicao || 99) - (b.posicao || 99); });\n  bodyHtml += '<h2 style=\"font-family:Arial,sans-serif;font-size:16px;color:#222;border-left:4px solid ' + LARANJA + ';padding-left:8px;margin:22px 0 6px;\">' + esc(v.vaga) + ' <span style=\"color:#999;font-weight:400;font-size:13px;\">(' + cands.length + ')</span></h2>';\n  cands.forEach(function (item) { bodyHtml += card(item, v.vaga); });\n});\nif (!bodyHtml) { bodyHtml = '<p style=\"font-family:Arial,sans-serif;color:#777;\">Sem candidatos para exibir.</p>'; }\nconst html = '<div style=\"max-width:680px;margin:0 auto;background:#f6f6f6;padding:0 0 20px;\">'\n  + '<div style=\"background:' + LARANJA + ';color:#fff;padding:20px 24px;font-family:Arial,sans-serif;\">'\n  + '<div style=\"font-size:20px;font-weight:800;\">Young Talents</div>'\n  + '<div style=\"font-size:13px;opacity:.9;\">Novos candidatos da semana</div>'\n  + '</div>'\n  + '<div style=\"padding:16px 24px;font-family:Arial,sans-serif;color:#333;\">'\n  + '<div style=\"background:#fff;border-radius:10px;padding:12px 16px;font-size:14px;\"><strong>' + total + '</strong> candidato(s) &nbsp;|&nbsp; <strong>' + lidos + '</strong> com CV lido</div>'\n  + bodyHtml\n  + '<p style=\"font-size:11px;color:#999;margin-top:20px;\">Gerado automaticamente pelo Young Talents.</p>'\n  + '</div></div>';\nconst subject = '📋 Novos candidatos da semana - Young Talents (' + $now.toFormat('dd/LL/yyyy') + ')';\nreturn [{ json: { html: html, subject: subject, total: total, lidos: lidos } }];"
+      },
+      "id": "code-0009",
+      "name": "Montar e-mail (HTML)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const info = $json || {};\nconst dias = info && info.dias ? info.dias : 7;\nconst html = '<div style=\"max-width:680px;margin:0 auto;background:#f6f6f6;padding:0 0 24px;\">'\n  + '<div style=\"background:#fe5009;color:#fff;padding:20px 24px;font-family:Arial,sans-serif;\">'\n  + '<div style=\"font-size:20px;font-weight:800;\">Young Talents</div>'\n  + '<div style=\"font-size:13px;opacity:.9;\">Novos candidatos da semana</div>'\n  + '</div>'\n  + '<div style=\"padding:24px;font-family:Arial,sans-serif;color:#333;\">'\n  + '<div style=\"background:#fff;border-radius:12px;padding:32px 20px;text-align:center;\">'\n  + '<div style=\"font-size:40px;line-height:1;\">📭</div>'\n  + '<div style=\"font-size:17px;font-weight:700;color:#222;margin-top:10px;\">Nenhum candidato novo esta semana</div>'\n  + '<div style=\"font-size:13px;color:#777;margin-top:6px;\">Ninguem se inscreveu no Young Talents nos ultimos ' + dias + ' dias.</div>'\n  + '</div>'\n  + '<p style=\"font-size:11px;color:#999;margin-top:20px;text-align:center;\">Gerado automaticamente pelo Young Talents.</p>'\n  + '</div></div>';\nconst subject = '📭 Sem novos candidatos esta semana - Young Talents (' + $now.toFormat('dd/LL/yyyy') + ')';\nreturn [{ json: { html: html, subject: subject, total: 0, lidos: 0 } }];"
+      },
+      "id": "code-0011",
+      "name": "E-mail vazio (sem candidatos)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "eduardo@youngempreendimentos.com.br, suelen@youngempreendimentos.com.br",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "gmail-0010",
+      "name": "Enviar e-mail (Gmail)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1760,
+        220
+      ],
+      "webhookId": "resumo-candidatos-gmail",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_GMAIL_CRED_ID",
+          "name": "Gmail Young"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Toda segunda 08:00": {
+      "main": [
+        [
+          {
+            "node": "Buscar candidatos (7 dias)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar candidatos (7 dias)": {
+      "main": [
+        [
+          {
+            "node": "Tem candidato?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem candidato?": {
+      "main": [
+        [
+          {
+            "node": "Separar candidatos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "E-mail vazio (sem candidatos)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "E-mail vazio (sem candidatos)": {
+      "main": [
+        [
+          {
+            "node": "Enviar e-mail (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar candidatos": {
+      "main": [
+        [
+          {
+            "node": "Extrair Drive ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair Drive ID": {
+      "main": [
+        [
+          {
+            "node": "Baixar CV (Drive)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Baixar CV (Drive)": {
+      "main": [
+        [
+          {
+            "node": "Montar prompt (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar prompt (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Gerar resumo (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar resumo (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Montar e-mail (HTML)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar e-mail (HTML)": {
+      "main": [
+        [
+          {
+            "node": "Enviar e-mail (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {}
+}
