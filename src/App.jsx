@@ -195,6 +195,9 @@ export default function App() {
   const [cities, setCities] = useState([]);
   const [interestAreas, setInterestAreas] = useState([]);
   const [roles, setRoles] = useState([]);
+  // Cargos do Pilares (rh_cargos) via RPC — fonte do picker de Mapeamento.
+  // Separado de `roles` (talents_positions), que segue alimentando a aba Cargos.
+  const [cargos, setCargos] = useState([]);
   const [jobLevels, setJobLevels] = useState([]);
   const [activityAreas, setActivityAreas] = useState([]);
   const [sectors, setSectors] = useState([]);
@@ -468,6 +471,21 @@ export default function App() {
     }
   }, []);
 
+  // Cargos do Pilares (rh_cargos) para o picker de Mapeamento, via RPC
+  // SECURITY DEFINER (talents_list_cargos), pois o RLS de rh_cargos bloqueia
+  // quem nao e staff do RH. Devolve { id, nome, trilha }; mapeia p/ { id, name, trilha }.
+  const loadCargos = React.useCallback(async () => {
+    if (!supabase) return;
+    const cached = getCached('yt_cache_cargos');
+    if (cached) setCargos(cached);
+    const { data, error } = await supabase.rpc('talents_list_cargos');
+    if (!error && Array.isArray(data)) {
+      const mapped = data.map(r => ({ id: r.id, name: r.nome, trilha: r.trilha || null }));
+      setCargos(mapped);
+      setCached('yt_cache_cargos', mapped);
+    }
+  }, []);
+
   const loadJobLevels = React.useCallback(async () => {
     if (!supabase) return;
     const cached = getCached('yt_cache_job_levels');
@@ -592,8 +610,8 @@ export default function App() {
   }, []);
 
   const loadAllData = React.useCallback(async () => {
-    await Promise.all([loadCandidates(), loadJobs(), loadCompanies(), loadCities(), loadSectors(), loadRoles(), loadJobLevels(), loadActivityAreas(), loadApplications(), loadInteractionTypes(), loadMappings()]);
-  }, [loadCandidates, loadJobs, loadCompanies, loadCities, loadSectors, loadRoles, loadJobLevels, loadActivityAreas, loadApplications, loadInteractionTypes, loadMappings]);
+    await Promise.all([loadCandidates(), loadJobs(), loadCompanies(), loadCities(), loadSectors(), loadRoles(), loadCargos(), loadJobLevels(), loadActivityAreas(), loadApplications(), loadInteractionTypes(), loadMappings()]);
+  }, [loadCandidates, loadJobs, loadCompanies, loadCities, loadSectors, loadRoles, loadCargos, loadJobLevels, loadActivityAreas, loadApplications, loadInteractionTypes, loadMappings]);
 
   /** Painel interno: cadastro explícito em user_roles como admin, editor ou viewer (somente leitura). */
   const hasStaffRole = useMemo(() => {
@@ -1239,7 +1257,7 @@ export default function App() {
       isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}
       isSidebarCollapsed={isSidebarCollapsed} setIsSidebarCollapsed={setIsSidebarCollapsed}
       activeTab={activeTab} setActiveTab={setActiveTab} route={route} setRoute={setRoute}
-      candidates={candidates} jobs={jobs} companies={companies} cities={cities} sectors={sectors} roles={roles}
+      candidates={candidates} jobs={jobs} companies={companies} cities={cities} sectors={sectors} roles={roles} cargos={cargos}
       jobLevels={jobLevels} activityAreas={activityAreas} applications={applications} interviews={interviews}
       statusMovements={statusMovements} activityLog={activityLog} candidatesLoading={candidatesLoading}
       isSaving={isSaving} setIsSaving={setIsSaving}

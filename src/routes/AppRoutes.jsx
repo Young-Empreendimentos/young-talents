@@ -56,6 +56,7 @@ const AppRoutes = ({
     cities,
     sectors,
     roles,
+    cargos = [],
     jobLevels,
     activityAreas,
     applications,
@@ -200,7 +201,7 @@ const AppRoutes = ({
                     addMapping={addMapping}
                     updateMappingStatus={updateMappingStatus}
                     deleteMapping={deleteMapping}
-                    positions={roles}
+                    positions={cargos}
                     onAdvanceStage={(candidate, newStage) => {
                         const missingFields = computeMissingFields(candidate, newStage);
                         const isConclusion = CLOSING_STATUSES.includes(newStage);
@@ -342,7 +343,7 @@ const AppRoutes = ({
                         addMapping={addMapping}
                         updateMappingStatus={updateMappingStatus}
                         deleteMapping={deleteMapping}
-                        positions={roles}
+                        positions={cargos}
                         onAdvanceStage={async (candidate, newStage) => {
                             const missingFields = computeMissingFields(candidate, newStage);
                             const isConclusion = CLOSING_STATUSES.includes(newStage);

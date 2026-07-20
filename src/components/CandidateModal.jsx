@@ -308,7 +308,19 @@ export default function CandidateModal({
                                                     className="w-full text-xs border border-input rounded px-2 py-1.5 bg-background text-foreground outline-none focus:ring-1 focus:ring-brand-orange"
                                                 >
                                                     <option value="">Selecione...</option>
-                                                    {positions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                                    {(() => {
+                                                        const groups = new Map();
+                                                        positions.forEach(p => {
+                                                            const k = p.trilha || '';
+                                                            if (!groups.has(k)) groups.set(k, []);
+                                                            groups.get(k).push(p);
+                                                        });
+                                                        return Array.from(groups.entries()).map(([trilha, items]) => (
+                                                            trilha
+                                                                ? <optgroup key={trilha} label={trilha}>{items.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</optgroup>
+                                                                : items.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
+                                                        ));
+                                                    })()}
                                                 </select>
                                             </div>
                                             <div>
