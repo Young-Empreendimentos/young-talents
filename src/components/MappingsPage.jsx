@@ -25,6 +25,7 @@ export default function MappingsPage({
   positions = [],
   onEdit,
   onUpdateStatus,
+  onUpdateCargo,
   onDelete,
   showToast,
 }) {
@@ -220,7 +221,34 @@ export default function MappingsPage({
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5">
                       <Briefcase size={13} className="text-muted-foreground/60 flex-shrink-0" />
-                      <span className="text-sm text-foreground">{m.positionName || '-'}</span>
+                      {onUpdateCargo ? (
+                        <select
+                          value={m.positionId || ''}
+                          onChange={e => {
+                            const pos = positions.find(p => p.id === e.target.value);
+                            onUpdateCargo(m.id, { positionId: e.target.value || null, positionName: pos?.name || null });
+                          }}
+                          className={`text-sm bg-transparent border rounded px-1.5 py-1 outline-none focus:ring-1 focus:ring-brand-orange max-w-[220px] ${m.positionName ? 'text-foreground border-border' : 'text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-700'}`}
+                          title="Definir cargo"
+                        >
+                          <option value="">Definir cargo…</option>
+                          {(() => {
+                            const groups = new Map();
+                            positions.forEach(p => {
+                              const k = p.trilha || '';
+                              if (!groups.has(k)) groups.set(k, []);
+                              groups.get(k).push(p);
+                            });
+                            return Array.from(groups.entries()).map(([trilha, items]) => (
+                              trilha
+                                ? <optgroup key={trilha} label={trilha}>{items.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</optgroup>
+                                : items.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
+                            ));
+                          })()}
+                        </select>
+                      ) : (
+                        <span className="text-sm text-foreground">{m.positionName || '-'}</span>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3">

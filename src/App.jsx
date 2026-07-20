@@ -1087,6 +1087,22 @@ export default function App() {
     }
   }, [loadMappings]);
 
+  // Definir/trocar o cargo (do Pilares) de um mapeamento existente, mantendo
+  // prioridade/observacoes/historico. Usado pelo picker "Definir cargo".
+  const updateMapping = React.useCallback(async (id, { positionId, positionName }) => {
+    if (!supabase) return;
+    try {
+      const { error } = await schema().from('talents_mappings')
+        .update({ position_id: positionId || null, position_name: positionName || null, updated_at: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw error;
+      await loadMappings();
+      showToast('Cargo atualizado.', 'success');
+    } catch (err) {
+      showToast(translateSupabaseError(err?.message).text || 'Erro ao atualizar cargo.', 'error');
+    }
+  }, [loadMappings]);
+
   const deleteMapping = React.useCallback(async (id) => {
     if (!supabase) return;
     try {
@@ -1288,7 +1304,7 @@ export default function App() {
       interactions={interactions} interactionTypes={interactionTypes}
       addInteraction={addInteraction} loadInteractions={loadInteractions} deleteInteraction={deleteInteraction}
       handleToggleStar={handleToggleStar}
-      mappings={mappings} addMapping={addMapping} updateMappingStatus={updateMappingStatus} deleteMapping={deleteMapping}
+      mappings={mappings} addMapping={addMapping} updateMappingStatus={updateMappingStatus} updateMapping={updateMapping} deleteMapping={deleteMapping}
       refreshData={refreshData}
       toggleTheme={toggleTheme} isDark={isDark} setUserRole={setUserRole} removeUserRole={removeUserRole}
       createUserWithPassword={createUserWithPassword} handleDragEnd={handleDragEnd}

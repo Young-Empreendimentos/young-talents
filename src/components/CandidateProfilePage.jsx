@@ -70,6 +70,7 @@ export default function CandidateProfilePage({
   mappings = [],
   addMapping,
   updateMappingStatus,
+  updateMapping,
   deleteMapping,
   positions = [],
 }) {
@@ -500,7 +501,34 @@ export default function CandidateProfilePage({
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <p className="text-sm font-medium text-foreground">{m.positionName || 'Cargo não definido'}</p>
+                                {updateMapping ? (
+                                  <select
+                                    value={m.positionId || ''}
+                                    onChange={e => {
+                                      const pos = positions.find(p => p.id === e.target.value);
+                                      updateMapping(m.id, { positionId: e.target.value || null, positionName: pos?.name || null });
+                                    }}
+                                    className={`text-sm font-medium bg-transparent border rounded px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-brand-orange max-w-[200px] ${m.positionName ? 'text-foreground border-border' : 'text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-700'}`}
+                                    title="Definir cargo"
+                                  >
+                                    <option value="">Definir cargo…</option>
+                                    {(() => {
+                                      const groups = new Map();
+                                      positions.forEach(p => {
+                                        const k = p.trilha || '';
+                                        if (!groups.has(k)) groups.set(k, []);
+                                        groups.get(k).push(p);
+                                      });
+                                      return Array.from(groups.entries()).map(([trilha, items]) => (
+                                        trilha
+                                          ? <optgroup key={trilha} label={trilha}>{items.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</optgroup>
+                                          : items.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
+                                      ));
+                                    })()}
+                                  </select>
+                                ) : (
+                                  <p className="text-sm font-medium text-foreground">{m.positionName || 'Cargo não definido'}</p>
+                                )}
                                 {m.city && <span className="text-xs text-muted-foreground">— {m.city}</span>}
                                 <span className={`text-[10px] font-bold uppercase ${priorityColor}`}>{m.priority}</span>
                               </div>
