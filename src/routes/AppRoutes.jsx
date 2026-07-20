@@ -150,6 +150,7 @@ const AppRoutes = ({
     removeUserRole,
     createUserWithPassword,
     handleDragEnd,
+    hasReturnContact,
     handleCloseStatus,
     computeMissingFields,
     pipelineStages,
@@ -205,11 +206,15 @@ const AppRoutes = ({
                     updateMapping={updateMapping}
                     deleteMapping={deleteMapping}
                     positions={cargos}
-                    onAdvanceStage={(candidate, newStage) => {
+                    onAdvanceStage={async (candidate, newStage) => {
                         const missingFields = computeMissingFields(candidate, newStage);
                         const isConclusion = CLOSING_STATUSES.includes(newStage);
                         const needsJob = STAGES_REQUIRING_APPLICATION.includes(newStage);
                         const hasApplication = applications.some(a => a.candidateId === candidate.id);
+                        if (isConclusion && hasReturnContact && !(await hasReturnContact(candidate.id))) {
+                            showToast("Registre uma interação 'Contato de retorno' antes de arquivar este candidato.", 'error');
+                            return;
+                        }
                         if (isConclusion || missingFields.length > 0 || (needsJob && !hasApplication)) {
                             setPendingTransition({ candidate, toStage: newStage, missingFields, isConclusion });
                         } else {
@@ -352,6 +357,10 @@ const AppRoutes = ({
                             const isConclusion = CLOSING_STATUSES.includes(newStage);
                             const needsJob = STAGES_REQUIRING_APPLICATION.includes(newStage);
                             const hasApplication = applications.some(a => a.candidateId === candidate.id);
+                            if (isConclusion && hasReturnContact && !(await hasReturnContact(candidate.id))) {
+                                showToast("Registre uma interação 'Contato de retorno' antes de arquivar este candidato.", 'error');
+                                return;
+                            }
                             const mustShowModal = isConclusion || missingFields.length > 0 || (needsJob && !hasApplication);
                             if (mustShowModal) {
                                 setPendingTransition({ candidate, toStage: newStage, missingFields, isConclusion });
@@ -451,6 +460,10 @@ const AppRoutes = ({
                 transition={pendingTransition}
                 onClose={() => setPendingTransition(null)}
                 onConfirm={async d => {
+                    if (pendingTransition.isConclusion && hasReturnContact && !(await hasReturnContact(pendingTransition.candidate.id))) {
+                        showToast("Registre uma interação 'Contato de retorno' antes de arquivar este candidato.", 'error');
+                        return;
+                    }
                     const payload = {
                         ...pendingTransition.candidate,
                         ...d,

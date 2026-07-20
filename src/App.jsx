@@ -1121,6 +1121,23 @@ export default function App() {
 
   const computeMissingFields = (c, stage) => (STAGE_REQUIRED_FIELDS[stage] || []).filter(f => !c[f]);
 
+  // Regra: só permite arquivar se o candidato tiver ao menos uma interação do
+  // tipo "Contato de retorno". Checa no banco (interações são carregadas por
+  // candidato e podem não estar em memória no kanban/Banco de Talentos).
+  const hasReturnContact = React.useCallback(async (candidateId) => {
+    if (!supabase || !candidateId) return true; // fail-open: não trava por falta de infra
+    try {
+      const { data, error } = await supabase
+        .from('talents_interactions')
+        .select('id')
+        .eq('candidate_id', candidateId)
+        .eq('interaction_type', 'Contato de retorno')
+        .limit(1);
+      if (error) return true; // fail-open em erro transitório
+      return Array.isArray(data) && data.length > 0;
+    } catch { return true; }
+  }, []);
+
   const handleDragEnd = async (cId, stage) => {
     const candidate = candidates.find(c => c.id === cId);
     if (!candidate || candidate.status === stage) return;
@@ -1147,6 +1164,13 @@ export default function App() {
       }
     }
     const missing = computeMissingFields(candidate, stage);
+    if (CLOSING_STATUSES.includes(stage)) {
+      const ok = await hasReturnContact(cId);
+      if (!ok) {
+        showToast("Registre uma interação 'Contato de retorno' antes de arquivar este candidato.", 'error');
+        return;
+      }
+    }
     if (CLOSING_STATUSES.includes(stage) || missing.length > 0) {
       setPendingTransition({ candidate, toStage: stage, missingFields: missing, isConclusion: CLOSING_STATUSES.includes(stage) });
       return;
@@ -1311,7 +1335,7 @@ export default function App() {
       mappings={mappings} addMapping={addMapping} updateMappingStatus={updateMappingStatus} updateMapping={updateMapping} deleteMapping={deleteMapping}
       refreshData={refreshData}
       toggleTheme={toggleTheme} isDark={isDark} setUserRole={setUserRole} removeUserRole={removeUserRole}
-      createUserWithPassword={createUserWithPassword} handleDragEnd={handleDragEnd}
+      createUserWithPassword={createUserWithPassword} handleDragEnd={handleDragEnd} hasReturnContact={hasReturnContact}
       handleCloseStatus={handleCloseStatus} computeMissingFields={computeMissingFields}
       pipelineStages={pipelineStages} onUpdatePipelineStages={setPipelineStages}
     />
