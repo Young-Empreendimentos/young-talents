@@ -23,6 +23,7 @@ export default function MappingsPage({
   mappings = [],
   candidates = [],
   positions = [],
+  candidatesLoading = false,
   onEdit,
   onUpdateStatus,
   onUpdateCargo,
@@ -213,7 +214,7 @@ export default function MappingsPage({
                       className="text-left group"
                     >
                       <p className="text-sm font-medium text-foreground group-hover:text-brand-orange transition-colors truncate max-w-[180px]">
-                        {m.candidate?.fullName || 'Candidato removido'}
+                        {m.candidate?.fullName || (candidatesLoading ? <span className="text-muted-foreground font-normal italic">Carregando…</span> : 'Candidato removido')}
                       </p>
                       <p className="text-xs text-muted-foreground truncate max-w-[180px]">{m.candidate?.email}</p>
                     </button>
