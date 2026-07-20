@@ -174,17 +174,21 @@ const Dashboard = ({
     // Taxas de conversão
     const conversionRates = useMemo(() => {
         const stages = [...PIPELINE_STAGES, 'Contratado'];
+        // 'Contratado' virou motivo de arquivamento; conta via motivo.
+        const countStage = (s) => s === 'Contratado'
+            ? filteredCandidatesByPeriod.filter(c => c.status === 'Arquivado' && c.motivoArquivamento === 'Contratado').length
+            : filteredCandidatesByPeriod.filter(c => c.status === s).length;
         return stages.slice(0, -1).map((fromStage, i) => {
             const toStage = stages[i + 1];
             if (filteredMovements.length > 0) {
                 const movedFrom = filteredMovements.filter(m => m.previousStatus === fromStage).length;
                 const movedTo = filteredMovements.filter(m => m.previousStatus === fromStage && m.newStatus === toStage).length;
-                const currentInStage = filteredCandidatesByPeriod.filter(c => c.status === fromStage).length;
+                const currentInStage = countStage(fromStage);
                 const total = movedFrom + currentInStage;
                 return { from: fromStage, to: toStage, rate: total > 0 ? parseFloat(((movedTo / total) * 100).toFixed(1)) : 0, fromCount: total, toCount: movedTo, hasMovements: true };
             }
-            const current = filteredCandidatesByPeriod.filter(c => c.status === fromStage).length;
-            const next = filteredCandidatesByPeriod.filter(c => c.status === toStage).length;
+            const current = countStage(fromStage);
+            const next = countStage(toStage);
             return { from: fromStage, to: toStage, rate: current > 0 ? parseFloat(((next / current) * 100).toFixed(1)) : 0, fromCount: current, toCount: next, hasMovements: false };
         });
     }, [filteredCandidatesByPeriod, filteredMovements]);
@@ -193,7 +197,7 @@ const Dashboard = ({
 
     const missingReturnCount = useMemo(() =>
         filteredCandidatesByPeriod.filter(c =>
-            (c.status === 'Seleção' || c.status === 'Selecionado') &&
+            c.status === 'Arquivado' &&
             (!c.returnSent || c.returnSent === 'Pendente' || c.returnSent === 'Não')
         ).length,
         [filteredCandidatesByPeriod]
@@ -206,8 +210,9 @@ const Dashboard = ({
 
     const candidateStats = {
         total: filteredCandidatesByPeriod.length,
-        hired: filteredCandidatesByPeriod.filter(c => c.status === 'Contratado').length,
-        rejected: filteredCandidatesByPeriod.filter(c => c.status === 'Reprovado').length,
+        // Contratado agora é um MOTIVO de arquivamento (status = Arquivado)
+        hired: filteredCandidatesByPeriod.filter(c => c.status === 'Arquivado' && c.motivoArquivamento === 'Contratado').length,
+        archived: filteredCandidatesByPeriod.filter(c => c.status === 'Arquivado').length,
         active: filteredCandidatesByPeriod.filter(c => PIPELINE_STAGES.includes(c.status)).length,
         starred: filteredCandidatesByPeriod.filter(c => c.starred === true).length,
     };
@@ -320,20 +325,20 @@ const Dashboard = ({
                     <p className="text-xs text-muted-foreground mt-1">Taxa: {overallConversionRate}%</p>
                 </div>
 
-                {/* Reprovados */}
+                {/* Arquivados */}
                 <div
-                    onClick={() => onNavigateToCandidates?.('/candidates?status=Reprovado')}
-                    className="cursor-pointer group bg-card border border-border rounded-xl p-5 hover:border-red-400/60 hover:shadow-md transition-all"
+                    onClick={() => onNavigateToCandidates?.('/candidates?status=Arquivado')}
+                    className="cursor-pointer group bg-card border border-border rounded-xl p-5 hover:border-slate-400/60 hover:shadow-md transition-all"
                 >
                     <div className="flex items-start justify-between mb-3">
-                        <div className="p-2 bg-red-500/10 rounded-lg">
-                            <UserX size={18} className="text-red-500" />
+                        <div className="p-2 bg-slate-500/10 rounded-lg">
+                            <UserX size={18} className="text-slate-500" />
                         </div>
-                        <span className="text-[10px] font-semibold text-red-500 bg-red-500/10 px-2 py-0.5 rounded-full uppercase tracking-wide">Reprovados</span>
+                        <span className="text-[10px] font-semibold text-slate-500 bg-slate-500/10 px-2 py-0.5 rounded-full uppercase tracking-wide">Arquivados</span>
                     </div>
-                    <p className="text-3xl font-bold text-foreground">{candidateStats.rejected}</p>
+                    <p className="text-3xl font-bold text-foreground">{candidateStats.archived}</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                        {candidateStats.total > 0 ? ((candidateStats.rejected / candidateStats.total) * 100).toFixed(1) : 0}% do total
+                        {candidateStats.total > 0 ? ((candidateStats.archived / candidateStats.total) * 100).toFixed(1) : 0}% do total
                     </p>
                 </div>
             </div>
@@ -384,7 +389,7 @@ const Dashboard = ({
                         else if (onOpenCandidates) {
                             onSetModalTitle?.('Faltam dar retorno');
                             onOpenCandidates(filteredCandidates.filter(c =>
-                                (c.status === 'Seleção' || c.status === 'Selecionado') &&
+                                c.status === 'Arquivado' &&
                                 (!c.returnSent || c.returnSent === 'Pendente' || c.returnSent === 'Não')
                             ));
                         }
@@ -404,7 +409,7 @@ const Dashboard = ({
                     <p className={`text-2xl font-bold ${missingReturnCount > 0 ? 'text-orange-500' : 'text-foreground'}`}>
                         {missingReturnCount}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">Selecionados sem confirmação</p>
+                    <p className="text-xs text-muted-foreground mt-1">Arquivados sem retorno dado</p>
                 </div>
             </div>
 

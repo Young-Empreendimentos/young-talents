@@ -502,9 +502,9 @@ const PipelineManager = ({ pipelineStages: externalStages, onUpdatePipelineStage
       {/* Gatilhos e Motivos */}
       <div className="space-y-8">
         <div className="space-y-4">
-          <h3 className="text-lg font-bold text-foreground">Gatilhos de Fechamento</h3>
+          <h3 className="text-lg font-bold text-foreground">Motivos de Arquivamento</h3>
           <div className="bg-brand-card border border-brand-border rounded-lg p-4 space-y-2">
-             {['Contratado', 'Reprovado', 'Desistiu da Vaga'].map(status => (
+             {['Contratado', 'Selecionado', 'Mapeado como interesse', 'Contratamos outro candidato', 'Vaga cancelada', 'Desistiu da vaga'].map(status => (
                <div key={status} className="flex items-center justify-between p-3 bg-brand-dark/30 rounded-lg border border-transparent hover:border-brand-border">
                   <span className="text-sm font-bold text-foreground">{status}</span>
                   <span className="text-xs bg-green-900/30 text-green-400 px-2 py-1 rounded border border-green-900/50">Ativo</span>

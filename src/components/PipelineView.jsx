@@ -120,10 +120,7 @@ const PipelineView = ({
         data = data.filter(c => !NON_PIPELINE_STATUSES.has(c.status));
 
         if (statusFilter === 'active')    data = data.filter(c => PIPELINE_STAGES.includes(c.status) || !c.status || LEGACY_STATUS_MAP[c.status] !== undefined);
-        else if (statusFilter === 'hired')     data = data.filter(c => c.status === 'Contratado');
-        else if (statusFilter === 'discarded') data = data.filter(c => c.status === 'Descartado');
-        else if (statusFilter === 'rejected')  data = data.filter(c => c.status === 'Reprovado');
-        else if (statusFilter === 'withdrawn') data = data.filter(c => c.status === 'Desistiu da vaga');
+        else if (statusFilter === 'archived') data = data.filter(c => c.status === 'Arquivado');
 
         if (pipelineStatusFilter !== 'all') data = data.filter(c => c.status === pipelineStatusFilter);
         if (selectedJobIds.length > 0) {
@@ -169,10 +166,7 @@ const PipelineView = ({
     useEffect(() => { localStorage.setItem('kanban_display_counts', JSON.stringify(kanbanDisplayCounts)); }, [kanbanDisplayCounts]);
 
     const visibleStages = useMemo(() => {
-        if (statusFilter === 'hired')     return ['Contratado'];
-        if (statusFilter === 'discarded') return ['Descartado'];
-        if (statusFilter === 'rejected')  return ['Reprovado'];
-        if (statusFilter === 'withdrawn') return ['Desistiu da vaga'];
+        if (statusFilter === 'archived')  return ['Arquivado'];
         if (statusFilter === 'all')       return [...PIPELINE_STAGES, ...CLOSING_STATUSES];
         return PIPELINE_STAGES;
     }, [statusFilter]);
@@ -342,10 +336,7 @@ const PipelineView = ({
                 />
                 <select className="bg-card border border-border rounded-lg px-3 py-1.5 text-sm text-foreground outline-none" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
                     <option value="active">Em Andamento</option>
-                    <option value="hired">Contratados</option>
-                    <option value="discarded">Descartados</option>
-                    <option value="rejected">Reprovados</option>
-                    <option value="withdrawn">Desistências</option>
+                    <option value="archived">Arquivados</option>
                     <option value="all">Todos</option>
                 </select>
                 <select className="bg-card border border-border rounded-lg px-3 py-1.5 text-sm text-foreground outline-none" value={localSort} onChange={e => setLocalSort(e.target.value)}>
@@ -651,8 +642,7 @@ const KanbanColumn = ({
                                 {/* Ações rápidas (hover) */}
                                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-0.5 bg-card shadow rounded-lg border border-border z-30">
                                     <button onClick={e => { e.stopPropagation(); onEdit(c); }} className="p-1.5 hover:text-blue-400 hover:bg-blue-500/10 rounded-l-lg" title="Abrir"><Edit3 size={13} /></button>
-                                    <button onClick={e => { e.stopPropagation(); onCloseStatus(c.id, 'Contratado'); }} className="p-1.5 hover:text-green-400 hover:bg-green-500/10" title="Contratar"><Check size={13} /></button>
-                                    <button onClick={e => { e.stopPropagation(); onCloseStatus(c.id, 'Reprovado'); }} className="p-1.5 hover:text-red-400 hover:bg-red-500/10 rounded-r-lg" title="Reprovar"><Ban size={13} /></button>
+                                    <button onClick={e => { e.stopPropagation(); onCloseStatus(c.id, 'Arquivado'); }} className="p-1.5 hover:text-slate-300 hover:bg-slate-500/10 rounded-r-lg" title="Arquivar"><Ban size={13} /></button>
                                 </div>
                             </div>
                         );

@@ -161,6 +161,7 @@ const AppRoutes = ({
     if (authLoading) return <div className="flex h-screen items-center justify-center bg-background text-muted-foreground"><Loader2 className="animate-spin mr-2" /> Carregando...</div>;
 
     return (
+        <>
         <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -361,37 +362,6 @@ const AppRoutes = ({
                         }}
                     />}
 
-                    {pendingTransition && (
-                        <TransitionModal
-                            transition={pendingTransition}
-                            onClose={() => setPendingTransition(null)}
-                            onConfirm={async d => {
-                                const payload = {
-                                    ...pendingTransition.candidate,
-                                    ...d,
-                                    status: pendingTransition.toStage,
-                                    updatedAt: new Date().toISOString()
-                                };
-                                if (pendingTransition.isConclusion) {
-                                    payload.closedAt = new Date().toISOString();
-                                }
-                                if (pendingTransition.toStage === 'Desistiu da vaga' && d.feedback) {
-                                    payload.rejectionReason = d.feedback;
-                                }
-                                handleSaveGeneric('candidates', payload, () => setPendingTransition(null));
-                            }}
-                            cities={cities}
-                            interestAreas={interestAreas}
-                            schooling={schooling}
-                            marital={marital}
-                            origins={origins}
-                            jobs={jobs}
-                            applications={applications}
-                            onCreateApplication={createApplication}
-                            onOpenCreateJob={() => openJobModal && openJobModal({})}
-                        />
-                    )}
-
                     {linkToJobCandidate && (
                         <LinkToJobModal
                             linkToJobCandidate={linkToJobCandidate}
@@ -476,6 +446,34 @@ const AppRoutes = ({
                 </AppLayout>
             } />
         </Routes>
+        {pendingTransition && (
+            <TransitionModal
+                transition={pendingTransition}
+                onClose={() => setPendingTransition(null)}
+                onConfirm={async d => {
+                    const payload = {
+                        ...pendingTransition.candidate,
+                        ...d,
+                        status: pendingTransition.toStage,
+                        updatedAt: new Date().toISOString()
+                    };
+                    if (pendingTransition.isConclusion) {
+                        payload.closedAt = new Date().toISOString();
+                    }
+                    handleSaveGeneric('candidates', payload, () => setPendingTransition(null));
+                }}
+                cities={cities}
+                interestAreas={interestAreas}
+                schooling={schooling}
+                marital={marital}
+                origins={origins}
+                jobs={jobs}
+                applications={applications}
+                onCreateApplication={createApplication}
+                onOpenCreateJob={() => openJobModal && openJobModal({})}
+            />
+        )}
+        </>
     );
 };
 

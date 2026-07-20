@@ -1224,7 +1224,7 @@ export default function App() {
     }
 
     if (filters.dashboardFilter === 'missing-return') {
-      data = data.filter(c => (c.status === 'Seleção' || c.status === 'Selecionado') && (!c.returnSent || c.returnSent === 'Pendente'));
+      data = data.filter(c => c.status === 'Arquivado' && (!c.returnSent || c.returnSent === 'Pendente' || c.returnSent === 'Não'));
     } else if (filters.dashboardFilter === 'jobs-open') {
       const openIds = jobs.filter(j => j.status === 'Aberta').map(j => j.id);
       data = data.filter(c => applications.some(a => a.candidateId === c.id && openIds.includes(a.jobId)));

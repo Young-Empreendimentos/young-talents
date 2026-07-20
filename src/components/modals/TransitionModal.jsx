@@ -3,7 +3,7 @@ import { X, Save, AlertTriangle, Briefcase, Plus } from 'lucide-react';
 import { normalizeCity, getMainCitiesOptions } from '../../utils/cityNormalizer';
 import { normalizeSource, getMainSourcesOptions } from '../../utils/sourceNormalizer';
 import { normalizeInterestArea, normalizeInterestAreasString, getMainInterestAreasOptions } from '../../utils/interestAreaNormalizer';
-import { REJECTION_REASONS, STAGES_REQUIRING_APPLICATION } from '../../constants';
+import { REJECTION_REASONS, STAGES_REQUIRING_APPLICATION, ARCHIVE_REASONS } from '../../constants';
 
 export default function TransitionModal({ transition, onClose, onConfirm, cities, interestAreas, schooling, marital, origins, jobs = [], applications = [], onCreateApplication, onOpenCreateJob }) {
   const [jobSearch, setJobSearch] = useState('');
@@ -25,6 +25,7 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
     const base = {
       feedback: '',
       returnSent: false,
+      motivoArquivamento: transition?.candidate?.motivoArquivamento || '',
     };
     // Pré-preenche campos obrigatórios com o que já existe no candidato (quando houver)
     (transition?.missingFields || []).forEach(field => {
@@ -66,13 +67,13 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
         }
     }
 
-    if (transition.isConclusion && !data.feedback) {
-      alert("O feedback/observação é obrigatório para encerrar o processo.");
+    if (transition.isConclusion && !data.motivoArquivamento) {
+      alert("Selecione o motivo do arquivamento.");
       return;
     }
 
-    if (transition.isConclusion && transition.toStage !== 'Desistiu da vaga' && !data.returnSent) {
-       if(!confirm("Você não marcou que o retorno foi enviado. Deseja continuar mesmo assim?")) {
+    if (transition.isConclusion && !data.returnSent) {
+       if(!confirm("Você não marcou que o retorno foi enviado ao candidato. Deseja arquivar mesmo assim?")) {
          return;
        }
     }
@@ -354,10 +355,22 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
           {transition.isConclusion && (
             <div className="space-y-4 pt-4 border-t border-brand-border mt-4">
               <div className="bg-yellow-500/10 border border-yellow-500/30 p-3 rounded text-xs text-yellow-200">
-                <strong>⚠️ Fechamento do Processo:</strong> Preencha os dados abaixo para concluir o processo seletivo.
+                <strong>📥 Arquivar candidato:</strong> selecione o motivo e confirme o retorno ao candidato.
               </div>
-              
-              {/* Campo específico por tipo de fechamento */}
+
+              <div>
+                <label className="block text-xs font-bold text-brand-orange uppercase mb-1.5">Motivo do arquivamento *</label>
+                <select
+                  className="w-full bg-brand-dark border border-brand-orange/60 p-2 rounded text-white text-sm focus:border-brand-orange outline-none"
+                  value={data.motivoArquivamento || ''}
+                  onChange={e => setData({ ...data, motivoArquivamento: e.target.value })}
+                >
+                  <option value="">Selecione o motivo...</option>
+                  {ARCHIVE_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+
+              {/* Campo específico por tipo de fechamento (legado; não usado com Arquivado) */}
               {transition.toStage === 'Contratado' && (
                 <div>
                   <label className="block text-xs font-bold text-green-400 uppercase mb-1.5">
@@ -403,18 +416,18 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
               {/* Campo genérico se não for um dos três acima */}
               {!['Contratado', 'Reprovado', 'Desistiu da vaga'].includes(transition.toStage) && (
                 <div>
-                  <label className="block text-xs font-bold text-brand-cyan uppercase mb-1.5">Feedback / Observação *</label>
-                  <textarea 
+                  <label className="block text-xs font-bold text-brand-cyan uppercase mb-1.5">Observações (opcional)</label>
+                  <textarea
                     className="w-full bg-brand-dark border border-brand-border p-2 rounded text-white text-sm h-24 focus:border-brand-orange outline-none"
-                    placeholder="Descreva o motivo do fechamento..."
+                    placeholder="Detalhes do arquivamento (opcional)..."
                     value={data.feedback}
                     onChange={e => setData({...data, feedback: e.target.value})}
                   />
                 </div>
               )}
               
-              {/* Desistência: apenas motivo (feedback acima); sem retorno obrigatório */}
-              {transition.toStage !== 'Desistiu da vaga' && (
+              {/* Retorno ao candidato (pergunta sempre ao arquivar) */}
+              {transition.isConclusion && (
               <>
               <div>
                 <label className="block text-xs font-bold text-brand-cyan uppercase mb-1.5">Retorno Dado ao Candidato *</label>

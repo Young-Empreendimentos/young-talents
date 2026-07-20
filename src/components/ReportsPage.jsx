@@ -82,8 +82,7 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
     PIPELINE_STAGES.forEach(stage => {
       counts[stage] = filteredByPeriod.filter(c => (c.status || 'Inscrito') === stage).length;
     });
-    counts['Contratado'] = filteredByPeriod.filter(c => c.status === 'Contratado').length;
-    counts['Reprovado'] = filteredByPeriod.filter(c => c.status === 'Reprovado').length;
+    counts['Arquivado'] = filteredByPeriod.filter(c => c.status === 'Arquivado').length;
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [filteredByPeriod]);
 

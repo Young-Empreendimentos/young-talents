@@ -10,23 +10,34 @@ export const PIPELINE_STAGES = [
   'Testes realizados',
   'Entrevista II realizada',
   'Teste de trabalho realizado',
-  'Selecionado',
 ];
 
-// Status que encerram o processo (saem do funil)
-export const CLOSING_STATUSES = [
+// Status único de encerramento (sai do funil). Substitui os antigos
+// Contratado/Selecionado/Reprovado/Descartado/Desistiu — o "porquê" agora vai
+// no campo motivo_arquivamento (ver ARCHIVE_REASONS).
+export const ARCHIVED_STATUS = 'Arquivado';
+export const CLOSING_STATUSES = [ARCHIVED_STATUS];
+
+// Motivos do arquivamento (preenchidos no pop-up ao arquivar)
+export const ARCHIVE_REASONS = [
   'Contratado',
-  'Descartado',
-  'Reprovado',
-  'Desistiu da vaga'
+  'Selecionado',
+  'Mapeado como interesse',
+  'Contratamos outro candidato',
+  'Vaga cancelada',
+  'Desistiu da vaga',
 ];
+
+// Status antigos de encerramento (só para exibição de registros históricos)
+export const LEGACY_CLOSING_STATUSES = ['Contratado', 'Selecionado', 'Descartado', 'Reprovado', 'Desistiu da vaga'];
 
 // Todos os status possíveis (para validação e cores)
 // 'Inscrito' fica primeiro — é o estado inicial de todo candidato
 export const ALL_STATUSES = ['Inscrito', ...PIPELINE_STAGES, ...CLOSING_STATUSES];
 
 // Etapas que exigem candidato vinculado a pelo menos uma vaga
-export const STAGES_REQUIRING_APPLICATION = ['Considerado', 'Entrevista I realizada', 'Testes realizados', 'Entrevista II realizada', 'Teste de trabalho realizado', 'Selecionado', 'Contratado', 'Descartado', 'Reprovado', 'Desistiu da vaga'];
+// (arquivar NÃO exige vaga — pode-se arquivar um Inscrito, ex.: vaga cancelada)
+export const STAGES_REQUIRING_APPLICATION = ['Considerado', 'Entrevista I realizada', 'Testes realizados', 'Entrevista II realizada', 'Teste de trabalho realizado'];
 
 // Campos obrigatórios por etapa — sem exigência de preenchimento
 export const STAGE_REQUIRED_FIELDS = {};
@@ -72,7 +83,10 @@ export const STATUS_COLORS = {
   'Teste de trabalho realizado': 'bg-violet-500 dark:bg-violet-600 text-white border-violet-600 dark:border-violet-700 font-medium',
   'Selecionado': 'bg-yellow-500 dark:bg-yellow-600 text-white border-yellow-600 dark:border-yellow-700 font-medium',
 
-  // Status de Fechamento (saem do funil)
+  // Status único de encerramento
+  'Arquivado': 'bg-slate-500 dark:bg-slate-600 text-white border-slate-600 dark:border-slate-700 font-medium',
+
+  // Status de Fechamento antigos (legado — exibição de registros históricos)
   'Contratado': 'bg-green-500 dark:bg-green-600 text-white border-green-600 dark:border-green-700 font-medium',
   'Descartado': 'bg-orange-500 dark:bg-orange-600 text-white border-orange-600 dark:border-orange-700 font-medium',
   'Reprovado': 'bg-red-500 dark:bg-red-600 text-white border-red-600 dark:border-red-700 font-medium',

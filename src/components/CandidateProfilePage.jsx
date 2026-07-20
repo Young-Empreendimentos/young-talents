@@ -375,6 +375,11 @@ export default function CandidateProfilePage({
                   <span className={`px-3 py-1 rounded text-xs font-bold uppercase ${STATUS_COLORS[candidate.status] || 'bg-slate-600 text-white'}`}>
                     {candidate.status || 'Inscrito'}
                   </span>
+                  {candidate.status === 'Arquivado' && candidate.motivoArquivamento && (
+                    <span className="px-2.5 py-1 rounded text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-border">
+                      Motivo: {candidate.motivoArquivamento}
+                    </span>
+                  )}
                   {onAdvanceStage && (
                     <select
                       className="text-xs border border-input rounded px-2 py-1 bg-background text-foreground outline-none focus:ring-1 focus:ring-young-orange"
