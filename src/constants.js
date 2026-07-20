@@ -6,9 +6,8 @@ export const DEFAULT_CANDIDATE_STATUS = 'Inscrito';
 // Etapas Visuais do Kanban (O fluxo ativo) — só aparecem quando vinculado a uma vaga
 export const PIPELINE_STAGES = [
   'Considerado',
-  'Entrevista I realizada',
   'Testes realizados',
-  'Entrevista II realizada',
+  'Entrevista realizada',
   'Teste de trabalho realizado',
 ];
 
@@ -37,7 +36,7 @@ export const ALL_STATUSES = ['Inscrito', ...PIPELINE_STAGES, ...CLOSING_STATUSES
 
 // Etapas que exigem candidato vinculado a pelo menos uma vaga
 // (arquivar NÃO exige vaga — pode-se arquivar um Inscrito, ex.: vaga cancelada)
-export const STAGES_REQUIRING_APPLICATION = ['Considerado', 'Entrevista I realizada', 'Testes realizados', 'Entrevista II realizada', 'Teste de trabalho realizado'];
+export const STAGES_REQUIRING_APPLICATION = ['Considerado', 'Testes realizados', 'Entrevista realizada', 'Teste de trabalho realizado'];
 
 // Campos obrigatórios por etapa — sem exigência de preenchimento
 export const STAGE_REQUIRED_FIELDS = {};
@@ -77,6 +76,7 @@ export const REJECTION_REASONS = [
 export const STATUS_COLORS = {
   'Inscrito': 'bg-slate-500 dark:bg-slate-600 text-white border-slate-600 dark:border-slate-700 font-medium',
   'Considerado': 'bg-blue-500 dark:bg-blue-600 text-white border-blue-600 dark:border-blue-700 font-medium',
+  'Entrevista realizada': 'bg-cyan-500 dark:bg-cyan-600 text-white border-cyan-600 dark:border-cyan-700 font-medium',
   'Entrevista I realizada': 'bg-cyan-500 dark:bg-cyan-600 text-white border-cyan-600 dark:border-cyan-700 font-medium',
   'Testes realizados': 'bg-purple-500 dark:bg-purple-600 text-white border-purple-600 dark:border-purple-700 font-medium',
   'Entrevista II realizada': 'bg-indigo-500 dark:bg-indigo-600 text-white border-indigo-600 dark:border-indigo-700 font-medium',

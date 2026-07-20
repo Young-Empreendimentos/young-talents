@@ -10,10 +10,11 @@ import { getCandidateRecency, getRecencyRowClass } from '../utils/candidateRecen
 
 const LEGACY_STATUS_MAP = {
     'Vaga pausada': 'Considerado',
-    'Entrevista I': 'Entrevista I realizada',
     'Testes': 'Testes realizados',
-    'Entrevista II': 'Entrevista II realizada',
-    'Seleção': 'Selecionado',
+    'Entrevista I': 'Entrevista realizada',
+    'Entrevista II': 'Entrevista realizada',
+    'Entrevista I realizada': 'Entrevista realizada',
+    'Entrevista II realizada': 'Entrevista realizada',
 };
 const NON_PIPELINE_STATUSES = new Set(['Inscrito']);
 

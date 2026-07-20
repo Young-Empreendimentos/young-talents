@@ -379,8 +379,8 @@ const Dashboard = ({
                     </div>
                     <p className="text-2xl font-bold text-foreground">
                         {filteredCandidatesByPeriod.filter(c =>
-                            ['Entrevista I realizada', 'Testes realizados', 'Entrevista II realizada', 'Teste de trabalho realizado',
-                             'Entrevista I', 'Testes', 'Entrevista II'].includes(c.status || '')
+                            ['Testes realizados', 'Entrevista realizada', 'Teste de trabalho realizado',
+                             'Entrevista I realizada', 'Entrevista II realizada', 'Entrevista I', 'Testes', 'Entrevista II'].includes(c.status || '')
                         ).length}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">Entrevistas + testes ativos</p>
