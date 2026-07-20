@@ -30,6 +30,9 @@ const PERIOD_OPTIONS = [
     { value: 'custom', label: 'Período' },
 ];
 
+// Motivos de arquivamento contados como "Descartados" (não-contratado / não-selecionado)
+const DISCARD_MOTIVOS = ['Mapeado como interesse', 'Contratamos outro candidato', 'Vaga cancelada', 'Desistiu da vaga'];
+
 const ACCESS_ROLE_OPTIONS = [
     { value: 'viewer', label: 'Visualizador' },
     { value: 'editor', label: 'Editor' },
@@ -212,7 +215,8 @@ const Dashboard = ({
         total: filteredCandidatesByPeriod.length,
         // Contratado agora é um MOTIVO de arquivamento (status = Arquivado)
         hired: filteredCandidatesByPeriod.filter(c => c.status === 'Arquivado' && c.motivoArquivamento === 'Contratado').length,
-        archived: filteredCandidatesByPeriod.filter(c => c.status === 'Arquivado').length,
+        // "Descartados": arquivados por motivos que não são contratação/seleção
+        discarded: filteredCandidatesByPeriod.filter(c => c.status === 'Arquivado' && DISCARD_MOTIVOS.includes(c.motivoArquivamento)).length,
         active: filteredCandidatesByPeriod.filter(c => PIPELINE_STAGES.includes(c.status)).length,
         starred: filteredCandidatesByPeriod.filter(c => c.starred === true).length,
     };
@@ -325,7 +329,7 @@ const Dashboard = ({
                     <p className="text-xs text-muted-foreground mt-1">Taxa: {overallConversionRate}%</p>
                 </div>
 
-                {/* Arquivados */}
+                {/* Descartados */}
                 <div
                     onClick={() => onNavigateToCandidates?.('/candidates?status=Arquivado')}
                     className="cursor-pointer group bg-card border border-border rounded-xl p-5 hover:border-slate-400/60 hover:shadow-md transition-all"
@@ -334,11 +338,11 @@ const Dashboard = ({
                         <div className="p-2 bg-slate-500/10 rounded-lg">
                             <UserX size={18} className="text-slate-500" />
                         </div>
-                        <span className="text-[10px] font-semibold text-slate-500 bg-slate-500/10 px-2 py-0.5 rounded-full uppercase tracking-wide">Arquivados</span>
+                        <span className="text-[10px] font-semibold text-slate-500 bg-slate-500/10 px-2 py-0.5 rounded-full uppercase tracking-wide">Descartados</span>
                     </div>
-                    <p className="text-3xl font-bold text-foreground">{candidateStats.archived}</p>
+                    <p className="text-3xl font-bold text-foreground">{candidateStats.discarded}</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                        {candidateStats.total > 0 ? ((candidateStats.archived / candidateStats.total) * 100).toFixed(1) : 0}% do total
+                        {candidateStats.total > 0 ? ((candidateStats.discarded / candidateStats.total) * 100).toFixed(1) : 0}% do total
                     </p>
                 </div>
             </div>
