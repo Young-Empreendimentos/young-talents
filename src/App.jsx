@@ -518,7 +518,11 @@ export default function App() {
 
   const loadMappings = React.useCallback(async () => {
     if (!supabase) return;
-    const { data, error } = await schema().from('talents_mappings').select('*').order('created_at', { ascending: false });
+    // Traz nome/e-mail do candidato junto (via FK) para o Mapeamento nao depender
+    // do carregamento da lista inteira de candidatos (~2.9k) para exibir o nome.
+    const { data, error } = await schema().from('talents_mappings')
+      .select('*, candidate:talents_candidates(id, full_name, email)')
+      .order('created_at', { ascending: false });
     if (!error) setMappings(mapMappingsFromSupabase(data ?? []));
   }, []);
 

@@ -127,6 +127,10 @@ export function mapMappingFromSupabase(row) {
   return {
     id: row.id,
     candidateId: row.candidate_id,
+    // Nome/e-mail vindos do join (loadMappings) — fallback quando a lista global
+    // de candidatos ainda nao carregou.
+    candidateName: row.candidate?.full_name ?? null,
+    candidateEmail: row.candidate?.email ?? null,
     positionId: row.position_id,
     positionName: row.position_name,
     city: row.city,

@@ -42,7 +42,10 @@ export default function MappingsPage({
   // Enriquecer mapeamentos com dados do candidato
   const enriched = useMemo(() => {
     return mappings.map(m => {
-      const candidate = candidates.find(c => c.id === m.candidateId);
+      // Usa o candidato da lista global (dados completos) ou, se ainda nao
+      // carregou, cai no nome/e-mail que vieram junto do mapeamento (join).
+      const candidate = candidates.find(c => c.id === m.candidateId)
+        || (m.candidateName ? { id: m.candidateId, fullName: m.candidateName, email: m.candidateEmail } : undefined);
       return { ...m, candidate };
     });
   }, [mappings, candidates]);
