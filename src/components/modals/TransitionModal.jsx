@@ -72,6 +72,13 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
       return;
     }
 
+    // Confirmação extra ao marcar como contratado (decisão final importante)
+    if (transition.isConclusion && data.motivoArquivamento === 'Contratado') {
+      if (!confirm(`${transition.candidate?.fullName || 'Este candidato'} será marcado como CONTRATADO e arquivado. Confirma?`)) {
+        return;
+      }
+    }
+
     if (transition.isConclusion && !data.returnSent) {
        if(!confirm("Você não marcou que o retorno foi enviado ao candidato. Deseja arquivar mesmo assim?")) {
          return;
