@@ -136,7 +136,7 @@ export default function CandidateProfilePage({
     const found = candidates.find(c => c.id === id);
     if (found) { setCandidate(found); setEditData(found); setLoading(false); return; }
     (async () => {
-      const { data, error } = await supabase.from('talents_candidates').select('*').eq('id', id).maybeSingle();
+      const { data, error } = await supabase.schema('rh').from('talents_candidates').select('*').eq('id', id).maybeSingle();
       if (error) { console.warn(error); setLoading(false); return; }
       const mapped = data ? prepareCandidateForDisplay(mapCandidateFromSupabase(data)) : null;
       setCandidate(mapped);
@@ -200,7 +200,7 @@ export default function CandidateProfilePage({
     }
     setSaving(true);
     try {
-      const { data: updated, error } = await supabase.from('talents_candidates').update({
+      const { data: updated, error } = await supabase.schema('rh').from('talents_candidates').update({
         full_name: editData.fullName || candidate.fullName,
         birth_date: editData.birthDate || null,
         age: editData.age || null,

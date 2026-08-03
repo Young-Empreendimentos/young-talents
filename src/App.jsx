@@ -385,7 +385,9 @@ export default function App() {
   };
 
   // Supabase Data Loaders
-  const schema = () => supabase;
+  // Tabelas talents_* migraram do schema public para o schema rh (2026-07).
+  // RPCs, storage e auth continuam em public — por isso o rh vai só no .from().
+  const schema = () => supabase.schema('rh');
 
   const loadCandidates = React.useCallback(async () => {
     if (!supabase) return;
@@ -396,7 +398,7 @@ export default function App() {
       let offset = 0;
       let hasMore = true;
       while (hasMore) {
-        const { data, error } = await supabase
+        const { data, error } = await schema()
           .from('talents_candidates')
           .select('*')
           .order('created_at', { ascending: false })
@@ -588,7 +590,7 @@ export default function App() {
       return;
     }
     try {
-      const { data, error } = await supabase.from('talents_activity_log').select('*').order('created_at', { ascending: false }).limit(500);
+      const { data, error } = await schema().from('talents_activity_log').select('*').order('created_at', { ascending: false }).limit(500);
       if (error) {
         if (error.code !== 'PGRST116' && error.code !== '42P01') console.warn('[ActivityLog] Erro:', error.message);
         activityLogUnavailableRef.current = true;
@@ -605,7 +607,7 @@ export default function App() {
   // Padrão Paver: solicitações de acesso pendentes (para o card de aprovação na home).
   const loadAccessRequests = React.useCallback(async () => {
     if (!supabase) return;
-    const { data, error } = await supabase
+    const { data, error } = await schema()
       .from('talents_solicitacao_acesso')
       .select('*')
       .eq('status', 'pending')
@@ -659,7 +661,7 @@ export default function App() {
       }
     }
     if (supabase) {
-      channel = supabase.channel('candidates_changes').on('postgres_changes', { event: '*', schema: 'public', table: 'talents_candidates' }, () => { loadCandidates(); }).subscribe();
+      channel = supabase.channel('candidates_changes').on('postgres_changes', { event: '*', schema: 'rh', table: 'talents_candidates' }, () => { loadCandidates(); }).subscribe();
     }
     return () => {
       if (supabase && channel) supabase.removeChannel(channel);
@@ -726,7 +728,7 @@ export default function App() {
         await supabase.rpc('talents_registrar_solicitacao_acesso');
       } catch (e) { console.warn('registrar_solicitacao_acesso:', e?.message); }
       try {
-        const { data } = await supabase
+        const { data } = await schema()
           .from('talents_solicitacao_acesso')
           .select('status')
           .eq('user_id', user.id)
@@ -744,7 +746,7 @@ export default function App() {
     if (!effectiveUser || !effectiveUser.email || !supabase) return;
     try {
       const payload = { user_id: effectiveUser.id || null, user_email: effectiveUser.email, user_name: effectiveUser.displayName || effectiveUser.email, action: activityType, entity_type: entityType, entity_id: entityId, details: description || '', meta: metadata && Object.keys(metadata).length > 0 ? metadata : null };
-      const { data, error } = await supabase.from('talents_activity_log').insert(payload).select('id, created_at').single();
+      const { data, error } = await schema().from('talents_activity_log').insert(payload).select('id, created_at').single();
       if (!error && data) setActivityLog(prev => [...prev, { id: data.id, type: activityType, description, userName: payload.user_name, userEmail: payload.user_email, timestamp: data.created_at, entityType, entityId }]);
     } catch (e) { console.warn('Erro activity log:', e); }
   };
@@ -754,7 +756,7 @@ export default function App() {
     const previousCandidates = candidates;
     setCandidates(prev => prev.map(x => x.id === c.id ? { ...x, starred: !x.starred } : x));
     try {
-      const { error } = await supabase.from('talents_candidates').update({ starred: !c.starred }).eq('id', c.id);
+      const { error } = await schema().from('talents_candidates').update({ starred: !c.starred }).eq('id', c.id);
       if (error) throw error;
       await recordActivity('update', c.starred ? 'Removido de mapeado como interesse' : 'Mapeado como interesse', 'candidate', c.id);
       showToast('Atualizado.', 'success');
@@ -795,7 +797,7 @@ export default function App() {
         const activityDescription = options.activityDescription;
         if (d.id) {
           const { id, ...rest } = payload;
-          const { error } = await supabase.from('talents_candidates').update(rest).eq('id', d.id);
+          const { error } = await schema().from('talents_candidates').update(rest).eq('id', d.id);
           if (error) throw error;
           await recordActivity('update', activityDescription || 'Candidato atualizado', 'candidate', d.id, { fullName: d.fullName });
           showToast('Candidato atualizado.', 'success');
@@ -805,7 +807,7 @@ export default function App() {
             else await loadApplications();
           }
         } else {
-          const { data: inserted, error } = await supabase.from('talents_candidates').insert(payload).select('id').single();
+          const { data: inserted, error } = await schema().from('talents_candidates').insert(payload).select('id').single();
           if (error) throw error;
           await recordActivity('create', 'Candidato criado', 'candidate', inserted?.id, { fullName: d.fullName });
           showToast('Candidato criado.', 'success');
@@ -1127,7 +1129,7 @@ export default function App() {
   const hasReturnContact = React.useCallback(async (candidateId) => {
     if (!supabase || !candidateId) return true; // fail-open: não trava por falta de infra
     try {
-      const { data, error } = await supabase
+      const { data, error } = await schema()
         .from('talents_interactions')
         .select('id')
         .eq('candidate_id', candidateId)

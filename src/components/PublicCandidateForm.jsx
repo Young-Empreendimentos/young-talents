@@ -187,7 +187,7 @@ const PublicCandidateForm = () => {
   useEffect(() => {
     const loadCities = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabase.schema('rh')
           .from('talents_cities')
           .select('*')
           .order('name');

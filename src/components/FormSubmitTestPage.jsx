@@ -73,7 +73,7 @@ export default function FormSubmitTestPage() {
     setResult(null);
     try {
       const payload = buildTestPayload();
-      const { data, error } = await supabase
+      const { data, error } = await supabase.schema('rh')
         .from('talents_candidates')
         .insert([payload])
         .select();
