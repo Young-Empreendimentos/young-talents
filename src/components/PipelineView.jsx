@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Kanban, List, Briefcase, Building2, MapPin, Clock, Edit3, Check, Ban,
-    ChevronLeft, ChevronRight, Star, ChevronsLeft, ChevronDown, SlidersHorizontal, X } from 'lucide-react';
+    ChevronLeft, ChevronRight, ChevronsLeft, ChevronDown, SlidersHorizontal, X } from 'lucide-react';
 import { PIPELINE_STAGES as DEFAULT_PIPELINE_STAGES, ALL_STATUSES, STATUS_COLORS, CLOSING_STATUSES } from '../constants';
 import { getPhotoPublicUrl } from '../utils/urlUtils';
 import { getCandidateTimestamp } from '../utils/timestampUtils';
 import { normalizeCity } from '../utils/cityNormalizer';
 import { findMatchingJobs } from '../utils/matching';
+import MappedIndicator from './mapping/MappedIndicator';
 import { getCandidateRecency, getRecencyRowClass } from '../utils/candidateRecency';
 
 const LEGACY_STATUS_MAP = {
@@ -55,7 +56,7 @@ const PipelineView = ({
     candidatesLoading = false, candidatesTotal = 0, filteredCount = 0,
     onClearFilters, candidates, jobs, onDragEnd, onEdit, onCloseStatus,
     companies, applications = [], interviews = [], forceViewMode = null,
-    highlightedCandidateId = null, filters = {}, setFilters, onToggleStar,
+    highlightedCandidateId = null, filters = {}, setFilters, mapeadosAtivos, mapeamento,
     pipelineStages: pipelineStagesProp
 }) => {
     const PIPELINE_STAGES = pipelineStagesProp || DEFAULT_PIPELINE_STAGES;
@@ -215,21 +216,21 @@ const PipelineView = ({
         return <div className="p-6 flex items-center justify-center min-h-[200px] text-muted-foreground">Nenhum candidato no pipeline ainda.</div>;
     }
 
-    /* Botão de estrela */
+    /* Filtro "mapeado" (antes: estrela) */
     const activeStar = filters.starredFilter ?? (filters.starred === true ? 'starred' : 'all');
     const StarToggle = setFilters ? (
         <div className="flex items-center rounded-lg border border-border bg-card p-0.5" role="group">
             <button type="button" onClick={() => setFilters(p => ({ ...p, starredFilter: 'starred' }))}
-                className={`p-1.5 rounded transition-colors ${activeStar === 'starred' ? 'bg-muted shadow-sm' : 'hover:bg-muted/50'}`} title="Com estrela">
-                <Star size={15} className="text-amber-400 fill-amber-400" />
+                className={`p-1.5 rounded transition-colors ${activeStar === 'starred' ? 'bg-muted shadow-sm' : 'hover:bg-muted/50'}`} title="Com mapeamento ativo">
+                <MapPin size={15} className="text-brand-orange" fill="currentColor" fillOpacity={0.25} />
             </button>
             <button type="button" onClick={() => setFilters(p => ({ ...p, starredFilter: 'unstarred' }))}
-                className={`p-1.5 rounded transition-colors ${activeStar === 'unstarred' ? 'bg-muted shadow-sm' : 'hover:bg-muted/50'}`} title="Sem estrela">
-                <Star size={15} className="text-muted-foreground" />
+                className={`p-1.5 rounded transition-colors ${activeStar === 'unstarred' ? 'bg-muted shadow-sm' : 'hover:bg-muted/50'}`} title="Sem mapeamento">
+                <MapPin size={15} className="text-muted-foreground" />
             </button>
             <button type="button" onClick={() => setFilters(p => ({ ...p, starredFilter: 'all' }))}
-                className={`p-1.5 rounded transition-colors ${activeStar === 'all' ? 'bg-muted shadow-sm' : 'hover:bg-muted/50'}`} title="Todos">
-                <Star size={15} className="text-amber-400" />
+                className={`p-1.5 rounded transition-colors text-xs px-2 ${activeStar === 'all' ? 'bg-muted shadow-sm font-semibold' : 'hover:bg-muted/50 text-muted-foreground'}`} title="Todos">
+                Todos
             </button>
         </div>
     ) : null;
@@ -384,7 +385,8 @@ const PipelineView = ({
                                     onLoadMore={(amount) => loadMoreInStage(stage, amount)}
                                     onReset={() => resetStageCount(stage)}
                                     kanbanItemsPerPage={kanbanItemsPerPage}
-                                    onToggleStar={onToggleStar}
+                                    mapeadosAtivos={mapeadosAtivos}
+                                    mapeamento={mapeamento}
                                     collapsed={collapsedColumns.has(stage)}
                                     onToggleCollapse={() => toggleColumn(stage)}
                                     highlightedCandidateId={highlightedCandidateId}
@@ -400,7 +402,7 @@ const PipelineView = ({
                                 <thead className="bg-card text-foreground font-semibold sticky top-0 z-10 shadow-sm border-b border-border">
                                     <tr>
                                         <th className="p-3 w-10"><input type="checkbox" className="accent-brand-orange" checked={selectedIds.length > 0 && selectedIds.length === processedData.length} onChange={handleSelectAll} /></th>
-                                        <th className="p-3 w-10"><Star size={13} className="text-amber-400" /></th>
+                                        <th className="p-3 w-10" title="Mapeamento de interesse"><MapPin size={13} className="text-brand-orange" /></th>
                                         <th className="p-3">Nome</th>
                                         <th className="p-3">Status</th>
                                         <th className="p-3">Vaga</th>
@@ -421,10 +423,8 @@ const PipelineView = ({
                                             <tr key={c.id} className={`hover:bg-muted/40 transition-colors ${getRecencyRowClass(recency)}`}>
                                                 <td className="p-3"><input type="checkbox" className="accent-brand-orange" checked={selectedIds.includes(c.id)} onChange={() => handleSelect(c.id)} /></td>
                                                 <td className="p-3">
-                                                    {onToggleStar ? (
-                                                        <button type="button" onClick={e => { e.stopPropagation(); onToggleStar(c); }} className="p-1 rounded hover:bg-muted">
-                                                            <Star size={15} className={c.starred ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground hover:text-amber-300'} />
-                                                        </button>
+                                                    {mapeadosAtivos ? (
+                                                        <MappedIndicator ativos={mapeadosAtivos.get(c.id)} mapeamento={mapeamento} onClick={() => onEdit(c)} />
                                                     ) : '—'}
                                                 </td>
                                                 <td className="p-3 font-medium text-foreground cursor-pointer hover:text-brand-orange transition-colors" onClick={() => onEdit(c)}>
@@ -496,7 +496,7 @@ const KanbanColumn = ({
     stage, allCandidates, displayedCandidates, total, displayCount,
     jobs, applications = [], onDragEnd, onEdit, onCloseStatus,
     selectedIds, onSelect, showColorPicker, onLoadMore, onReset,
-    kanbanItemsPerPage = 10, onToggleStar, collapsed = false, onToggleCollapse,
+    kanbanItemsPerPage = 10, mapeadosAtivos, mapeamento, collapsed = false, onToggleCollapse,
     highlightedCandidateId = null, allJobs = []
 }) => {
     const [columnColor, setColumnColor] = useState(() => localStorage.getItem(`kanban-color-${stage}`) || STATUS_COLORS[stage]);
@@ -605,12 +605,11 @@ const KanbanColumn = ({
                                             ? <img src={url} alt={c.fullName} className="w-8 h-8 rounded-full object-cover shrink-0 border border-border" referrerPolicy="no-referrer" onError={e => e.target.style.display='none'} />
                                             : <div className="w-8 h-8 rounded-full bg-muted shrink-0 flex items-center justify-center text-xs font-bold text-muted-foreground border border-border">{c.fullName?.charAt(0)?.toUpperCase() || '?'}</div>;
                                     })()}
-                                    {/* Estrela */}
-                                    {onToggleStar && (
-                                        <button type="button" onClick={e => { e.stopPropagation(); onToggleStar(c); }}
-                                            className="shrink-0 p-1 rounded hover:bg-muted/50 z-30 relative mt-0.5">
-                                            <Star size={14} className={c.starred ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground hover:text-amber-300'} />
-                                        </button>
+                                    {/* Mapeado (antes: estrela) */}
+                                    {mapeadosAtivos && (
+                                        <span className="shrink-0 z-30 relative mt-0.5">
+                                            <MappedIndicator ativos={mapeadosAtivos.get(c.id)} mapeamento={mapeamento} onClick={() => onEdit(c)} size={14} />
+                                        </span>
                                     )}
                                     {/* Info */}
                                     <div className="min-w-0 flex-1">

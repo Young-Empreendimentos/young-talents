@@ -4,8 +4,17 @@ import { normalizeCity, getMainCitiesOptions } from '../../utils/cityNormalizer'
 import { normalizeSource, getMainSourcesOptions } from '../../utils/sourceNormalizer';
 import { normalizeInterestArea, normalizeInterestAreasString, getMainInterestAreasOptions } from '../../utils/interestAreaNormalizer';
 import { REJECTION_REASONS, STAGES_REQUIRING_APPLICATION, ARCHIVE_REASONS } from '../../constants';
+import { MappingFields, mappingVazio, problemaMapeamento } from '../mapping/MappingSection';
+import { mappingLabel } from '../../utils/mappings';
 
-export default function TransitionModal({ transition, onClose, onConfirm, cities, interestAreas, schooling, marital, origins, jobs = [], applications = [], onCreateApplication, onOpenCreateJob }) {
+// Motivos em que faz sentido guardar o candidato para depois. Em "Mapeado como
+// interesse" o mapeamento é obrigatório — é o próprio motivo; nos outros, opcional.
+const MOTIVO_MAPEIA_SEMPRE = 'Mapeado como interesse';
+const MOTIVOS_QUE_OFERECEM_MAPEAR = [MOTIVO_MAPEIA_SEMPRE, 'Contratamos outro candidato', 'Vaga cancelada'];
+
+const semAcento = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+export default function TransitionModal({ transition, onClose, onConfirm, cities, interestAreas, schooling, marital, origins, jobs = [], applications = [], onCreateApplication, onOpenCreateJob, mapeamento }) {
   const [jobSearch, setJobSearch] = useState('');
   const [selectedJobId, setSelectedJobId] = useState('');
   const [linkedSuccess, setLinkedSuccess] = useState(false);
@@ -13,6 +22,26 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
   const needsApplication = transition?.toStage && STAGES_REQUIRING_APPLICATION.includes(transition.toStage);
   const candidateApps = useMemo(() => (applications || []).filter(a => a.candidateId === transition?.candidate?.id), [applications, transition?.candidate?.id]);
   const hasApplication = candidateApps.length > 0;
+
+  // Mapeamento no arquivamento, pré-preenchido com a vaga mais recente do
+  // candidato: título vira a especificação e, se o campo "função" da vaga bater
+  // com uma função do Pilares, ela já vem escolhida.
+  const [mapear, setMapear] = useState(false);
+  // Já mapeado: "Mapeado como interesse" não obriga um segundo mapeamento.
+  const jaMapeado = mapeamento?.mapeadosAtivos?.get(transition?.candidate?.id) || [];
+  const mapeiaObrigatorio = (motivo) => motivo === MOTIVO_MAPEIA_SEMPRE && jaMapeado.length === 0;
+  const [mapForm, setMapForm] = useState(() => {
+    const app = [...candidateApps].sort((a, b) => new Date(b.appliedAt || 0) - new Date(a.appliedAt || 0))[0];
+    const job = app ? (jobs || []).find(j => j.id === app.jobId) : null;
+    const candidatos = [job?.function, job?.position, job?.title].map(semAcento).filter(Boolean);
+    const funcao = (mapeamento?.funcoes || []).find(f => candidatos.includes(semAcento(f.name)));
+    return mappingVazio({
+      funcaoId: funcao?.id || '',
+      especificacao: job?.title || '',
+      city: transition?.candidate?.city || '',
+      notes: job ? `Processo: ${job.title}${job.company ? ` (${job.company})` : ''}` : '',
+    });
+  });
 
   const filteredJobs = useMemo(() => {
     const list = (jobs || []).filter(j => (j.status === 'Aberta' || !j.status));
@@ -72,6 +101,13 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
       return;
     }
 
+    const vaiMapear = transition.isConclusion && !!mapeamento
+      && (mapeiaObrigatorio(data.motivoArquivamento) || (mapear && MOTIVOS_QUE_OFERECEM_MAPEAR.includes(data.motivoArquivamento)));
+    if (vaiMapear && problemaMapeamento(mapForm)) {
+      alert(`Mapeamento de interesse: ${problemaMapeamento(mapForm)}`);
+      return;
+    }
+
     // Confirmação extra ao marcar como contratado (decisão final importante)
     if (transition.isConclusion && data.motivoArquivamento === 'Contratado') {
       if (!confirm(`${transition.candidate?.fullName || 'Este candidato'} será marcado como CONTRATADO e arquivado. Confirma?`)) {
@@ -97,7 +133,9 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
       dataToSave.interestAreas = normalizeInterestAreasString(dataToSave.interestAreas);
     }
     
-    onConfirm(dataToSave);
+    // O mapeamento vai à parte (não é campo do candidato): quem confirma cria
+    // depois de validar o arquivamento.
+    onConfirm(dataToSave, { mapeamento: vaiMapear ? mapForm : null });
   };
 
   const renderInput = (field) => {
@@ -376,6 +414,28 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
                   {ARCHIVE_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
+
+              {/* Guardar para depois: mapeamento de interesse */}
+              {mapeamento && MOTIVOS_QUE_OFERECEM_MAPEAR.includes(data.motivoArquivamento) && (
+                <div className="rounded-lg border border-brand-orange/40 bg-card text-foreground p-3 space-y-3">
+                  {jaMapeado.length > 0 && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Já mapeado para: {jaMapeado.map(m => mappingLabel(m, mapeamento) || 'função não definida').join('; ')}
+                    </p>
+                  )}
+                  {mapeiaObrigatorio(data.motivoArquivamento) ? (
+                    <p className="text-xs font-semibold">Para qual função ele fica mapeado?</p>
+                  ) : (
+                    <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                      <input type="checkbox" className="accent-brand-orange" checked={mapear} onChange={e => setMapear(e.target.checked)} />
+                      {jaMapeado.length > 0 ? 'Mapear também para outra função' : 'Perfil interessante — mapear para futuras vagas'}
+                    </label>
+                  )}
+                  {(mapear || mapeiaObrigatorio(data.motivoArquivamento)) && (
+                    <MappingFields value={mapForm} onChange={setMapForm} mapeamento={mapeamento} compact />
+                  )}
+                </div>
+              )}
 
               {/* Campo específico por tipo de fechamento (legado; não usado com Arquivado) */}
               {transition.toStage === 'Contratado' && (

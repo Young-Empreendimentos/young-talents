@@ -131,11 +131,15 @@ export function mapMappingFromSupabase(row) {
     // de candidatos ainda nao carregou.
     candidateName: row.candidate?.full_name ?? null,
     candidateEmail: row.candidate?.email ?? null,
+    funcaoId: row.funcao_id ?? null,
+    equipeId: row.equipe_id ?? null,
+    especificacao: row.especificacao ?? null,
+    nivel: row.nivel ?? 'interessante',
+    // Legado (cargo = função + nível + pacote): só para exibir registros antigos.
     positionId: row.position_id,
     positionName: row.position_name,
     city: row.city,
     notes: row.notes,
-    priority: row.priority ?? 'Média',
     status: row.status ?? 'Ativo',
     mappedBy: row.mapped_by,
     mappedByName: row.mapped_by_name,
@@ -150,13 +154,18 @@ export function mapMappingsFromSupabase(rows) {
 
 export function mappingToSupabase(d) {
   if (!d) return null;
+  // "alternativa" não é valor de talents_mappings.nivel (ver utils/mappings.js):
+  // o mapeamento fica "forte" e o marcador vai para rh_sucessao_externos.
   const row = {
     candidate_id: d.candidateId,
-    position_id: d.positionId ?? null,
+    funcao_id: d.funcaoId || null,
+    equipe_id: d.equipeId || null,
+    especificacao: d.especificacao?.trim() || null,
+    nivel: d.nivel === 'alternativa' ? 'forte' : (d.nivel || 'interessante'),
+    // Texto legível para quem ainda lê a coluna antiga.
     position_name: d.positionName ?? null,
-    city: d.city ?? null,
-    notes: d.notes ?? null,
-    priority: d.priority ?? 'Média',
+    city: d.city?.trim() || null,
+    notes: d.notes?.trim() || null,
     status: d.status ?? 'Ativo',
     mapped_by: d.mappedBy ?? null,
     mapped_by_name: d.mappedByName ?? null,

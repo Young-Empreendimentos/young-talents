@@ -56,7 +56,6 @@ const AppRoutes = ({
     cities,
     sectors,
     roles,
-    cargos = [],
     jobLevels,
     activityAreas,
     applications,
@@ -137,12 +136,7 @@ const AppRoutes = ({
     addInteraction,
     loadInteractions,
     deleteInteraction,
-    handleToggleStar,
-    mappings,
-    addMapping,
-    updateMappingStatus,
-    updateMapping,
-    deleteMapping,
+    mapeamento,
     refreshData,
     toggleTheme,
     isDark,
@@ -200,12 +194,7 @@ const AppRoutes = ({
                     showToast={showToast}
                     onCreateApplication={createApplication}
                     loadCandidates={loadCandidates}
-                    mappings={mappings}
-                    addMapping={addMapping}
-                    updateMappingStatus={updateMappingStatus}
-                    updateMapping={updateMapping}
-                    deleteMapping={deleteMapping}
-                    positions={cargos}
+                    mapeamento={mapeamento}
                     onAdvanceStage={async (candidate, newStage) => {
                         const missingFields = computeMissingFields(candidate, newStage);
                         const isConclusion = CLOSING_STATUSES.includes(newStage);
@@ -291,9 +280,9 @@ const AppRoutes = ({
                     )}
 
                     {activeTab === 'dashboard' && <div className="p-6 overflow-y-auto h-full"><Dashboard candidatesLoading={candidatesLoading} filteredJobs={jobs} filteredCandidates={filteredCandidates} totalCandidatesCount={uniqueCandidatesByEmail.length} totalSubmissionsCount={candidates.filter(c => !c.deletedAt).length} onOpenCandidates={setDashboardModalCandidates} onSetModalTitle={setDashboardModalTitle} onNavigateToCandidates={(path) => navigate(path)} onNavigateToJobs={(path) => navigate(path)} statusMovements={statusMovements} applications={applications} onViewJob={openJobCandidatesModal} interviews={interviews} onScheduleInterview={(candidate) => setInterviewModalData({ candidate })} currentUserRole={currentUserRole} accessRequests={accessRequests} onApproveAccess={approveAccessRequest} onRejectAccess={rejectAccessRequest} /></div>}
-                    {activeTab === 'pipeline' && <PipelineView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onDragEnd={handleDragEnd} onEdit={openCandidateProfile} onCloseStatus={handleCloseStatus} applications={applications} interviews={interviews} forceViewMode="kanban" highlightedCandidateId={highlightedCandidateId} filters={filters} setFilters={setFilters} onToggleStar={handleToggleStar} pipelineStages={pipelineStages} />}
-                    {activeTab === 'candidates' && <TalentBankView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onEdit={openCandidateProfile} applications={applications} onStatusChange={handleDragEnd} filters={filters} setFilters={setFilters} onToggleStar={handleToggleStar} onAddCandidate={(data, closeFn) => handleSaveGeneric('candidates', data, closeFn)} isSaving={isSaving} interestAreas={interestAreas} showToast={showToast} onOpenFilterSidebar={() => setIsFilterSidebarOpen(true)} />}
-                    {activeTab === 'mappings' && <MappingsPage mappings={mappings} candidates={candidates} candidatesLoading={candidatesLoading} positions={cargos} onUpdateStatus={updateMappingStatus} onUpdateCargo={updateMapping} onDelete={deleteMapping} showToast={showToast} />}
+                    {activeTab === 'pipeline' && <PipelineView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onDragEnd={handleDragEnd} onEdit={openCandidateProfile} onCloseStatus={handleCloseStatus} applications={applications} interviews={interviews} forceViewMode="kanban" highlightedCandidateId={highlightedCandidateId} filters={filters} setFilters={setFilters} mapeadosAtivos={mapeamento?.mapeadosAtivos} mapeamento={mapeamento} pipelineStages={pipelineStages} />}
+                    {activeTab === 'candidates' && <TalentBankView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onEdit={openCandidateProfile} applications={applications} onStatusChange={handleDragEnd} filters={filters} setFilters={setFilters} mapeadosAtivos={mapeamento?.mapeadosAtivos} mapeamento={mapeamento} onAddCandidate={(data, closeFn) => handleSaveGeneric('candidates', data, closeFn)} isSaving={isSaving} interestAreas={interestAreas} showToast={showToast} onOpenFilterSidebar={() => setIsFilterSidebarOpen(true)} />}
+                    {activeTab === 'mappings' && <MappingsPage mapeamento={mapeamento} candidates={candidates} candidatesLoading={candidatesLoading} />}
                     {activeTab === 'submissions' && <SubmissionsView candidatesLoading={candidatesLoading} candidates={candidates.filter(c => !c.deletedAt)} onEdit={openCandidateProfile} />}
                     {(activeTab === 'jobs' || activeTab === 'companies' || activeTab === 'positions' || activeTab === 'sectors' || activeTab === 'cities') && !/^\/jobs\/[^/]+$/.test(location.pathname) && (
                         <JobsManagementPage
@@ -347,11 +336,7 @@ const AppRoutes = ({
                         loadInteractions={loadInteractions}
                         deleteInteraction={deleteInteraction}
                         showToast={showToast}
-                        mappings={mappings}
-                        addMapping={addMapping}
-                        updateMappingStatus={updateMappingStatus}
-                        deleteMapping={deleteMapping}
-                        positions={cargos}
+                        mapeamento={mapeamento}
                         onAdvanceStage={async (candidate, newStage) => {
                             const missingFields = computeMissingFields(candidate, newStage);
                             const isConclusion = CLOSING_STATUSES.includes(newStage);
@@ -459,10 +444,16 @@ const AppRoutes = ({
             <TransitionModal
                 transition={pendingTransition}
                 onClose={() => setPendingTransition(null)}
-                onConfirm={async d => {
+                onConfirm={async (d, extras = {}) => {
                     if (pendingTransition.isConclusion && hasReturnContact && !(await hasReturnContact(pendingTransition.candidate.id))) {
                         showToast("Registre uma interação 'Contato de retorno' antes de arquivar este candidato.", 'error');
                         return;
+                    }
+                    // Mapeamento pedido no arquivamento: cria antes de arquivar; se
+                    // falhar, o modal fica aberto (addMapping já mostra o erro).
+                    if (extras.mapeamento && mapeamento?.add) {
+                        const ok = await mapeamento.add({ ...extras.mapeamento, candidateId: pendingTransition.candidate.id });
+                        if (!ok) return;
                     }
                     const payload = {
                         ...pendingTransition.candidate,
@@ -484,6 +475,7 @@ const AppRoutes = ({
                 applications={applications}
                 onCreateApplication={createApplication}
                 onOpenCreateJob={() => openJobModal && openJobModal({})}
+                mapeamento={mapeamento}
             />
         )}
         </>

@@ -33,6 +33,7 @@ import {
   mappingToSupabase,
   jobToSupabase
 } from './utils/fromSupabase';
+import { mappingLabel } from './utils/mappings';
 
 // Cache de dados mestres em sessionStorage (TTL 5 min)
 const CACHE_TTL_MS = 5 * 60 * 1000;
@@ -195,9 +196,14 @@ export default function App() {
   const [cities, setCities] = useState([]);
   const [interestAreas, setInterestAreas] = useState([]);
   const [roles, setRoles] = useState([]);
-  // Cargos do Pilares (rh_cargos) via RPC — fonte do picker de Mapeamento.
+  // Funções e equipes do Pilares — fonte do picker de Mapeamento (ver utils/mappings.js).
   // Separado de `roles` (talents_positions), que segue alimentando a aba Cargos.
-  const [cargos, setCargos] = useState([]);
+  const [funcoes, setFuncoes] = useState([]);
+  const [equipes, setEquipes] = useState([]);
+  // Admin do Pilares (não do Talents): único que vê e marca "Alternativa externa".
+  const [adminSucessao, setAdminSucessao] = useState(false);
+  // mappingId -> marcador de alternativa externa (rh_sucessao_externos)
+  const [alternativas, setAlternativas] = useState(new Map());
   const [jobLevels, setJobLevels] = useState([]);
   const [activityAreas, setActivityAreas] = useState([]);
   const [sectors, setSectors] = useState([]);
@@ -473,19 +479,40 @@ export default function App() {
     }
   }, []);
 
-  // Cargos do Pilares (rh_cargos) para o picker de Mapeamento, via RPC
-  // SECURITY DEFINER (talents_list_cargos), pois o RLS de rh_cargos bloqueia
-  // quem nao e staff do RH. Devolve { id, nome, trilha }; mapeia p/ { id, name, trilha }.
-  const loadCargos = React.useCallback(async () => {
+  // Funções do Pilares (rh_funcoes) para o picker de Mapeamento, via RPC
+  // SECURITY DEFINER (talents_list_funcoes), pois o RLS de rh_funcoes bloqueia
+  // quem nao e staff do RH. Uma linha por função — antes vinha rh_cargos (função
+  // + nível + pacote), e cada função aparecia repetida até 15 vezes.
+  const loadFuncoes = React.useCallback(async () => {
     if (!supabase) return;
-    const cached = getCached('yt_cache_cargos');
-    if (cached) setCargos(cached);
-    const { data, error } = await supabase.rpc('talents_list_cargos');
+    const cached = getCached('yt_cache_funcoes');
+    if (cached) setFuncoes(cached);
+    const { data, error } = await supabase.rpc('talents_list_funcoes');
     if (!error && Array.isArray(data)) {
       const mapped = data.map(r => ({ id: r.id, name: r.nome, trilha: r.trilha || null }));
-      setCargos(mapped);
-      setCached('yt_cache_cargos', mapped);
+      setFuncoes(mapped);
+      setCached('yt_cache_funcoes', mapped);
     }
+  }, []);
+
+  const loadEquipes = React.useCallback(async () => {
+    if (!supabase) return;
+    const { data, error } = await schema().from('rh_equipes').select('id, nome').order('nome');
+    if (!error) setEquipes((data ?? []).map(r => ({ id: r.id, name: r.nome })));
+  }, []);
+
+  // Só o admin do Pilares recebe linhas de rh_sucessao_externos (RLS); para os
+  // demais nem consultamos.
+  const loadAlternativas = React.useCallback(async () => {
+    if (!supabase) return;
+    const { data: ehAdmin } = await supabase.rpc('talents_eh_admin_sucessao');
+    setAdminSucessao(ehAdmin === true);
+    if (ehAdmin !== true) { setAlternativas(new Map()); return; }
+    const { data, error } = await schema().from('rh_sucessao_externos')
+      .select('id, talents_mapping_id, aderencia, aprovado_em, aprovado_por_nome');
+    if (!error) setAlternativas(new Map((data ?? []).map(r => [r.talents_mapping_id, {
+      id: r.id, aderencia: r.aderencia, aprovadoEm: r.aprovado_em, aprovadoPorNome: r.aprovado_por_nome,
+    }])));
   }, []);
 
   const loadJobLevels = React.useCallback(async () => {
@@ -616,8 +643,8 @@ export default function App() {
   }, []);
 
   const loadAllData = React.useCallback(async () => {
-    await Promise.all([loadCandidates(), loadJobs(), loadCompanies(), loadCities(), loadSectors(), loadRoles(), loadCargos(), loadJobLevels(), loadActivityAreas(), loadApplications(), loadInteractionTypes(), loadMappings()]);
-  }, [loadCandidates, loadJobs, loadCompanies, loadCities, loadSectors, loadRoles, loadCargos, loadJobLevels, loadActivityAreas, loadApplications, loadInteractionTypes, loadMappings]);
+    await Promise.all([loadCandidates(), loadJobs(), loadCompanies(), loadCities(), loadSectors(), loadRoles(), loadFuncoes(), loadEquipes(), loadJobLevels(), loadActivityAreas(), loadApplications(), loadInteractionTypes(), loadMappings(), loadAlternativas()]);
+  }, [loadCandidates, loadJobs, loadCompanies, loadCities, loadSectors, loadRoles, loadFuncoes, loadEquipes, loadJobLevels, loadActivityAreas, loadApplications, loadInteractionTypes, loadMappings, loadAlternativas]);
 
   /** Painel interno: cadastro explícito em user_roles como admin, editor ou viewer (somente leitura). */
   const hasStaffRole = useMemo(() => {
@@ -751,22 +778,6 @@ export default function App() {
     } catch (e) { console.warn('Erro activity log:', e); }
   };
 
-  const handleToggleStar = async (c) => {
-    if (!supabase || !c?.id) return;
-    const previousCandidates = candidates;
-    setCandidates(prev => prev.map(x => x.id === c.id ? { ...x, starred: !x.starred } : x));
-    try {
-      const { error } = await schema().from('talents_candidates').update({ starred: !c.starred }).eq('id', c.id);
-      if (error) throw error;
-      await recordActivity('update', c.starred ? 'Removido de mapeado como interesse' : 'Mapeado como interesse', 'candidate', c.id);
-      showToast('Atualizado.', 'success');
-    } catch (err) {
-      console.error('Erro ao marcar estrela:', err);
-      setCandidates(previousCandidates);
-      const { text } = translateSupabaseError(err?.message);
-      showToast(text, 'error');
-    }
-  };
 
   const handleSaveGeneric = async (col, d, closeFn, options = {}) => {
     const { omitApprovedBy = false } = options;
@@ -1060,26 +1071,83 @@ export default function App() {
     }
   };
 
-  // Mappings CRUD
+  // --- Mapeamentos (regras em utils/mappings.js) ----------------------------
+  const funcoesById = useMemo(() => new Map(funcoes.map(f => [f.id, f])), [funcoes]);
+  const equipesById = useMemo(() => new Map(equipes.map(e => [e.id, e])), [equipes]);
+  // Cada mapeamento com o seu marcador de alternativa — só o admin da sucessão
+  // recebe marcadores, então para os demais `alternativa` é sempre null.
+  const mappingsView = useMemo(
+    () => mappings.map(m => ({ ...m, alternativa: alternativas.get(m.id) || null })),
+    [mappings, alternativas],
+  );
+  const labelOpts = useMemo(() => ({ funcoesById, equipesById }), [funcoesById, equipesById]);
+
+  // Liga/desliga o marcador de alternativa externa (rh_sucessao_externos). A
+  // opção só aparece para o admin do Pilares, e o RLS barra os demais.
+  const syncAlternativa = React.useCallback(async (mappingId, quer) => {
+    if (!adminSucessao) return;
+    const tem = alternativas.has(mappingId);
+    if (quer && !tem) {
+      const { error } = await schema().from('rh_sucessao_externos').insert({ talents_mapping_id: mappingId });
+      if (error) throw error;
+    } else if (!quer && tem) {
+      const { error } = await schema().from('rh_sucessao_externos').delete().eq('talents_mapping_id', mappingId);
+      if (error) throw error;
+    }
+  }, [adminSucessao, alternativas]);
+
   const addMapping = React.useCallback(async (data) => {
     if (!supabase) return null;
     const payload = mappingToSupabase({
       ...data,
+      positionName: mappingLabel(data, labelOpts) || null,
       mappedBy: effectiveUser?.email || null,
       mappedByName: userRoleDoc?.name || effectiveUser?.displayName || effectiveUser?.user_metadata?.full_name || effectiveUser?.email?.split('@')[0] || null,
     });
     try {
       const { data: inserted, error } = await schema().from('talents_mappings').insert(payload).select('*').single();
       if (error) throw error;
-      await loadMappings();
+      if (data.nivel === 'alternativa') await syncAlternativa(inserted.id, true);
+      await Promise.all([loadMappings(), loadAlternativas()]);
       await recordActivity('create', 'Mapeamento de interesse criado', 'candidate', data.candidateId);
       showToast('Mapeamento registrado.', 'success');
       return inserted;
     } catch (err) {
+      await Promise.all([loadMappings(), loadAlternativas()]);
       showToast(translateSupabaseError(err?.message).text || 'Erro ao criar mapeamento.', 'error');
       return null;
     }
-  }, [effectiveUser, userRoleDoc, loadMappings]);
+  }, [effectiveUser, userRoleDoc, loadMappings, loadAlternativas, syncAlternativa, labelOpts]);
+
+  // Atualiza campos de um mapeamento (função, equipe, especificação, cidade,
+  // observações, nível). Só grava o que veio em `fields`.
+  const updateMapping = React.useCallback(async (id, fields) => {
+    if (!supabase) return false;
+    const atual = mappings.find(m => m.id === id) || {};
+    const merged = { ...atual, ...fields };
+    const row = { updated_at: new Date().toISOString() };
+    if ('funcaoId' in fields) row.funcao_id = fields.funcaoId || null;
+    if ('equipeId' in fields) row.equipe_id = fields.equipeId || null;
+    if ('especificacao' in fields) row.especificacao = fields.especificacao?.trim() || null;
+    if ('city' in fields) row.city = fields.city?.trim() || null;
+    if ('notes' in fields) row.notes = fields.notes?.trim() || null;
+    if ('nivel' in fields) row.nivel = fields.nivel === 'alternativa' ? 'forte' : fields.nivel;
+    if ('funcaoId' in fields || 'equipeId' in fields || 'especificacao' in fields) {
+      row.position_name = mappingLabel(merged, labelOpts) || null;
+    }
+    try {
+      const { error } = await schema().from('talents_mappings').update(row).eq('id', id);
+      if (error) throw error;
+      if ('nivel' in fields) await syncAlternativa(id, fields.nivel === 'alternativa');
+      await Promise.all([loadMappings(), loadAlternativas()]);
+      showToast('Mapeamento atualizado.', 'success');
+      return true;
+    } catch (err) {
+      await Promise.all([loadMappings(), loadAlternativas()]);
+      showToast(translateSupabaseError(err?.message).text || 'Erro ao atualizar mapeamento.', 'error');
+      return false;
+    }
+  }, [mappings, loadMappings, loadAlternativas, syncAlternativa, labelOpts]);
 
   const updateMappingStatus = React.useCallback(async (id, status) => {
     if (!supabase) return;
@@ -1093,33 +1161,35 @@ export default function App() {
     }
   }, [loadMappings]);
 
-  // Definir/trocar o cargo (do Pilares) de um mapeamento existente, mantendo
-  // prioridade/observacoes/historico. Usado pelo picker "Definir cargo".
-  const updateMapping = React.useCallback(async (id, { positionId, positionName }) => {
-    if (!supabase) return;
-    try {
-      const { error } = await schema().from('talents_mappings')
-        .update({ position_id: positionId || null, position_name: positionName || null, updated_at: new Date().toISOString() })
-        .eq('id', id);
-      if (error) throw error;
-      await loadMappings();
-      showToast('Cargo atualizado.', 'success');
-    } catch (err) {
-      showToast(translateSupabaseError(err?.message).text || 'Erro ao atualizar cargo.', 'error');
-    }
-  }, [loadMappings]);
-
   const deleteMapping = React.useCallback(async (id) => {
     if (!supabase) return;
     try {
       const { error } = await schema().from('talents_mappings').delete().eq('id', id);
       if (error) throw error;
-      await loadMappings();
+      await Promise.all([loadMappings(), loadAlternativas()]);
       showToast('Mapeamento removido.', 'success');
     } catch (err) {
       showToast(translateSupabaseError(err?.message).text || 'Erro ao remover.', 'error');
     }
-  }, [loadMappings]);
+  }, [loadMappings, loadAlternativas]);
+
+  // Candidatos com mapeamento ativo — substitui a antiga estrela nas listas.
+  const mapeadosAtivos = useMemo(() => {
+    const byCand = new Map();
+    for (const m of mappingsView) {
+      if (m.status !== 'Ativo') continue;
+      if (!byCand.has(m.candidateId)) byCand.set(m.candidateId, []);
+      byCand.get(m.candidateId).push(m);
+    }
+    return byCand;
+  }, [mappingsView]);
+
+  // Tudo o que as telas precisam para mapear, num objeto só.
+  const mapeamento = useMemo(() => ({
+    mappings: mappingsView, funcoes, equipes, funcoesById, equipesById, adminSucessao, mapeadosAtivos,
+    add: addMapping, update: updateMapping, updateStatus: updateMappingStatus, remove: deleteMapping,
+  }), [mappingsView, funcoes, equipes, funcoesById, equipesById, adminSucessao, mapeadosAtivos,
+    addMapping, updateMapping, updateMappingStatus, deleteMapping]);
 
   const computeMissingFields = (c, stage) => (STAGE_REQUIRED_FIELDS[stage] || []).filter(f => !c[f]);
 
@@ -1255,11 +1325,13 @@ export default function App() {
       const openIds = jobs.filter(j => j.status === 'Aberta').map(j => j.id);
       data = data.filter(c => applications.some(a => a.candidateId === c.id && openIds.includes(a.jobId)));
     }
+    // Filtro "mapeado" (a chave segue starredFilter para não quebrar filtros salvos):
+    // era a estrela; agora é ter mapeamento ativo.
     const starFilter = filters.starredFilter ?? (filters.starred === true ? 'starred' : 'all');
-    if (starFilter === 'starred') data = data.filter(c => c.starred === true);
-    else if (starFilter === 'unstarred') data = data.filter(c => !c.starred);
+    if (starFilter === 'starred') data = data.filter(c => mapeadosAtivos.has(c.id));
+    else if (starFilter === 'unstarred') data = data.filter(c => !mapeadosAtivos.has(c.id));
     return data;
-  }, [uniqueCandidatesByEmail, filters, jobs, applications]);
+  }, [uniqueCandidatesByEmail, filters, jobs, applications, mapeadosAtivos]);
 
   const onCreatePosition = React.useCallback(async ({ name, level }) => {
     if (!supabase) return false;
@@ -1303,7 +1375,7 @@ export default function App() {
       isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}
       isSidebarCollapsed={isSidebarCollapsed} setIsSidebarCollapsed={setIsSidebarCollapsed}
       activeTab={activeTab} setActiveTab={setActiveTab} route={route} setRoute={setRoute}
-      candidates={candidates} jobs={jobs} companies={companies} cities={cities} sectors={sectors} roles={roles} cargos={cargos}
+      candidates={candidates} jobs={jobs} companies={companies} cities={cities} sectors={sectors} roles={roles}
       jobLevels={jobLevels} activityAreas={activityAreas} applications={applications} interviews={interviews}
       statusMovements={statusMovements} activityLog={activityLog} candidatesLoading={candidatesLoading}
       isSaving={isSaving} setIsSaving={setIsSaving}
@@ -1333,8 +1405,7 @@ export default function App() {
       scheduleInterview={scheduleInterview} showToast={showToast} loadCandidates={loadCandidates}
       interactions={interactions} interactionTypes={interactionTypes}
       addInteraction={addInteraction} loadInteractions={loadInteractions} deleteInteraction={deleteInteraction}
-      handleToggleStar={handleToggleStar}
-      mappings={mappings} addMapping={addMapping} updateMappingStatus={updateMappingStatus} updateMapping={updateMapping} deleteMapping={deleteMapping}
+      mapeamento={mapeamento}
       refreshData={refreshData}
       toggleTheme={toggleTheme} isDark={isDark} setUserRole={setUserRole} removeUserRole={removeUserRole}
       createUserWithPassword={createUserWithPassword} handleDragEnd={handleDragEnd} hasReturnContact={hasReturnContact}

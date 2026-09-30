@@ -1,12 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, MapPin, Briefcase, User, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
-
-const PRIORITY_STYLES = {
-  Alta: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800',
-  Média: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
-  Baixa: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800',
-};
+import { Search, X, MapPin, Briefcase, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import {
+  NIVEIS, ORDEM_NIVEL, MAPPING_STATUSES, nivelEfetivo, niveisDisponiveis, mappingLabel, agruparPorTrilha,
+} from '../utils/mappings';
+import { AlternativaInfo } from './mapping/MappingSection';
 
 const STATUS_STYLES = {
   Ativo: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
@@ -14,79 +12,79 @@ const STATUS_STYLES = {
   Descartado: 'bg-gray-100 dark:bg-gray-900/30 text-gray-500 dark:text-gray-400',
 };
 
+const selectCls = 'bg-card border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange';
+
 const fmt = (dateStr) => {
   if (!dateStr) return '-';
   return new Date(dateStr).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
 };
 
-export default function MappingsPage({
-  mappings = [],
-  candidates = [],
-  positions = [],
-  candidatesLoading = false,
-  onEdit,
-  onUpdateStatus,
-  onUpdateCargo,
-  onDelete,
-  showToast,
-}) {
+export default function MappingsPage({ mapeamento, candidates = [], candidatesLoading = false }) {
   const navigate = useNavigate();
+  const { mappings = [], funcoes = [], adminSucessao, update, updateStatus, remove } = mapeamento || {};
   const [search, setSearch] = useState('');
-  const [filterPosition, setFilterPosition] = useState('all');
+  const [filterFuncao, setFilterFuncao] = useState('all'); // 'all' | 'sem' | funcaoId
   const [filterCity, setFilterCity] = useState('all');
-  const [filterPriority, setFilterPriority] = useState('all');
+  const [filterNivel, setFilterNivel] = useState('all');
   const [filterStatus, setFilterStatus] = useState('Ativo');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 25;
 
-  // Enriquecer mapeamentos com dados do candidato
-  const enriched = useMemo(() => {
-    return mappings.map(m => {
-      // Usa o candidato da lista global (dados completos) ou, se ainda nao
-      // carregou, cai no nome/e-mail que vieram junto do mapeamento (join).
-      const candidate = candidates.find(c => c.id === m.candidateId)
-        || (m.candidateName ? { id: m.candidateId, fullName: m.candidateName, email: m.candidateEmail } : undefined);
-      return { ...m, candidate };
-    });
-  }, [mappings, candidates]);
+  const grupos = useMemo(() => agruparPorTrilha(funcoes), [funcoes]);
+  const niveis = niveisDisponiveis(adminSucessao);
 
-  // Opções de filtro dinâmicas
+  // Enriquecer com candidato e rótulo
+  const enriched = useMemo(() => mappings.map(m => {
+    // Usa o candidato da lista global (dados completos) ou, se ainda nao
+    // carregou, cai no nome/e-mail que vieram junto do mapeamento (join).
+    const candidate = candidates.find(c => c.id === m.candidateId)
+      || (m.candidateName ? { id: m.candidateId, fullName: m.candidateName, email: m.candidateEmail } : undefined);
+    return { ...m, candidate, label: mappingLabel(m, mapeamento), nivelVisto: nivelEfetivo(m) };
+  }), [mappings, candidates, mapeamento]);
+
   const cityOptions = useMemo(() => [...new Set(mappings.map(m => m.city).filter(Boolean))].sort(), [mappings]);
-  const positionOptions = useMemo(() => [...new Set(mappings.map(m => m.positionName).filter(Boolean))].sort(), [mappings]);
+  // Só as funções que têm mapeamento, para o filtro não listar as 19.
+  const funcaoOptions = useMemo(() => {
+    const usadas = new Set(mappings.map(m => m.funcaoId).filter(Boolean));
+    return funcoes.filter(f => usadas.has(f.id));
+  }, [mappings, funcoes]);
+  const temSemFuncao = mappings.some(m => !m.funcaoId);
 
-  // Filtrar
   const filtered = useMemo(() => {
     let data = enriched;
-
     if (filterStatus !== 'all') data = data.filter(m => m.status === filterStatus);
-    if (filterPosition !== 'all') data = data.filter(m => m.positionName === filterPosition);
+    if (filterFuncao === 'sem') data = data.filter(m => !m.funcaoId);
+    else if (filterFuncao !== 'all') data = data.filter(m => m.funcaoId === filterFuncao);
     if (filterCity !== 'all') data = data.filter(m => m.city === filterCity);
-    if (filterPriority !== 'all') data = data.filter(m => m.priority === filterPriority);
+    if (filterNivel !== 'all') data = data.filter(m => m.nivelVisto === filterNivel);
 
     if (search) {
       const s = search.toLowerCase();
       data = data.filter(m =>
         m.candidate?.fullName?.toLowerCase().includes(s) ||
         m.candidate?.email?.toLowerCase().includes(s) ||
-        m.positionName?.toLowerCase().includes(s) ||
+        m.label?.toLowerCase().includes(s) ||
         m.city?.toLowerCase().includes(s) ||
         m.notes?.toLowerCase().includes(s)
       );
     }
 
-    return data.sort((a, b) => {
-      const pOrder = { Alta: 0, Média: 1, Baixa: 2 };
-      if (pOrder[a.priority] !== pOrder[b.priority]) return (pOrder[a.priority] ?? 1) - (pOrder[b.priority] ?? 1);
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    });
-  }, [enriched, search, filterStatus, filterPosition, filterCity, filterPriority]);
+    return [...data].sort((a, b) =>
+      (ORDEM_NIVEL[a.nivelVisto] ?? 9) - (ORDEM_NIVEL[b.nivelVisto] ?? 9)
+      || new Date(b.createdAt) - new Date(a.createdAt));
+  }, [enriched, search, filterStatus, filterFuncao, filterCity, filterNivel]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginatedData = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  const activeFilters = [filterStatus !== 'Ativo' && filterStatus !== 'all', filterPosition !== 'all', filterCity !== 'all', filterPriority !== 'all', !!search].filter(Boolean).length;
+  const activeFilters = [filterStatus !== 'Ativo' && filterStatus !== 'all', filterFuncao !== 'all', filterCity !== 'all', filterNivel !== 'all', !!search].filter(Boolean).length;
 
-  // Estado vazio
+  const mudarNivel = (m, nivel) => {
+    if (m.alternativa && nivel !== 'alternativa'
+      && !window.confirm('Isso tira a pessoa do plano de sucessão da função (e descarta a aprovação). Continuar?')) return;
+    update(m.id, { nivel });
+  };
+
   if (mappings.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-muted-foreground p-8">
@@ -123,7 +121,7 @@ export default function MappingsPage({
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
             <input
               className="w-full bg-background border border-border rounded-lg pl-9 pr-8 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange transition-all"
-              placeholder="Buscar por candidato, cargo, cidade..."
+              placeholder="Buscar por candidato, função, cidade..."
               value={search}
               onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
             />
@@ -135,37 +133,33 @@ export default function MappingsPage({
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }} className="bg-card border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange">
+            <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }} className={selectCls}>
               <option value="all">Todos os status</option>
               <option value="Ativo">Ativos</option>
               <option value="Contratado">Contratados</option>
               <option value="Descartado">Descartados</option>
             </select>
 
-            {positionOptions.length > 0 && (
-              <select value={filterPosition} onChange={e => { setFilterPosition(e.target.value); setCurrentPage(1); }} className="bg-card border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange">
-                <option value="all">Todos os cargos</option>
-                {positionOptions.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
-            )}
+            <select value={filterFuncao} onChange={e => { setFilterFuncao(e.target.value); setCurrentPage(1); }} className={selectCls}>
+              <option value="all">Todas as funções</option>
+              {temSemFuncao && <option value="sem">Sem função definida</option>}
+              {funcaoOptions.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+            </select>
+
+            <select value={filterNivel} onChange={e => { setFilterNivel(e.target.value); setCurrentPage(1); }} className={selectCls}>
+              <option value="all">Todos os níveis</option>
+              {niveis.map(n => <option key={n} value={n}>{NIVEIS[n].label}</option>)}
+            </select>
 
             {cityOptions.length > 0 && (
-              <select value={filterCity} onChange={e => { setFilterCity(e.target.value); setCurrentPage(1); }} className="bg-card border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange">
+              <select value={filterCity} onChange={e => { setFilterCity(e.target.value); setCurrentPage(1); }} className={selectCls}>
                 <option value="all">Todas as cidades</option>
                 {cityOptions.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             )}
-
-            <select value={filterPriority} onChange={e => { setFilterPriority(e.target.value); setCurrentPage(1); }} className="bg-card border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange">
-              <option value="all">Todas prioridades</option>
-              <option value="Alta">Alta</option>
-              <option value="Média">Média</option>
-              <option value="Baixa">Baixa</option>
-            </select>
           </div>
         </div>
 
-        {/* Badges de filtros ativos */}
         {activeFilters > 0 && (
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs text-muted-foreground">Filtros:</span>
@@ -175,7 +169,7 @@ export default function MappingsPage({
               </span>
             )}
             <button
-              onClick={() => { setSearch(''); setFilterStatus('Ativo'); setFilterPosition('all'); setFilterCity('all'); setFilterPriority('all'); }}
+              onClick={() => { setSearch(''); setFilterStatus('Ativo'); setFilterFuncao('all'); setFilterCity('all'); setFilterNivel('all'); }}
               className="text-xs text-muted-foreground hover:text-foreground underline"
             >Limpar todos</button>
           </div>
@@ -191,13 +185,13 @@ export default function MappingsPage({
             <p className="text-sm">Tente ajustar os filtros.</p>
           </div>
         ) : (
-          <table className="w-full border-collapse min-w-[800px]">
+          <table className="w-full border-collapse min-w-[900px]">
             <thead className="bg-muted/60 sticky top-0 z-[1]">
               <tr>
                 <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Candidato</th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Cargo</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Função</th>
+                <th className="px-4 py-2.5 text-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Nível</th>
                 <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Cidade</th>
-                <th className="px-4 py-2.5 text-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Prioridade</th>
                 <th className="px-4 py-2.5 text-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
                 <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Observações</th>
                 <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Mapeado em</th>
@@ -209,13 +203,10 @@ export default function MappingsPage({
               {paginatedData.map((m, idx) => (
                 <tr
                   key={m.id}
-                  className={`border-b border-border/50 hover:bg-muted/40 transition-colors ${idx % 2 === 0 ? '' : 'bg-muted/20'} ${m.status === 'Descartado' ? 'opacity-50' : ''}`}
+                  className={`border-b border-border/50 hover:bg-muted/40 transition-colors ${idx % 2 === 0 ? '' : 'bg-muted/20'} ${m.status !== 'Ativo' ? 'opacity-60' : ''}`}
                 >
                   <td className="px-4 py-3">
-                    <button
-                      onClick={() => navigate(`/candidate/${m.candidateId}`)}
-                      className="text-left group"
-                    >
+                    <button onClick={() => navigate(`/candidate/${m.candidateId}`)} className="text-left group">
                       <p className="text-sm font-medium text-foreground group-hover:text-brand-orange transition-colors truncate max-w-[180px]">
                         {m.candidate?.fullName || (candidatesLoading ? <span className="text-muted-foreground font-normal italic">Carregando…</span> : 'Candidato removido')}
                       </p>
@@ -223,37 +214,48 @@ export default function MappingsPage({
                     </button>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-1.5">
-                      <Briefcase size={13} className="text-muted-foreground/60 flex-shrink-0" />
-                      {onUpdateCargo ? (
-                        <select
-                          value={m.positionId || ''}
-                          onChange={e => {
-                            const pos = positions.find(p => p.id === e.target.value);
-                            onUpdateCargo(m.id, { positionId: e.target.value || null, positionName: pos?.name || null });
-                          }}
-                          className={`text-sm bg-transparent border rounded px-1.5 py-1 outline-none focus:ring-1 focus:ring-brand-orange max-w-[220px] ${m.positionName ? 'text-foreground border-border' : 'text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-700'}`}
-                          title="Definir cargo"
-                        >
-                          <option value="">Definir cargo…</option>
-                          {(() => {
-                            const groups = new Map();
-                            positions.forEach(p => {
-                              const k = p.trilha || '';
-                              if (!groups.has(k)) groups.set(k, []);
-                              groups.get(k).push(p);
-                            });
-                            return Array.from(groups.entries()).map(([trilha, items]) => (
-                              trilha
-                                ? <optgroup key={trilha} label={trilha}>{items.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</optgroup>
-                                : items.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
-                            ));
-                          })()}
-                        </select>
-                      ) : (
-                        <span className="text-sm text-foreground">{m.positionName || '-'}</span>
-                      )}
+                    <div className="flex items-start gap-1.5">
+                      <Briefcase size={13} className="text-muted-foreground/60 flex-shrink-0 mt-1" />
+                      <div className="min-w-0">
+                        {/* Sem função: permite definir aqui mesmo (o texto livre continua valendo). */}
+                        {!m.funcaoId && update ? (
+                          <select
+                            value=""
+                            onChange={e => e.target.value && update(m.id, { funcaoId: e.target.value })}
+                            className="text-sm bg-transparent border rounded px-1.5 py-1 outline-none focus:ring-1 focus:ring-brand-orange max-w-[220px] text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-700"
+                            title="Definir função"
+                          >
+                            <option value="">Definir função…</option>
+                            {grupos.map(([trilha, itens]) => (
+                              <optgroup key={trilha} label={trilha}>
+                                {itens.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                              </optgroup>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-sm text-foreground">{m.label || '-'}</span>
+                        )}
+                        {!m.funcaoId && m.label && <p className="text-xs text-muted-foreground truncate max-w-[220px]">{m.label}</p>}
+                        {m.alternativa && <div><AlternativaInfo alternativa={m.alternativa} /></div>}
+                      </div>
                     </div>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {update ? (
+                      <select
+                        value={m.nivelVisto}
+                        onChange={e => mudarNivel(m, e.target.value)}
+                        className={`px-2 py-0.5 rounded text-[11px] font-semibold border cursor-pointer outline-none ${NIVEIS[m.nivelVisto]?.badge || ''}`}
+                      >
+                        {niveis.map(n => (
+                          <option key={n} value={n} disabled={n === 'alternativa' && !m.funcaoId}>{NIVEIS[n].label}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold border ${NIVEIS[m.nivelVisto]?.badge || ''}`}>
+                        {NIVEIS[m.nivelVisto]?.label}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5">
@@ -262,25 +264,16 @@ export default function MappingsPage({
                     </div>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold border ${PRIORITY_STYLES[m.priority] || PRIORITY_STYLES['Média']}`}>
-                      {m.priority}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    {onUpdateStatus ? (
+                    {updateStatus ? (
                       <select
                         value={m.status}
-                        onChange={e => onUpdateStatus(m.id, e.target.value)}
+                        onChange={e => updateStatus(m.id, e.target.value)}
                         className={`px-2 py-0.5 rounded text-[11px] font-semibold cursor-pointer border-0 outline-none ${STATUS_STYLES[m.status] || ''}`}
                       >
-                        <option value="Ativo">Ativo</option>
-                        <option value="Contratado">Contratado</option>
-                        <option value="Descartado">Descartado</option>
+                        {MAPPING_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
                     ) : (
-                      <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold ${STATUS_STYLES[m.status] || ''}`}>
-                        {m.status}
-                      </span>
+                      <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold ${STATUS_STYLES[m.status] || ''}`}>{m.status}</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -289,9 +282,12 @@ export default function MappingsPage({
                   <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{fmt(m.createdAt)}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground truncate max-w-[100px]">{m.mappedByName || '-'}</td>
                   <td className="px-4 py-3">
-                    {onDelete && (
+                    {remove && (
                       <button
-                        onClick={() => { if (window.confirm('Remover este mapeamento?')) onDelete(m.id); }}
+                        onClick={() => {
+                          const aviso = m.alternativa ? '\n\nEle também sai do plano de sucessão da função.' : '';
+                          if (window.confirm(`Remover este mapeamento?${aviso}`)) remove(m.id);
+                        }}
                         className="text-xs text-muted-foreground hover:text-red-500 transition-colors"
                       >
                         Remover
@@ -305,7 +301,6 @@ export default function MappingsPage({
         )}
       </div>
 
-      {/* Paginação */}
       {totalPages > 1 && (
         <div className="px-4 sm:px-6 py-3 border-t border-border bg-card/50 flex items-center justify-between">
           <p className="text-xs text-muted-foreground tabular-nums">

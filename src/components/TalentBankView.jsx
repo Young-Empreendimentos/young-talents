@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Edit3, Star, Download, UserPlus, X, Users, SlidersHorizontal } from 'lucide-react';
+import { Search, Filter, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Edit3, MapPin, Download, UserPlus, X, Users, SlidersHorizontal } from 'lucide-react';
 import ExportCandidatesCsvModal from './modals/ExportCandidatesCsvModal';
 import AddCandidateModal from './AddCandidateModal';
 import { STATUS_COLORS, ALL_STATUSES } from '../constants';
 import { getCandidateTimestamp } from '../utils/timestampUtils';
 import { getCandidateRecency, getRecencyRowClass } from '../utils/candidateRecency';
+import MappedIndicator from './mapping/MappedIndicator';
 
 const SortIcon = ({ field, sortField, sortOrder }) => {
     if (sortField !== field) return null;
@@ -38,7 +39,7 @@ const PRESET_LABELS = {
 const TalentBankView = ({
     candidatesLoading = false, candidatesTotal = 0, filteredCount = 0,
     onClearFilters, candidates, jobs, companies, onEdit, applications = [],
-    onStatusChange, filters = {}, setFilters, onToggleStar, onAddCandidate,
+    onStatusChange, filters = {}, setFilters, mapeadosAtivos, mapeamento, onAddCandidate,
     isSaving = false, interestAreas = [], showToast,
     onOpenFilterSidebar,
 }) => {
@@ -210,15 +211,15 @@ const TalentBankView = ({
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap">
-                        {/* Estrela */}
+                        {/* Mapeado (antes: estrela) */}
                         {typeof setFilters === 'function' && (
                             <div className="flex items-center rounded-lg border border-border bg-card overflow-hidden" role="group">
                                 <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'all' }))} className={`px-2.5 py-1.5 text-xs transition-colors ${activeStar === 'all' ? 'bg-muted font-semibold text-foreground' : 'text-muted-foreground hover:bg-muted/50'}`}>Todos</button>
-                                <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'starred' }))} className={`px-2 py-1.5 transition-colors border-l border-border ${activeStar === 'starred' ? 'bg-muted' : 'hover:bg-muted/50'}`} title="Com estrela">
-                                    <Star size={14} className="text-amber-400 fill-amber-400" />
+                                <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'starred' }))} className={`px-2 py-1.5 transition-colors border-l border-border ${activeStar === 'starred' ? 'bg-muted' : 'hover:bg-muted/50'}`} title="Com mapeamento ativo">
+                                    <MapPin size={14} className="text-brand-orange" fill="currentColor" fillOpacity={0.25} />
                                 </button>
-                                <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'unstarred' }))} className={`px-2 py-1.5 transition-colors border-l border-border ${activeStar === 'unstarred' ? 'bg-muted' : 'hover:bg-muted/50'}`} title="Sem estrela">
-                                    <Star size={14} className="text-muted-foreground/40" />
+                                <button type="button" onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'unstarred' }))} className={`px-2 py-1.5 transition-colors border-l border-border ${activeStar === 'unstarred' ? 'bg-muted' : 'hover:bg-muted/50'}`} title="Sem mapeamento">
+                                    <MapPin size={14} className="text-muted-foreground/40" />
                                 </button>
                             </div>
                         )}
@@ -270,7 +271,7 @@ const TalentBankView = ({
 
                         {activeStar !== 'all' && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded text-[11px]">
-                                {activeStar === 'starred' ? '★ Com estrela' : '☆ Sem estrela'}
+                                {activeStar === 'starred' ? 'Mapeados' : 'Não mapeados'}
                                 <button onClick={() => setFilters(prev => ({ ...prev, starredFilter: 'all' }))} className="hover:text-amber-900 dark:hover:text-amber-100"><X size={11} /></button>
                             </span>
                         )}
@@ -302,8 +303,8 @@ const TalentBankView = ({
                             <th className="px-3 py-2.5 text-left w-10">
                                 <input type="checkbox" className="accent-brand-orange rounded" />
                             </th>
-                            <th className="px-2 py-2.5 text-center w-10" title="Mapeado como interesse">
-                                <Star size={13} className="inline text-amber-400" />
+                            <th className="px-2 py-2.5 text-center w-10" title="Mapeamento de interesse">
+                                <MapPin size={13} className="inline text-brand-orange" />
                             </th>
                             <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground select-none" onClick={() => handleSort('fullName')}>
                                 Nome <SortIcon field="fullName" sortField={sortField} sortOrder={sortOrder} />
@@ -345,11 +346,9 @@ const TalentBankView = ({
                                         />
                                     </td>
                                     <td className="px-2 py-2.5 text-center" onClick={e => e.stopPropagation()}>
-                                        {onToggleStar ? (
-                                            <button type="button" onClick={() => onToggleStar(c)} className="p-0.5 rounded hover:bg-muted focus:outline-none">
-                                                <Star size={15} className={c.starred ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground/30 hover:text-amber-300'} />
-                                            </button>
-                                        ) : null}
+                                        {mapeadosAtivos && (
+                                            <MappedIndicator ativos={mapeadosAtivos.get(c.id)} mapeamento={mapeamento} onClick={() => onEdit?.(c)} />
+                                        )}
                                     </td>
                                     <td className="px-3 py-2.5">
                                         <div className="flex items-center gap-2">
