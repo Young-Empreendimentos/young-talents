@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     X, Phone, Video, Users, Plus, Trash2, ChevronDown, ChevronUp,
@@ -6,7 +6,7 @@ import {
     MapPin, User, GraduationCap, Star, ExternalLink, Loader2
 } from 'lucide-react';
 import { STATUS_COLORS, PIPELINE_STAGES, CLOSING_STATUSES } from '../constants';
-import { getPhotoPublicUrl } from '../utils/urlUtils';
+import CandidateAvatar from './ui/CandidateAvatar';
 import { formatChildrenForDisplay } from '../utils/childrenNormalizer';
 
 const INTERACTION_ICONS = { users: Users, phone: Phone, video: Video };
@@ -188,22 +188,36 @@ export default function CandidateModal({
         setShowLinkJob(false);
     };
 
-    const photoUrl = getPhotoPublicUrl(candidate.photoUrl);
+    // Fecha com Esc, como o clique fora — mas só se este modal for o de cima.
+    // O modal de transição de etapa abre POR CIMA dele, e o Esc ali não pode
+    // fechar os dois.
+    const fundoRef = useRef(null);
+    useEffect(() => {
+        const onKey = (e) => {
+            if (e.key !== 'Escape') return;
+            const overlays = document.querySelectorAll('.fixed.inset-0');
+            if (overlays[overlays.length - 1] === fundoRef.current) onClose();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [onClose]);
+
+    // Só fecha se o clique COMEÇOU e TERMINOU no fundo: quem seleciona texto
+    // dentro do modal e solta o mouse fora não perde o que estava fazendo.
+    const [downNoFundo, setDownNoFundo] = useState(false);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+        <div
+            ref={fundoRef}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+            onMouseDown={e => setDownNoFundo(e.target === e.currentTarget)}
+            onClick={e => { if (downNoFundo && e.target === e.currentTarget) onClose(); }}
+        >
             <div className="bg-card rounded-xl w-full max-w-3xl h-[88vh] flex flex-col border border-border shadow-xl">
 
                 {/* Header */}
                 <div className="px-5 py-4 border-b border-border flex items-center gap-3">
-                    {/* Avatar */}
-                    <div className="w-10 h-10 rounded-full bg-muted flex-shrink-0 overflow-hidden flex items-center justify-center">
-                        {photoUrl ? (
-                            <img src={photoUrl} alt={candidate.fullName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                        ) : (
-                            <User size={20} className="text-muted-foreground" />
-                        )}
-                    </div>
+                    <CandidateAvatar photoUrl={candidate.photoUrl} name={candidate.fullName} size={56} />
                     <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-foreground truncate">{candidate.fullName || 'Candidato'}</h3>
                         <p className="text-xs text-muted-foreground truncate">{candidate.email}</p>
@@ -597,11 +611,7 @@ export default function CandidateModal({
                                 {candidate.photoUrl && (
                                     <div className="col-span-2">
                                         <p className="text-xs text-muted-foreground mb-1.5">Foto</p>
-                                        <img
-                                            src={getPhotoPublicUrl(candidate.photoUrl)}
-                                            alt={candidate.fullName}
-                                            className="w-16 h-16 rounded-lg object-cover border border-border"
-                                        />
+                                        <CandidateAvatar photoUrl={candidate.photoUrl} name={candidate.fullName} size={96} square />
                                     </div>
                                 )}
                             </DataGroup>

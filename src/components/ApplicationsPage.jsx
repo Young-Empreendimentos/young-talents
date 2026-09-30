@@ -6,6 +6,7 @@ import {
   ArrowRight, MoreVertical
 } from 'lucide-react';
 import { STATUS_COLORS, PIPELINE_STAGES, CLOSING_STATUSES, ALL_STATUSES } from '../constants';
+import CandidateAvatar from './ui/CandidateAvatar';
 
 export default function ApplicationsPage({
   applications = [],
@@ -385,11 +386,7 @@ export default function ApplicationsPage({
                       {/* Candidato */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
-                            {candidate?.photoUrl
-                              ? <img src={candidate.photoUrl} alt="" className="w-full h-full object-cover"/>
-                              : <User size={16} className="text-muted-foreground"/>}
-                          </div>
+                          <CandidateAvatar photoUrl={candidate?.photoUrl} name={app.candidateName} size={40} />
                           <div className="min-w-0">
                             <button onClick={() => onEditCandidate && candidate && onEditCandidate(candidate)}
                               className="font-medium text-foreground hover:text-brand-orange transition-colors truncate block text-left text-sm">

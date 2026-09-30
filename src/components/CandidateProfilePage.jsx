@@ -8,13 +8,13 @@ import {
 import { supabase } from '../supabase';
 import { mapCandidateFromSupabase } from '../utils/candidateFromSupabase';
 import { prepareCandidateForDisplay, formatCandidateDate } from '../utils/candidateDisplay';
-import { getPhotoPublicUrl } from '../utils/urlUtils';
 import { PIPELINE_STAGES, STATUS_COLORS, CLOSING_STATUSES } from '../constants';
 import { formatChildrenForDisplay, CHILDREN_OPTIONS, normalizeChildrenForStorage } from '../utils/childrenNormalizer';
 import { normalizeCity } from '../utils/cityNormalizer';
 import { normalizeSource } from '../utils/sourceNormalizer';
 import { normalizeInterestAreasString } from '../utils/interestAreaNormalizer';
 import PhotoUpload from './ui/PhotoUpload';
+import CandidateAvatar from './ui/CandidateAvatar';
 
 const INTERACTION_ICONS = { users: Users, phone: Phone, video: FileText };
 
@@ -93,7 +93,6 @@ export default function CandidateProfilePage({
   // Candidaturas
   const [showLinkJob, setShowLinkJob] = useState(false);
   const [linkJobId, setLinkJobId] = useState('');
-  const [photoLightbox, setPhotoLightbox] = useState(false);
 
   // Mapeamento de Interesse
   const [showMappingForm, setShowMappingForm] = useState(false);
@@ -285,8 +284,6 @@ export default function CandidateProfilePage({
     </div>
   );
 
-  const photoUrl = getPhotoPublicUrl(candidate.photoUrl);
-
   return (
     <div className="min-h-screen bg-background">
 
@@ -298,13 +295,7 @@ export default function CandidateProfilePage({
               <button onClick={() => navigate(location.state?.from || -1)} className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted">
                 <ArrowLeft size={18} />
               </button>
-              <div className="w-9 h-9 rounded-full bg-muted flex-shrink-0 overflow-hidden flex items-center justify-center">
-                {photoUrl ? (
-                  <img src={photoUrl} alt={candidate.fullName} className="w-full h-full object-cover cursor-pointer" referrerPolicy="no-referrer" onError={e => e.target.style.display = 'none'} onClick={() => setPhotoLightbox(true)} />
-                ) : (
-                  <User size={18} className="text-muted-foreground" />
-                )}
-              </div>
+              <CandidateAvatar photoUrl={candidate.photoUrl} name={candidate.fullName} size={48} />
               <div>
                 <h1 className="font-semibold text-foreground leading-tight">{candidate.fullName || 'Candidato'}</h1>
                 <p className="text-xs text-muted-foreground">{candidate.email}</p>
@@ -793,7 +784,7 @@ export default function CandidateProfilePage({
                   {candidate.photoUrl && (
                     <div className="col-span-2 md:col-span-3">
                       <p className="text-xs text-muted-foreground mb-1.5">Foto</p>
-                      <img src={getPhotoPublicUrl(candidate.photoUrl)} alt={candidate.fullName} className="w-20 h-20 rounded-lg object-cover border border-border cursor-pointer hover:opacity-90 transition-opacity" referrerPolicy="no-referrer" onError={e => e.target.style.display = 'none'} onClick={() => setPhotoLightbox(true)} />
+                      <CandidateAvatar photoUrl={candidate.photoUrl} name={candidate.fullName} size={112} square />
                     </div>
                   )}
                 </>
@@ -933,12 +924,6 @@ export default function CandidateProfilePage({
           </div>
         )}
       </div>
-
-      {photoLightbox && photoUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80" onClick={() => setPhotoLightbox(false)}>
-          <img src={photoUrl} alt={candidate.fullName} className="max-w-[90vw] max-h-[90vh] rounded-xl object-contain shadow-2xl" referrerPolicy="no-referrer" onClick={e => e.stopPropagation()} />
-        </div>
-      )}
     </div>
   );
 }

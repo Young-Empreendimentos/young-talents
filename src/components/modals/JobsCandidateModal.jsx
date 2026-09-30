@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { X, User, MapPin, Mail, Phone, Plus, Trash2, ChevronDown, ChevronUp, MessageSquare, ArrowRight, Search, UserPlus } from 'lucide-react';
+import CandidateAvatar from '../ui/CandidateAvatar';
+import { X, MapPin, Mail, Phone, Plus, Trash2, ChevronDown, ChevronUp, MessageSquare, ArrowRight, Search, UserPlus } from 'lucide-react';
 import { STATUS_COLORS, PIPELINE_STAGES, CLOSING_STATUSES, ALL_STATUSES } from '../../constants';
 
 export default function JobCandidatesModal({ 
@@ -149,9 +150,8 @@ export default function JobCandidatesModal({
                       className="flex items-center justify-between p-3 bg-card rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-500 cursor-pointer transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                          {c.photoUrl ? <img src={c.photoUrl} className="w-full h-full object-cover rounded-full"/> : <User size={16}/>}
-                        </div>
+                        {/* Sem ampliar aqui: o clique na linha vincula o candidato. */}
+                        <CandidateAvatar photoUrl={c.photoUrl} name={c.fullName} size={40} expandable={false} />
                         <div>
                           <div className="font-medium text-foreground text-sm">{c.fullName}</div>
                           <div className="text-xs text-gray-500">{c.email}</div>
@@ -189,13 +189,12 @@ export default function JobCandidatesModal({
                   {/* Main Row */}
                   <div className="p-4 flex items-center gap-4">
                     {/* Avatar */}
-                    <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 border-2 border-white dark:border-gray-600 shadow">
-                      {candidate?.photoUrl ? (
-                        <img src={candidate.photoUrl} className="w-full h-full object-cover rounded-full"/>
-                      ) : (
-                        <User size={24} className="text-gray-500"/>
-                      )}
-                    </div>
+                    <CandidateAvatar
+                      photoUrl={candidate?.photoUrl}
+                      name={app.candidateName}
+                      size={64}
+                      className="border-2 border-white dark:border-gray-600 shadow"
+                    />
                     
                     {/* Info */}
                     <div className="flex-1 min-w-0">

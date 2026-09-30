@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { X, User, MapPin, Mail, Phone, Search, ExternalLink, GitBranch, Eye } from 'lucide-react';
 import { STATUS_COLORS } from '../../constants';
+import CandidateAvatar from '../ui/CandidateAvatar';
 
 export default function DashboardCandidatesModal({ 
   isOpen, 
@@ -137,13 +138,7 @@ export default function DashboardCandidatesModal({
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
-                        {candidate.photoUrl ? (
-                          <img src={candidate.photoUrl} className="w-full h-full object-cover rounded-full" alt={candidate.fullName} />
-                        ) : (
-                          <User size={20} className="text-gray-400" />
-                        )}
-                      </div>
+                      <CandidateAvatar photoUrl={candidate.photoUrl} name={candidate.fullName} size={48} />
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-foreground text-sm truncate">
                           {candidate.fullName || 'Sem nome'}
