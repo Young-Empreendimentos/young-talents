@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, MapPin, Briefcase, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { Search, X, MapPin, Briefcase, ChevronLeft, ChevronRight, Filter, List, LayoutGrid } from 'lucide-react';
+import MappingsBoard from './mapping/MappingsBoard';
 import {
   NIVEIS, ORDEM_NIVEL, MAPPING_STATUSES, nivelEfetivo, niveisDisponiveis, mappingLabel, agruparPorTrilha,
 } from '../utils/mappings';
@@ -29,6 +30,9 @@ export default function MappingsPage({ mapeamento, candidates = [], candidatesLo
   const [filterStatus, setFilterStatus] = useState('Ativo');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 25;
+  // Lista (por candidato) ou quadro (por posição). Lembrado neste navegador.
+  const [visao, setVisao] = useState(() => { try { return localStorage.getItem('yt_mapeamentos_visao') || 'lista'; } catch { return 'lista'; } });
+  const trocarVisao = (v) => { setVisao(v); try { localStorage.setItem('yt_mapeamentos_visao', v); } catch { /* sem storage */ } };
 
   const grupos = useMemo(() => agruparPorTrilha(funcoes), [funcoes]);
   const niveis = niveisDisponiveis(adminSucessao);
@@ -85,8 +89,8 @@ export default function MappingsPage({ mapeamento, candidates = [], candidatesLo
     update(m.id, { nivel });
   };
 
-  if (mappings.length === 0) {
-    return (
+  const vazio = mappings.length === 0;
+  const estadoVazio = (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-muted-foreground p-8">
         <MapPin size={48} className="mb-4 opacity-30" />
         <p className="font-medium text-foreground text-lg mb-1">Nenhum mapeamento registrado</p>
@@ -95,8 +99,7 @@ export default function MappingsPage({ mapeamento, candidates = [], candidatesLo
           Os mapeamentos aparecem aqui para consulta rápida quando surgir uma vaga.
         </p>
       </div>
-    );
-  }
+  );
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-background">
@@ -112,6 +115,14 @@ export default function MappingsPage({ mapeamento, candidates = [], candidatesLo
             <span className="px-2.5 py-0.5 bg-muted text-muted-foreground rounded-full text-xs font-semibold tabular-nums">
               {filtered.length} registro{filtered.length !== 1 ? 's' : ''}
             </span>
+          </div>
+          <div className="inline-flex rounded-lg border border-border bg-card p-0.5" role="group">
+            <button onClick={() => trocarVisao('lista')} className={`px-2.5 py-1 rounded text-xs flex items-center gap-1.5 ${visao === 'lista' ? 'bg-muted font-semibold text-foreground' : 'text-muted-foreground hover:bg-muted/50'}`}>
+              <List size={14} /> Lista
+            </button>
+            <button onClick={() => trocarVisao('quadro')} className={`px-2.5 py-1 rounded text-xs flex items-center gap-1.5 ${visao === 'quadro' ? 'bg-muted font-semibold text-foreground' : 'text-muted-foreground hover:bg-muted/50'}`} title="Por posição (função + equipe + cidade)">
+              <LayoutGrid size={14} /> Quadro por posição
+            </button>
           </div>
         </div>
 
@@ -176,6 +187,11 @@ export default function MappingsPage({ mapeamento, candidates = [], candidatesLo
         )}
       </div>
 
+      {visao === 'quadro' ? (
+        <div className="flex-1 overflow-hidden">
+          <MappingsBoard mappings={mappings} candidates={candidates} mapeamento={mapeamento} filtroNivel={filterNivel} busca={search} />
+        </div>
+      ) : vazio ? estadoVazio : (<>
       {/* Tabela */}
       <div className="flex-1 overflow-auto">
         {filtered.length === 0 ? (
@@ -301,7 +317,9 @@ export default function MappingsPage({ mapeamento, candidates = [], candidatesLo
         )}
       </div>
 
-      {totalPages > 1 && (
+      </>)}
+
+      {visao === 'lista' && !vazio && totalPages > 1 && (
         <div className="px-4 sm:px-6 py-3 border-t border-border bg-card/50 flex items-center justify-between">
           <p className="text-xs text-muted-foreground tabular-nums">
             {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filtered.length)} de {filtered.length}
