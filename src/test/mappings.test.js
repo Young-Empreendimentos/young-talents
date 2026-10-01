@@ -34,6 +34,12 @@ describe('níveis', () => {
     expect(mappingToSupabase({ candidateId: 'c', nivel: 'alternativa' }).nivel).toBe('forte');
     expect(mappingToSupabase({ candidateId: 'c', nivel: 'interessante' }).nivel).toBe('interessante');
   });
+  it('cidade estruturada: sem código vale qualquer cidade e não grava texto solto', () => {
+    expect(mappingToSupabase({ candidateId: 'c', cidadeIbge: 4317608, city: 'Santo Antônio da Patrulha/RS' }))
+      .toMatchObject({ cidade_ibge: 4317608, city: 'Santo Antônio da Patrulha/RS' });
+    expect(mappingToSupabase({ candidateId: 'c', cidadeIbge: null, city: 'Porto Alegre ' }))
+      .toMatchObject({ cidade_ibge: null, city: null });
+  });
   it('não grava mais o cargo antigo (position_id)', () => {
     expect(mappingToSupabase({ candidateId: 'c', funcaoId: 'f1' })).not.toHaveProperty('position_id');
   });

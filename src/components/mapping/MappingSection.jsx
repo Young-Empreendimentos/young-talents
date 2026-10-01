@@ -3,10 +3,13 @@ import { MapPin, Plus, Trash2, Pencil, Loader2, ShieldCheck, Clock } from 'lucid
 import {
   NIVEIS, MAPPING_STATUSES, nivelEfetivo, niveisDisponiveis, mappingLabel, agruparPorTrilha, ORDEM_NIVEL,
 } from '../../utils/mappings';
+import CidadeSelect from '../ui/CidadeSelect';
 
 const inputCls = 'w-full text-xs border border-input rounded px-2 py-1.5 bg-background text-foreground outline-none focus:ring-1 focus:ring-brand-orange';
 
-const VAZIO = { funcaoId: '', equipeId: '', especificacao: '', city: '', nivel: 'interessante', notes: '' };
+// city = rótulo "Nome/UF"; cidadeIbge = código (vazio = qualquer cidade);
+// cidadeTexto = texto livre a converter (ex.: a cidade do candidato).
+const VAZIO = { funcaoId: '', equipeId: '', especificacao: '', city: '', cidadeIbge: null, cidadeTexto: '', nivel: 'interessante', notes: '' };
 
 // Aprovação da alternativa externa vale 6 meses (mesma regra do Pilares).
 const venceEm = (iso) => {
@@ -96,8 +99,15 @@ export function MappingFields({ value: f, onChange, mapeamento, compact = false 
           />
         </div>
         <div>
-          <label className="block text-xs text-muted-foreground mb-1">Cidade</label>
-          <input value={f.city} onChange={e => set('city', e.target.value)} placeholder="Ex.: Porto Alegre/RS" className={inputCls} />
+          <label className="block text-xs text-muted-foreground mb-1">Cidade <span className="opacity-60">(vazia = qualquer)</span></label>
+          {/* Atualização funcional: a conversão do texto inicial chega depois, e
+              não pode apagar o que a pessoa já digitou nos outros campos. */}
+          <CidadeSelect
+            value={f.cidadeIbge}
+            label={f.city}
+            textoInicial={f.cidadeTexto}
+            onChange={(codigo, rotulo) => onChange(prev => ({ ...prev, cidadeIbge: codigo, city: rotulo }))}
+          />
         </div>
         <div>
           <label className="block text-xs text-muted-foreground mb-1">Nível de interesse</label>
@@ -193,7 +203,7 @@ export default function MappingSection({ candidate, mapeamento, formOpen, onForm
     setSaving(true);
     const ok = await update(m.id, {
       funcaoId: f.funcaoId, equipeId: f.equipeId, especificacao: f.especificacao,
-      city: f.city, notes: f.notes, nivel: f.nivel,
+      city: f.city, cidadeIbge: f.cidadeIbge, notes: f.notes, nivel: f.nivel,
     });
     setSaving(false);
     if (ok) setEditando(null);
@@ -221,7 +231,7 @@ export default function MappingSection({ candidate, mapeamento, formOpen, onForm
         <div className="mb-3">
           <MappingForm
             mapeamento={mapeamento}
-            initial={{ city: candidate.city || '' }}
+            initial={{ cidadeTexto: candidate.city || '' }}
             onSubmit={salvarNovo}
             onCancel={() => setAberto(false)}
             saving={saving}
@@ -247,7 +257,8 @@ export default function MappingSection({ candidate, mapeamento, formOpen, onForm
                   mapeamento={mapeamento}
                   initial={{
                     funcaoId: m.funcaoId || '', equipeId: m.equipeId || '', especificacao: m.especificacao || '',
-                    city: m.city || '', nivel, notes: m.notes || '',
+                    city: m.cidadeIbge ? (m.city || '') : '', cidadeIbge: m.cidadeIbge || null,
+                    cidadeTexto: m.cidadeIbge ? '' : (m.city || ''), nivel, notes: m.notes || '',
                   }}
                   onSubmit={f => salvarEdicao(m, f)}
                   onCancel={() => setEditando(null)}

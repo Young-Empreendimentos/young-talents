@@ -1129,7 +1129,10 @@ export default function App() {
     if ('funcaoId' in fields) row.funcao_id = fields.funcaoId || null;
     if ('equipeId' in fields) row.equipe_id = fields.equipeId || null;
     if ('especificacao' in fields) row.especificacao = fields.especificacao?.trim() || null;
-    if ('city' in fields) row.city = fields.city?.trim() || null;
+    if ('cidadeIbge' in fields) {
+      row.cidade_ibge = fields.cidadeIbge || null;
+      row.city = fields.cidadeIbge ? (fields.city?.trim() || null) : null;
+    }
     if ('notes' in fields) row.notes = fields.notes?.trim() || null;
     if ('nivel' in fields) row.nivel = fields.nivel === 'alternativa' ? 'forte' : fields.nivel;
     if ('funcaoId' in fields || 'equipeId' in fields || 'especificacao' in fields) {

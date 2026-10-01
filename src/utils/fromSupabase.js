@@ -135,6 +135,7 @@ export function mapMappingFromSupabase(row) {
     equipeId: row.equipe_id ?? null,
     especificacao: row.especificacao ?? null,
     nivel: row.nivel ?? 'interessante',
+    cidadeIbge: row.cidade_ibge ?? null,
     // Legado (cargo = função + nível + pacote): só para exibir registros antigos.
     positionId: row.position_id,
     positionName: row.position_name,
@@ -164,7 +165,9 @@ export function mappingToSupabase(d) {
     nivel: d.nivel === 'alternativa' ? 'forte' : (d.nivel || 'interessante'),
     // Texto legível para quem ainda lê a coluna antiga.
     position_name: d.positionName ?? null,
-    city: d.city?.trim() || null,
+    // Cidade estruturada (IBGE); vazia = qualquer cidade. city guarda "Nome/UF".
+    cidade_ibge: d.cidadeIbge || null,
+    city: d.cidadeIbge ? (d.city?.trim() || null) : null,
     notes: d.notes?.trim() || null,
     status: d.status ?? 'Ativo',
     mapped_by: d.mappedBy ?? null,

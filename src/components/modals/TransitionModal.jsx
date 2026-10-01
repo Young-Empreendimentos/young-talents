@@ -38,7 +38,7 @@ export default function TransitionModal({ transition, onClose, onConfirm, cities
     return mappingVazio({
       funcaoId: funcao?.id || '',
       especificacao: job?.title || '',
-      city: transition?.candidate?.city || '',
+      cidadeTexto: transition?.candidate?.city || '',
       notes: job ? `Processo: ${job.title}${job.company ? ` (${job.company})` : ''}` : '',
     });
   });
