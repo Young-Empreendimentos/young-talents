@@ -16,7 +16,7 @@ export default function AccessPendingPage({ user, status }) {
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
-      await supabase?.auth.signOut();
+      await supabase?.auth.signOut({ scope: 'local' });
     } finally {
       window.location.href = '/login';
     }

@@ -95,7 +95,7 @@ const Sidebar = ({
                     <button
                         type="button"
                         onClick={async () => {
-                            await supabase.auth.signOut();
+                            await supabase.auth.signOut({ scope: 'local' });
                             navigate('/login', { replace: true });
                         }}
                         className="text-xs text-sidebar-muted hover:text-red-400 font-medium transition-colors"

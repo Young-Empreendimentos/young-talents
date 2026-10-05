@@ -1,7 +1,19 @@
 // Supabase Configuration - Módulo Único
 // Centraliza a inicialização do Supabase para toda a aplicação
 
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
+
+// SSO da Young (02/10/2026): sessão em COOKIE no domínio pai .youngempreendimentos.com.br
+// (@supabase/ssr), e não no localStorage — logar em qualquer sistema vale em todos.
+// Em localhost o cookie fica só no host local. Regra: signOut SEMPRE com { scope: 'local' }.
+const YOUNG_DOMAIN = 'youngempreendimentos.com.br'
+const _host = typeof window !== 'undefined' ? window.location.hostname : ''
+const SSO_COOKIE_OPTIONS = {
+  domain: _host === YOUNG_DOMAIN || _host.endsWith('.' + YOUNG_DOMAIN) ? '.' + YOUNG_DOMAIN : undefined,
+  path: '/',
+  sameSite: 'lax',
+  secure: typeof window !== 'undefined' ? window.location.protocol === 'https:' : true,
+}
 
 // Configuração do Supabase
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -25,7 +37,8 @@ try {
   if (!hasRequiredConfig) {
     throw new Error('Configuração do Supabase incompleta. Verifique as variáveis de ambiente no Vercel.');
   }
-  supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
+  cookieOptions: SSO_COOKIE_OPTIONS,
     auth: {
       persistSession: true,
       autoRefreshToken: true,
