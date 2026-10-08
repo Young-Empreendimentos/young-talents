@@ -6,7 +6,7 @@ import TestRecordModal from './TestRecordModal';
 
 // Seção "Testes" na ficha do candidato: lista os testes que ele fez + resultados,
 // registrar/editar/remover. Carrega os próprios dados (schema rh).
-export default function CandidateTestsSection({ candidate, onAdvanceStage, showToast }) {
+export default function CandidateTestsSection({ candidate, onAdvanceStage, showToast, className = 'bg-card border border-border rounded-xl p-5' }) {
   const [tests, setTests] = useState([]);
   const [types, setTypes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +49,7 @@ export default function CandidateTestsSection({ candidate, onAdvanceStage, showT
   const canMoveToTests = onAdvanceStage && hasRealizado && candidate?.status !== 'Testes realizados';
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5">
+    <div className={className}>
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
           <ClipboardCheck size={13} /> Testes ({tests.length})
