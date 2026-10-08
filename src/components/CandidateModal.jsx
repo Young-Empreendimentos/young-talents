@@ -9,6 +9,7 @@ import { STATUS_COLORS, PIPELINE_STAGES, CLOSING_STATUSES } from '../constants';
 import CandidateAvatar from './ui/CandidateAvatar';
 import MappingSection from './mapping/MappingSection';
 import CandidateTestsSection from './tests/CandidateTestsSection';
+import BackgroundCheckSection from './background/BackgroundCheckSection';
 import { formatChildrenForDisplay } from '../utils/childrenNormalizer';
 
 const INTERACTION_ICONS = { users: Users, phone: Phone, video: Video };
@@ -323,6 +324,9 @@ export default function CandidateModal({
 
                             {/* Testes */}
                             <CandidateTestsSection candidate={candidate} onAdvanceStage={onAdvanceStage} showToast={showToast} className="" />
+
+                            {/* Pesquisa de antecedentes */}
+                            <BackgroundCheckSection candidate={candidate} showToast={showToast} className="" />
 
                             {/* Interações */}
                             <div>

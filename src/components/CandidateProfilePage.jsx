@@ -17,6 +17,7 @@ import PhotoUpload from './ui/PhotoUpload';
 import CandidateAvatar from './ui/CandidateAvatar';
 import MappingSection from './mapping/MappingSection';
 import CandidateTestsSection from './tests/CandidateTestsSection';
+import BackgroundCheckSection from './background/BackgroundCheckSection';
 
 const INTERACTION_ICONS = { users: Users, phone: Phone, video: FileText };
 
@@ -428,6 +429,9 @@ export default function CandidateProfilePage({
 
             {/* Testes */}
             <CandidateTestsSection candidate={candidate} onAdvanceStage={onAdvanceStage} showToast={showToast} />
+
+            {/* Pesquisa de antecedentes */}
+            <BackgroundCheckSection candidate={candidate} showToast={showToast} />
 
             {/* Interações */}
             <div className="bg-card border border-border rounded-xl p-5">
