@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     LayoutDashboard, Users, Briefcase, Settings,
-    Kanban, BarChart3, X, ChevronRight, ChevronLeft, Menu, MapPin
+    Kanban, BarChart3, X, ChevronRight, ChevronLeft, Menu, MapPin, ClipboardCheck
 } from 'lucide-react';
 
 const Sidebar = ({
@@ -60,6 +60,7 @@ const Sidebar = ({
                 {navItem('pipeline', <Kanban size={18} />, 'Pipeline')}
                 {navItem('candidates', <Users size={18} />, 'Banco de Talentos')}
                 {navItem('mappings', <MapPin size={18} />, 'Mapeamentos')}
+                {navItem('tests', <ClipboardCheck size={18} />, 'Testes')}
 
                 {/* Vagas com sub-itens */}
                 <div>

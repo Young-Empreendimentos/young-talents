@@ -16,6 +16,7 @@ import { normalizeInterestAreasString } from '../utils/interestAreaNormalizer';
 import PhotoUpload from './ui/PhotoUpload';
 import CandidateAvatar from './ui/CandidateAvatar';
 import MappingSection from './mapping/MappingSection';
+import CandidateTestsSection from './tests/CandidateTestsSection';
 
 const INTERACTION_ICONS = { users: Users, phone: Phone, video: FileText };
 
@@ -424,6 +425,9 @@ export default function CandidateProfilePage({
                 <p className="text-sm text-muted-foreground italic">Nenhuma candidatura vinculada.</p>
               )}
             </div>
+
+            {/* Testes */}
+            <CandidateTestsSection candidate={candidate} onAdvanceStage={onAdvanceStage} showToast={showToast} />
 
             {/* Interações */}
             <div className="bg-card border border-border rounded-xl p-5">

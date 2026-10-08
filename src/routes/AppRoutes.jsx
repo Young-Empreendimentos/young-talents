@@ -21,6 +21,7 @@ import DocumentationPage from '../components/DocumentationPage';
 import SobrePage from '../components/SobrePage';
 import DiagnosticPage from '../components/DiagnosticPage';
 import MappingsPage from '../components/MappingsPage';
+import TestsPage from '../components/tests/TestsPage';
 import SettingsPage from '../components/SettingsPage';
 import JobModal from '../components/JobModal';
 import CandidateModal from '../components/CandidateModal';
@@ -283,6 +284,7 @@ const AppRoutes = ({
                     {activeTab === 'pipeline' && <PipelineView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onDragEnd={handleDragEnd} onEdit={openCandidateProfile} onCloseStatus={handleCloseStatus} applications={applications} interviews={interviews} forceViewMode="kanban" highlightedCandidateId={highlightedCandidateId} filters={filters} setFilters={setFilters} mapeadosAtivos={mapeamento?.mapeadosAtivos} mapeamento={mapeamento} pipelineStages={pipelineStages} />}
                     {activeTab === 'candidates' && <TalentBankView candidatesLoading={candidatesLoading} candidatesTotal={candidates.length} filteredCount={filteredCandidates.length} onClearFilters={() => setFilters(initialFilters)} candidates={filteredCandidates} jobs={jobs} companies={companies} onEdit={openCandidateProfile} applications={applications} onStatusChange={handleDragEnd} filters={filters} setFilters={setFilters} mapeadosAtivos={mapeamento?.mapeadosAtivos} mapeamento={mapeamento} onAddCandidate={(data, closeFn) => handleSaveGeneric('candidates', data, closeFn)} isSaving={isSaving} interestAreas={interestAreas} showToast={showToast} onOpenFilterSidebar={() => setIsFilterSidebarOpen(true)} />}
                     {activeTab === 'mappings' && <MappingsPage mapeamento={mapeamento} candidates={candidates} candidatesLoading={candidatesLoading} />}
+                    {activeTab === 'tests' && <TestsPage candidates={candidates} onEditCandidate={openCandidateProfile} showToast={showToast} />}
                     {activeTab === 'submissions' && <SubmissionsView candidatesLoading={candidatesLoading} candidates={candidates.filter(c => !c.deletedAt)} onEdit={openCandidateProfile} />}
                     {(activeTab === 'jobs' || activeTab === 'companies' || activeTab === 'positions' || activeTab === 'sectors' || activeTab === 'cities') && !/^\/jobs\/[^/]+$/.test(location.pathname) && (
                         <JobsManagementPage

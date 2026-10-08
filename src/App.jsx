@@ -106,7 +106,7 @@ export default function App() {
     const path = location.pathname;
     if (path === '/' || path === '') return 'dashboard';
     const slug = path.replace(/^\//, '').split('/')[0];
-    const validTabs = ['dashboard', 'pipeline', 'candidates', 'mappings', 'submissions', 'jobs', 'applications', 'companies', 'positions', 'sectors', 'cities', 'job_levels', 'activity_areas', 'reports', 'help', 'sobre', 'settings', 'diagnostic'];
+    const validTabs = ['dashboard', 'pipeline', 'candidates', 'mappings', 'tests', 'submissions', 'jobs', 'applications', 'companies', 'positions', 'sectors', 'cities', 'job_levels', 'activity_areas', 'reports', 'help', 'sobre', 'settings', 'diagnostic'];
     return validTabs.includes(slug) ? slug : 'dashboard';
   };
 
