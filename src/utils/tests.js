@@ -48,6 +48,21 @@ export function mapCandidateTest(row) {
   };
 }
 
+// Nota: 0 a 100, aceita vírgula (ex.: "85,5"). Devolve número ou null.
+export function parseScore(v) {
+  if (v === '' || v === null || v === undefined) return null;
+  const n = Number(String(v).replace(',', '.').trim());
+  return isNaN(n) ? null : n;
+}
+
+// Exibe a nota no formato pt-BR (vírgula; ex.: 85.5 -> "85,5").
+export function fmtScore(n) {
+  if (n === null || n === undefined || n === '') return '';
+  const num = Number(n);
+  if (isNaN(num)) return '';
+  return num.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+}
+
 // camelCase -> snake_case para gravar um teste de candidato
 export function candidateTestToRow(d) {
   return {
@@ -56,7 +71,7 @@ export function candidateTestToRow(d) {
     test_date: d.testDate || null,
     status: d.status || 'Pendente',
     result: d.result || null,
-    score: d.score === '' || d.score === null || d.score === undefined ? null : Number(d.score),
+    score: parseScore(d.score),
     notes: d.notes || null,
   };
 }

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { X, Save, Loader2, Search } from 'lucide-react';
-import { TEST_STATUSES, TEST_RESULTS, rh, candidateTestToRow, currentUserInfo } from '../../utils/tests';
+import { TEST_STATUSES, TEST_RESULTS, rh, candidateTestToRow, currentUserInfo, parseScore, fmtScore } from '../../utils/tests';
 
 // Modal para registrar/editar um teste de um candidato.
 // - fixedCandidate: { id, fullName } quando vem da ficha do candidato
@@ -22,7 +22,7 @@ export default function TestRecordModal({
   const [testDate, setTestDate] = useState(initial?.testDate || '');
   const [status, setStatus] = useState(initial?.status || 'Pendente');
   const [result, setResult] = useState(initial?.result || '');
-  const [score, setScore] = useState(initial?.score ?? '');
+  const [score, setScore] = useState(initial?.score != null ? fmtScore(initial.score) : '');
   const [notes, setNotes] = useState(initial?.notes || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -43,8 +43,9 @@ export default function TestRecordModal({
     setError('');
     if (!candidateId) { setError('Selecione o candidato.'); return; }
     if (!testTypeId) { setError('Selecione o tipo de teste.'); return; }
-    if (score !== '' && (isNaN(Number(score)) || Number(score) < 0 || Number(score) > 10)) {
-      setError('A nota deve ser um número entre 0 e 10.'); return;
+    if (score !== '') {
+      const sc = parseScore(score);
+      if (sc === null || sc < 0 || sc > 100) { setError('A nota deve ser um número entre 0 e 100.'); return; }
     }
     setSaving(true);
     try {
@@ -131,8 +132,8 @@ export default function TestRecordModal({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Nota (0–10)</label>
-              <input type="number" min="0" max="10" step="0.1" className={inputCls} value={score} onChange={e => setScore(e.target.value)} placeholder="opcional" />
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Nota (0–100)</label>
+              <input type="text" inputMode="decimal" className={inputCls} value={score} onChange={e => setScore(e.target.value)} placeholder="0 a 100 (ex.: 85,5)" />
             </div>
           </div>
 

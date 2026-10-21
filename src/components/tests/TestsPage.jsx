@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { ClipboardCheck, Plus, ChevronLeft, Edit3, Trash2, UserPlus, Loader2, Briefcase } from 'lucide-react';
 import { supabase } from '../../supabase';
 import {
-  rh, mapTestType, mapCandidateTest, sortByScoreDesc, fmtDate,
+  rh, mapTestType, mapCandidateTest, sortByScoreDesc, fmtDate, fmtScore,
   TEST_STATUS_STYLES, TEST_RESULT_STYLES,
 } from '../../utils/tests';
 import TestTypeModal from './TestTypeModal';
@@ -148,7 +148,7 @@ export default function TestsPage({ candidates = [], onEditCandidate, showToast 
                         {t.notes && <span className="text-[11px] text-muted-foreground truncate max-w-[200px]" title={t.notes}>· {t.notes}</span>}
                       </div>
                     </div>
-                    {t.score != null && <div className="text-lg font-bold text-foreground tabular-nums flex-shrink-0">{t.score}</div>}
+                    {t.score != null && <div className="text-lg font-bold text-foreground tabular-nums flex-shrink-0">{fmtScore(t.score)}</div>}
                     <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={() => setRecordModal({ fixedTypeId: selectedType.id, initial: t })} className="p-1 text-muted-foreground hover:text-brand-orange" title="Editar resultado"><Edit3 size={13} /></button>
                       <button onClick={() => removeTest(t.id)} className="p-1 text-muted-foreground hover:text-red-500" title="Remover"><Trash2 size={13} /></button>

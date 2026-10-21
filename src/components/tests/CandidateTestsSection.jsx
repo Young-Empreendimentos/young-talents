@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { ClipboardCheck, Plus, Edit3, Trash2, Loader2, ArrowRight } from 'lucide-react';
 import { supabase } from '../../supabase';
-import { rh, mapTestType, mapCandidateTest, TEST_STATUS_STYLES, TEST_RESULT_STYLES, fmtDate } from '../../utils/tests';
+import { rh, mapTestType, mapCandidateTest, TEST_STATUS_STYLES, TEST_RESULT_STYLES, fmtDate, fmtScore } from '../../utils/tests';
 import TestRecordModal from './TestRecordModal';
 
 // Seção "Testes" na ficha do candidato: lista os testes que ele fez + resultados,
@@ -82,7 +82,7 @@ export default function CandidateTestsSection({ candidate, onAdvanceStage, showT
                     <span className="text-sm font-medium text-foreground">{typeName(t.testTypeId)}</span>
                     <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${TEST_STATUS_STYLES[t.status] || ''}`}>{t.status}</span>
                     {t.result && <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${TEST_RESULT_STYLES[t.result] || 'bg-slate-600 text-white'}`}>{t.result}</span>}
-                    {t.score != null && <span className="text-[11px] font-bold text-foreground">Nota {t.score}</span>}
+                    {t.score != null && <span className="text-[11px] font-bold text-foreground">Nota {fmtScore(t.score)}</span>}
                   </div>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
                     {t.testDate ? `Data: ${fmtDate(t.testDate)}` : 'Sem data'}{t.createdByName ? ` · por ${t.createdByName}` : ''}
