@@ -530,14 +530,6 @@ const PublicCandidateForm = () => {
             (!formData.interestAreasOther || formData.interestAreasOther.trim() === '')) {
           stepErrors.interestAreas = 'Áreas de interesse são obrigatórias';
         }
-        if (!formData.cvUrl || formData.cvUrl.trim() === '') {
-          stepErrors.cvUrl = 'Currículo é obrigatório';
-        } else {
-          const cvValidation = validateAllowedDomain(formData.cvUrl);
-          if (!cvValidation.valid) {
-            stepErrors.cvUrl = cvValidation.message;
-          }
-        }
         break;
       case 4: // Processo e Fit Cultural
         if ((!formData.source || formData.source.trim() === '') && 
@@ -1351,13 +1343,6 @@ const PublicCandidateForm = () => {
                   {errors.interestAreas && <p className="text-red-500 text-xs mt-1">{errors.interestAreas}</p>}
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-muted-foreground mb-1">
-                    Currículo <span className="text-red-500">*</span>
-                  </label>
-                  {renderAttachmentField('cv', 'Currículo', 'cv')}
-                  {errors.cvUrl && <p className="text-red-500 text-xs mt-1">{errors.cvUrl}</p>}
-                </div>
               </div>
             </section>
           )}
