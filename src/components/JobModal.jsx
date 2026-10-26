@@ -202,6 +202,15 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
         return Array.from(areasSet).sort();
     }, [candidates]);
 
+    // Picker do candidato que preencheu a vaga (busca no banco)
+    const [candSearch, setCandSearch] = useState('');
+    const fillCandidates = useMemo(() => {
+        const list = candidates.filter(c => !c.deletedAt);
+        if (!candSearch.trim()) return list.slice(0, 50);
+        const s = candSearch.toLowerCase();
+        return list.filter(c => (c.fullName || '').toLowerCase().includes(s) || (c.email || '').toLowerCase().includes(s)).slice(0, 50);
+    }, [candidates, candSearch]);
+
     if (!isOpen && !isPageMode) return null;
 
     // Lista de usuários para seleção de recrutador
@@ -570,6 +579,45 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
                                         ))}
                                     </select>
                                 </div>
+                                {d.status === 'Preenchida' && (
+                                    <div className="col-span-full bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 space-y-3">
+                                        <p className="text-xs font-bold text-green-700 dark:text-green-400 uppercase">Preenchimento da vaga</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Candidato que preencheu *</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Buscar candidato no banco..."
+                                                    value={candSearch}
+                                                    onChange={e => setCandSearch(e.target.value)}
+                                                    className="w-full bg-background border border-border p-2 rounded-lg text-sm text-foreground outline-none focus:border-green-500 mb-1.5"
+                                                />
+                                                <select
+                                                    className="w-full bg-background border border-border p-2.5 rounded-lg text-sm text-foreground outline-none focus:border-green-500"
+                                                    value={d.filledByCandidateId || ''}
+                                                    onChange={e => setD({ ...d, filledByCandidateId: e.target.value })}
+                                                >
+                                                    <option value="">Selecione...</option>
+                                                    {d.filledByCandidateId && !fillCandidates.find(c => c.id === d.filledByCandidateId) && (
+                                                        <option value={d.filledByCandidateId}>{candidates.find(c => c.id === d.filledByCandidateId)?.fullName || 'Candidato selecionado'}</option>
+                                                    )}
+                                                    {fillCandidates.map(c => (
+                                                        <option key={c.id} value={c.id}>{c.fullName}{c.email ? ` — ${c.email}` : ''}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Data de início *</label>
+                                                <input
+                                                    type="date"
+                                                    className="w-full bg-background border border-border p-2.5 rounded-lg text-sm text-foreground outline-none focus:border-green-500"
+                                                    value={d.filledStartDate || ''}
+                                                    onChange={e => setD({ ...d, filledStartDate: e.target.value })}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                                 <div>
                                     <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Área de Interesse</label>
                                     <select
@@ -717,7 +765,23 @@ const JobModal = ({ isOpen, job, onClose, onSave, options, isSaving, candidates 
                             alert('Preencha os campos obrigatórios: Empresa e Cidade');
                             return;
                         }
+                        const isFilled = (d.status || 'Aberta') === 'Preenchida';
+                        if (isFilled && !d.filledByCandidateId) {
+                            alert('Selecione o candidato do banco que preencheu a vaga.');
+                            return;
+                        }
+                        if (isFilled && !d.filledStartDate) {
+                            alert('Informe a data de início do candidato.');
+                            return;
+                        }
                         const toSave = { ...d, company, city };
+                        if (isFilled) {
+                            toSave.filledAt = d.filledAt || new Date().toISOString();
+                        } else {
+                            toSave.filledByCandidateId = null;
+                            toSave.filledStartDate = null;
+                            toSave.filledAt = null;
+                        }
                         if (!toSave.title && toSave.position && toSave.company) {
                             toSave.title = `${toSave.position} - ${toSave.company}`;
                         } else if (!toSave.title) {

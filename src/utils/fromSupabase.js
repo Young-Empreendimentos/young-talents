@@ -30,6 +30,9 @@ export function mapJobFromSupabase(row) {
     hiringManager: row.hiring_manager,
     approvedBy: row.approved_by ?? null,
     requestedByUserId: row.requested_by_user_id ?? null,
+    filledByCandidateId: row.filled_by_candidate_id ?? null,
+    filledStartDate: row.filled_start_date ?? null,
+    filledAt: row.filled_at ?? null,
     postingChannels: row.posting_channels ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -204,7 +207,10 @@ export function jobToSupabase(d) {
     recruiter: d.recruiter ?? null,
     hiring_manager: d.hiringManager ?? null,
     approved_by: d.approvedBy ?? null,
-    posting_channels: d.postingChannels ?? null
+    posting_channels: d.postingChannels ?? null,
+    filled_by_candidate_id: d.filledByCandidateId ?? null,
+    filled_start_date: d.filledStartDate ?? null,
+    filled_at: d.filledAt ?? null
   };
   if (d.id) row.id = d.id;
   // requested_by_user_id é preenchido pelo trigger no INSERT; não enviar no payload
