@@ -183,7 +183,7 @@ export default function CandidateModal({
     return (
         <div
             ref={fundoRef}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-[55] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
             onMouseDown={e => setDownNoFundo(e.target === e.currentTarget)}
             onClick={e => { if (downNoFundo && e.target === e.currentTarget) onClose(); }}
         >
