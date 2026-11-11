@@ -18,6 +18,7 @@ import CandidateAvatar from './ui/CandidateAvatar';
 import MappingSection from './mapping/MappingSection';
 import CandidateTestsSection from './tests/CandidateTestsSection';
 import BackgroundCheckSection from './background/BackgroundCheckSection';
+import CandidateWhatsAppSection from './whatsapp/CandidateWhatsAppSection';
 
 const INTERACTION_ICONS = { users: Users, phone: Phone, video: FileText };
 
@@ -432,6 +433,9 @@ export default function CandidateProfilePage({
 
             {/* Pesquisa de antecedentes */}
             <BackgroundCheckSection candidate={candidate} showToast={showToast} />
+
+            {/* Conversa de WhatsApp (caixa Administrativo) */}
+            <CandidateWhatsAppSection candidate={candidate} />
 
             {/* Interações */}
             <div className="bg-card border border-border rounded-xl p-5">

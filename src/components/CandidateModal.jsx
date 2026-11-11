@@ -10,6 +10,7 @@ import CandidateAvatar from './ui/CandidateAvatar';
 import MappingSection from './mapping/MappingSection';
 import CandidateTestsSection from './tests/CandidateTestsSection';
 import BackgroundCheckSection from './background/BackgroundCheckSection';
+import CandidateWhatsAppSection from './whatsapp/CandidateWhatsAppSection';
 import { formatChildrenForDisplay } from '../utils/childrenNormalizer';
 
 const INTERACTION_ICONS = { users: Users, phone: Phone, video: Video };
@@ -327,6 +328,9 @@ export default function CandidateModal({
 
                             {/* Pesquisa de antecedentes */}
                             <BackgroundCheckSection candidate={candidate} showToast={showToast} className="" />
+
+                            {/* Conversa de WhatsApp (caixa Administrativo) */}
+                            <CandidateWhatsAppSection candidate={candidate} className="" />
 
                             {/* Interações */}
                             <div>
