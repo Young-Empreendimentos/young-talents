@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   ArrowLeft, User, Briefcase, FileText, Phone, GraduationCap,
   ExternalLink, Edit3, Save, X, MessageSquare, Plus, Trash2,
-  AlertCircle, Loader2, Car, Heart, Users, Camera, MapPin
+  AlertCircle, Loader2, Car, Heart, Users, Camera
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import { mapCandidateFromSupabase } from '../utils/candidateFromSupabase';
@@ -93,13 +93,9 @@ export default function CandidateProfilePage({
   const [showLinkJob, setShowLinkJob] = useState(false);
   const [linkJobId, setLinkJobId] = useState('');
 
-  // Mapeamento de interesse: o botão "Mapear" do cabeçalho abre o formulário
-  // do bloco (MappingSection).
+  // Mapeamento de interesse: o formulário é aberto pelo botão "Mapear" do próprio
+  // bloco (MappingSection); este estado controla a abertura.
   const [showMappingForm, setShowMappingForm] = useState(false);
-  const ativosMapeados = useMemo(
-    () => (mapeamento?.mappings || []).filter(m => m.candidateId === id && m.status === 'Ativo').length,
-    [mapeamento, id],
-  );
 
   // Buscar candidato
   useEffect(() => {
@@ -285,20 +281,6 @@ export default function CandidateProfilePage({
                 </>
               ) : (
                 <>
-                  {mapeamento && (
-                    <button
-                      onClick={() => { setActiveSection('visao-geral'); setShowMappingForm(true); }}
-                      className="text-sm px-3 py-1.5 text-brand-orange hover:bg-brand-orange/10 rounded-lg flex items-center gap-1.5 font-medium transition-colors"
-                    >
-                      <MapPin size={14} />
-                      Mapear
-                      {ativosMapeados > 0 && (
-                        <span className="bg-brand-orange text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
-                          {ativosMapeados}
-                        </span>
-                      )}
-                    </button>
-                  )}
                   <button onClick={() => setIsEditing(true)} className="text-sm px-3 py-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg flex items-center gap-1.5">
                     <Edit3 size={14} /> Editar
                   </button>
