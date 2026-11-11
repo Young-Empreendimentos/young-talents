@@ -4,9 +4,8 @@
  */
 
 import { formatCandidateDate, formatCandidateTimestamp, formatCandidateChildren } from './candidateDisplay';
-import * as XLSX from 'xlsx';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+// xlsx/jspdf são pesados (~centenas de KB) e só servem na exportação — carregados
+// sob demanda (import dinâmico) para não entrarem no pacote inicial do app.
 
 const UTF8_BOM = '\uFEFF';
 
@@ -95,7 +94,8 @@ export function getExportData(candidates, fieldKeys, options = {}) {
 /**
  * Gera e dispara download de arquivo Excel (.xlsx).
  */
-export function downloadXls(candidates, fieldKeys, options = {}, filename) {
+export async function downloadXls(candidates, fieldKeys, options = {}, filename) {
+  const XLSX = await import('xlsx');
   const { headers, rows } = getExportData(candidates, fieldKeys, options);
   const data = [headers, ...rows];
   const ws = XLSX.utils.aoa_to_sheet(data);
@@ -107,7 +107,9 @@ export function downloadXls(candidates, fieldKeys, options = {}, filename) {
 /**
  * Gera e dispara download de PDF com tabela de candidatos.
  */
-export function downloadPdf(candidates, fieldKeys, options = {}, filename) {
+export async function downloadPdf(candidates, fieldKeys, options = {}, filename) {
+  const { jsPDF } = await import('jspdf');
+  await import('jspdf-autotable');
   const { headers, rows } = getExportData(candidates, fieldKeys, options);
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
   doc.autoTable({

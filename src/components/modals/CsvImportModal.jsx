@@ -6,7 +6,7 @@ import { normalizeSource } from '../../utils/sourceNormalizer';
 import { normalizeInterestArea, normalizeInterestAreasString } from '../../utils/interestAreaNormalizer';
 import { normalizeChildrenForStorage } from '../../utils/childrenNormalizer';
 import { validateEmail, validatePhone, validateImportBatch, checkBatchDuplicates } from '../../utils/validation';
-import * as XLSX from 'xlsx';
+// xlsx carregado sob demanda (só ao gerar o modelo .xlsx) — fora do pacote inicial.
 
 export default function CsvImportModal({ isOpen, onClose, onImportData, existingCandidates = [] }) {
   const [step, setStep] = useState(1); // 1: Upload, 2: Map, 3: Options, 4: Validation
@@ -291,7 +291,7 @@ export default function CsvImportModal({ isOpen, onClose, onImportData, existing
     reader.readAsText(uploadedFile);
   };
 
-  const downloadTemplate = () => {
+  const downloadTemplate = async () => {
     const templateHeaders = CSV_FIELD_MAPPING_OPTIONS.map(opt => opt.label);
     
     // 3 linhas de exemplo com dados diferentes
@@ -423,6 +423,7 @@ export default function CsvImportModal({ isOpen, onClose, onImportData, existing
         ...exampleRows
       ];
       
+      const XLSX = await import('xlsx');
       const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Candidatos');

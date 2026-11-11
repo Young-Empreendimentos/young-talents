@@ -255,6 +255,7 @@ export default function App() {
     return changes;
   }, [activityLog]);
   const dataLoadedForUserRef = useRef(false);
+  const candidatesReloadTimerRef = useRef(null);
   const [candidatesLoading, setCandidatesLoading] = useState(false);
 
   // Permissions & Roles
@@ -688,9 +689,17 @@ export default function App() {
       }
     }
     if (supabase) {
-      channel = supabase.channel('candidates_changes').on('postgres_changes', { event: '*', schema: 'rh', table: 'talents_candidates' }, () => { loadCandidates(); }).subscribe();
+      // Debounce: várias mudanças seguidas (de qualquer pessoa) colapsam em UM
+      // recarregamento, em vez de rebaixar os ~3.000 candidatos a cada evento.
+      // As mudanças da própria pessoa já chamam loadCandidates() direto nos
+      // handlers; aqui é só para refletir o que os outros fizeram.
+      channel = supabase.channel('candidates_changes').on('postgres_changes', { event: '*', schema: 'rh', table: 'talents_candidates' }, () => {
+        if (candidatesReloadTimerRef.current) clearTimeout(candidatesReloadTimerRef.current);
+        candidatesReloadTimerRef.current = setTimeout(() => { loadCandidates(); }, 4000);
+      }).subscribe();
     }
     return () => {
+      if (candidatesReloadTimerRef.current) { clearTimeout(candidatesReloadTimerRef.current); candidatesReloadTimerRef.current = null; }
       if (supabase && channel) supabase.removeChannel(channel);
     };
   }, [effectiveUser, loadAllData, loadActivityLog, loadAccessRequests, currentUserRole, hasActiveAccess, loadCandidates]);

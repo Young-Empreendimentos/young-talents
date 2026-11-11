@@ -7,7 +7,7 @@ import {
 import { CSV_FIELD_MAPPING_OPTIONS, PIPELINE_STAGES, CANDIDATE_FIELDS } from '../constants';
 import { getTimestampSeconds, getCandidateTimestamp } from '../utils/timestampUtils';
 import DataManager from './DataManager';
-import * as XLSX from 'xlsx';
+// xlsx carregado sob demanda (só ao exportar) — fora do pacote inicial.
 
 // Helper para mostrar toast (será passado do App ou criado localmente)
 let showToast = (message, type = 'info') => {
@@ -609,6 +609,7 @@ const ImportExportManager = ({ onOpenCsvModal, onShowToast }) => {
         document.body.removeChild(link);
       } else {
         // Exportar XLSX
+        const XLSX = await import('xlsx');
         const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, exportType === 'candidates' ? 'Candidatos' : 'Vagas');

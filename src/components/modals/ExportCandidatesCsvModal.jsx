@@ -54,7 +54,7 @@ export default function ExportCandidatesCsvModal({ isOpen, onClose, candidates =
   const selectContactOnly = () => setSelectedKeys(new Set(CONTACT_ONLY_KEYS));
   const selectDefault = () => setSelectedKeys(new Set(DEFAULT_SELECTED_KEYS));
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const keys = Array.from(selectedKeys);
     if (keys.length === 0) return;
     const opts = { headerLabels, fieldTypes };
@@ -62,9 +62,9 @@ export default function ExportCandidatesCsvModal({ isOpen, onClose, candidates =
       const csv = buildCsvFromCandidates(candidates, keys, opts);
       downloadCsv(csv, defaultExportFilename('csv'));
     } else if (exportFormat === 'xls') {
-      downloadXls(candidates, keys, opts, defaultExportFilename('xlsx'));
+      await downloadXls(candidates, keys, opts, defaultExportFilename('xlsx'));
     } else {
-      downloadPdf(candidates, keys, opts, defaultExportFilename('pdf'));
+      await downloadPdf(candidates, keys, opts, defaultExportFilename('pdf'));
     }
     onClose?.();
   };

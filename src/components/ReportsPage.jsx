@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { BarChart3, Download, FileDown } from 'lucide-react';
-import * as XLSX from 'xlsx';
+// xlsx carregado sob demanda (só ao exportar) — fora do pacote inicial.
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
@@ -175,7 +175,7 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
     closed: jobs.filter(j => j.status === 'Fechada').length
   }), [jobs]);
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const data = [
       ['Relatório de Candidatos e Vagas'],
       [],
@@ -194,6 +194,7 @@ export default function ReportsPage({ candidates = [], jobs = [], applications =
     });
     data.push(['Status', 'Quantidade']);
     Object.entries(statusCounts).forEach(([status, count]) => data.push([status, count]));
+    const XLSX = await import('xlsx');
     const ws = XLSX.utils.aoa_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Relatório');
