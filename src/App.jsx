@@ -835,7 +835,17 @@ export default function App() {
         await loadCandidates();
       } else {
         const { id, ...rest } = d;
-        const { error } = id ? await schema().from('talents_' + col).update(rest).eq('id', id) : await schema().from('talents_' + col).insert(rest);
+        let payload = rest;
+        if (col === 'positions') {
+          // O form manda camelCase; talents_positions usa snake_case (level_id, activity_area_id).
+          payload = {
+            name: rest.name ?? null,
+            level_id: rest.levelId || null,
+            activity_area_id: rest.activityAreaId || null,
+          };
+          if (rest.level != null) payload.level = rest.level;
+        }
+        const { error } = id ? await schema().from('talents_' + col).update(payload).eq('id', id) : await schema().from('talents_' + col).insert(payload);
         if (error) throw error;
         showToast('Sucesso!', 'success');
         if (col === 'companies') await loadCompanies();
