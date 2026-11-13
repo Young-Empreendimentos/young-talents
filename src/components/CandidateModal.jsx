@@ -254,6 +254,11 @@ export default function CandidateModal({
                                             </select>
                                         )}
                                     </div>
+                                    {candidate.source && (
+                                        <p className="text-xs text-muted-foreground mt-2">
+                                            Fonte da inscrição: <span className="font-medium text-foreground">{candidate.source}</span>
+                                        </p>
+                                    )}
                                 </div>
                                 {daysInPipeline !== null && (
                                     <div className="text-right">

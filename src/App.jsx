@@ -367,7 +367,7 @@ export default function App() {
     ageMin: 'all',
     ageMax: 'all',
     marital: 'all',
-    origin: 'all',
+    source: 'all',
     schooling: 'all',
     createdAtPreset: 'all',
     tags: 'all',
@@ -1284,6 +1284,14 @@ export default function App() {
     const metaKeys = ['createdAtPreset', 'customDateStart', 'customDateEnd', 'tags', 'dashboardFilter', 'starredFilter', 'starred', 'ageMin', 'ageMax'];
     Object.keys(filters).forEach(k => {
       if (filters[k] === 'all' || filters[k] === null || filters[k] === '' || metaKeys.includes(k)) return;
+      // Vaga: o candidato não tem jobId — a ligação é pelas candidaturas.
+      if (k === 'jobId') {
+        const titles = Array.isArray(filters[k]) ? filters[k] : [filters[k]];
+        const jobIds = new Set(jobs.filter(j => titles.includes(j.title)).map(j => j.id));
+        if (jobIds.size === 0) return;
+        data = data.filter(c => applications.some(a => a.candidateId === c.id && jobIds.has(a.jobId)));
+        return;
+      }
       const fieldMap = {
         'interestArea': 'interestAreas',
         'schooling': 'schoolingLevel',

@@ -19,7 +19,7 @@ const FILTER_LABELS = {
     interestArea: 'Área',
     company: 'Empresa',
     jobId: 'Vaga',
-    origin: 'Origem',
+    source: 'Fonte',
     schooling: 'Escolaridade',
     marital: 'Estado Civil',
     cnh: 'CNH',

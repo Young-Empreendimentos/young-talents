@@ -336,6 +336,11 @@ export default function CandidateProfilePage({
                     </select>
                   )}
                 </div>
+                {candidate.source && (
+                  <p className="text-xs text-muted-foreground mt-3">
+                    Fonte da inscrição: <span className="font-medium text-foreground">{candidate.source}</span>
+                  </p>
+                )}
               </div>
               {daysInPipeline !== null && (
                 <div className="text-right flex-shrink-0">

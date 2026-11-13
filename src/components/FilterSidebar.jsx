@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SlidersHorizontal, X, ChevronDown, ChevronUp, Search, Save, Trash2, Bookmark } from 'lucide-react';
-import { PIPELINE_STAGES, CLOSING_STATUSES, FILTER_STORAGE_KEY, SAVED_FILTER_PRESETS_KEY } from '../constants';
+import { ALL_STATUSES, FILTER_STORAGE_KEY, SAVED_FILTER_PRESETS_KEY } from '../constants';
 
 const loadSavedPresets = () => {
     try {
@@ -171,10 +171,8 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
         return sort([...allTags].map((t, i) => ({ id: i, name: t })));
     }, [candidates]);
 
-    const statusOptions = useMemo(() => [
-        ...PIPELINE_STAGES.map(s => ({ id: s, name: s })),
-        ...CLOSING_STATUSES.map(s => ({ id: s, name: s })),
-    ], []);
+    // Inclui "Inscrito" (estado inicial da maioria dos candidatos) + etapas + Arquivado.
+    const statusOptions = useMemo(() => ALL_STATUSES.map(s => ({ id: s, name: s })), []);
 
     // Contagem de filtros ativos por seção
     const countActive = (...keys) => keys.reduce((n, k) => n + (getSelected(k).length > 0 ? 1 : 0), 0);
@@ -282,14 +280,14 @@ const FilterSidebar = ({ isOpen, onClose, filters, setFilters, clearFilters, opt
                         />
                     </FilterSection>
 
-                    {/* Fonte / Origem */}
+                    {/* Fonte (por onde o candidato se inscreveu) */}
                     {sourceOptions.length > 0 && (
-                        <FilterSection title="Fonte / Origem" count={countActive('origin')}>
+                        <FilterSection title="Fonte" count={countActive('source')}>
                             <CheckboxList
                                 options={sourceOptions}
-                                selected={getSelected('origin')}
-                                onToggle={v => setSelected('origin', v)}
-                                onClear={() => setSelected('origin', [])}
+                                selected={getSelected('source')}
+                                onToggle={v => setSelected('source', v)}
+                                onClear={() => setSelected('source', [])}
                                 searchable
                                 placeholder="Buscar fonte..."
                             />
