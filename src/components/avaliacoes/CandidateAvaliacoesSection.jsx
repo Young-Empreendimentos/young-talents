@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { GraduationCap, Send, Loader2, Copy, ShieldCheck, Clock, AlertTriangle, LogOut } from 'lucide-react';
 import { supabase } from '../../supabase';
+import DetalheTentativa from './DetalheTentativa';
 
 const rh = (sb) => sb.schema('rh');
 const fmtData = (d) => d ? new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
@@ -30,6 +31,7 @@ export default function CandidateAvaliacoesSection({ candidate, showToast, class
   const [loading, setLoading] = useState(true);
   const [escolhida, setEscolhida] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const [detalhe, setDetalhe] = useState(null);
 
   const load = useCallback(async () => {
     if (!supabase || !candidate?.id) { setLoading(false); return; }
@@ -114,7 +116,7 @@ export default function CandidateAvaliacoesSection({ candidate, showToast, class
             const ev = t?.eventos || {};
             const foraDet = foraPorQuestao(ev);
             return (
-              <div key={conv.id} className="px-3 py-2.5 rounded-lg border border-border bg-background">
+              <div key={conv.id} onClick={s.key === 'concluido' ? () => setDetalhe({ conviteId: conv.id, nome: candidate.fullName || 'Candidato' }) : undefined} className={`px-3 py-2.5 rounded-lg border border-border bg-background ${s.key === 'concluido' ? 'cursor-pointer hover:border-brand-orange/50' : ''}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -143,6 +145,7 @@ export default function CandidateAvaliacoesSection({ candidate, showToast, class
           })}
         </div>
       )}
+      {detalhe && <DetalheTentativa conviteId={detalhe.conviteId} nome={detalhe.nome} onClose={() => setDetalhe(null)} />}
     </div>
   );
 }

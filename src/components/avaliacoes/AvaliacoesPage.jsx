@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { GraduationCap, Plus, ChevronLeft, Edit3, Trash2, Loader2, Settings, X, ShieldCheck, BarChart3, Check } from 'lucide-react';
 import { supabase } from '../../supabase';
+import DetalheTentativa from './DetalheTentativa';
 
 const rh = (sb) => sb.schema('rh');
 const CATEGORIAS = ['Raciocínio Lógico', 'Matemática Básica', 'Matemática Financeira Avançada', 'Outra'];
@@ -95,8 +96,9 @@ function QuestaoModal({ avaliacaoId, initial, onClose, onSaved, showToast }) {
   );
 }
 
-// ---------------- Modal: resultados (mais recentes em cima) ----------------
+// ---------------- Modal: resultados (mais recentes em cima; clique abre o detalhe) ----------------
 function ResultadosModal({ nome, resultados, loading, onClose }) {
+  const [detalhe, setDetalhe] = useState(null); // { conviteId, nome }
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-card rounded-xl shadow-xl max-w-xl w-full p-6 max-h-[90vh] overflow-auto" onClick={e => e.stopPropagation()}>
@@ -108,10 +110,12 @@ function ResultadosModal({ nome, resultados, loading, onClose }) {
               const nm = (Array.isArray(c.candidate) ? c.candidate[0]?.full_name : c.candidate?.full_name) || 'Candidato';
               const concluido = t?.concluido_em; const ev = t?.eventos || {}; const foraDet = foraPorQuestao(ev);
               return (
-                <div key={c.id} className="px-3 py-2 rounded-lg border border-border bg-background flex items-center justify-between gap-2">
+                <div key={c.id} onClick={concluido ? () => setDetalhe({ conviteId: c.id, nome: nm }) : undefined}
+                  className={`px-3 py-2 rounded-lg border border-border bg-background flex items-center justify-between gap-2 ${concluido ? 'cursor-pointer hover:border-brand-orange/50' : ''}`}
+                  title={concluido ? 'Ver respostas e tempos' : ''}>
                   <div className="min-w-0">
                     <p className="text-sm text-foreground truncate">{nm}</p>
-                    <p className="text-[11px] text-muted-foreground">Enviada {fmtData(c.enviado_em)}</p>
+                    <p className="text-[11px] text-muted-foreground">Enviada {fmtData(c.enviado_em)}{concluido ? ' · clique para ver as respostas' : ''}</p>
                     {concluido && ev.saiu_aba_qtd > 0 && <p className="text-[11px] text-amber-600 truncate" title={foraDet ? `Tempo fora por questão: ${foraDet}` : ''}>Saiu da aba {ev.saiu_aba_qtd}× · {fmtDur(ev.saiu_aba_seg)}{foraDet ? ` (${foraDet})` : ''}</p>}
                   </div>
                   <div className="text-right flex-shrink-0">
@@ -123,6 +127,7 @@ function ResultadosModal({ nome, resultados, loading, onClose }) {
                 </div>);
             })}</div>}
       </div>
+      {detalhe && <DetalheTentativa conviteId={detalhe.conviteId} nome={detalhe.nome} onClose={() => setDetalhe(null)} />}
     </div>
   );
 }
