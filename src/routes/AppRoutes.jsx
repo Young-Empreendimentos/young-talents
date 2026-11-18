@@ -4,6 +4,7 @@ import LoginPage from '../components/LoginPage';
 import AccessPendingPage from '../components/AccessPendingPage';
 import ResetPasswordPage from '../components/ResetPasswordPage';
 import PublicCandidateForm from '../components/PublicCandidateForm';
+import AvaliacaoPublica from '../components/avaliacoes/AvaliacaoPublica';
 import FormSubmitTestPage from '../components/FormSubmitTestPage';
 import ThankYouPage from '../components/ThankYouPage';
 import CandidateProfilePage from '../components/CandidateProfilePage';
@@ -162,6 +163,7 @@ const AppRoutes = ({
             <Route path="/login" element={<LoginPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/apply" element={<PublicCandidateForm />} />
+            <Route path="/avaliacao/:token" element={<AvaliacaoPublica />} />
             <Route path="/apply/test" element={<FormSubmitTestPage />} />
             <Route path="/apply/thank-you" element={<ThankYouPage />} />
 

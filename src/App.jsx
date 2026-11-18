@@ -60,7 +60,7 @@ const DEV_USER = {
   photoURL: null
 };
 
-const PUBLIC_PATHS = ['/', '/apply', '/apply/test', '/apply/thank-you', '/login', '/reset-password'];
+const PUBLIC_PATHS = ['/', '/apply', '/apply/test', '/apply/thank-you', '/avaliacao', '/login', '/reset-password'];
 
 /** Google OAuth pode devolver o e-mail com capitalização diferente da linha em user_roles */
 const emailsMatch = (a, b) => {

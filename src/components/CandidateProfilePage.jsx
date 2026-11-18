@@ -17,6 +17,7 @@ import PhotoUpload from './ui/PhotoUpload';
 import CandidateAvatar from './ui/CandidateAvatar';
 import MappingSection from './mapping/MappingSection';
 import CandidateTestsSection from './tests/CandidateTestsSection';
+import CandidateAvaliacoesSection from './avaliacoes/CandidateAvaliacoesSection';
 import BackgroundCheckSection from './background/BackgroundCheckSection';
 import CandidateWhatsAppSection from './whatsapp/CandidateWhatsAppSection';
 
@@ -417,6 +418,7 @@ export default function CandidateProfilePage({
 
             {/* Testes */}
             <CandidateTestsSection candidate={candidate} onAdvanceStage={onAdvanceStage} showToast={showToast} />
+            <CandidateAvaliacoesSection candidate={candidate} showToast={showToast} />
 
             {/* Pesquisa de antecedentes */}
             <BackgroundCheckSection candidate={candidate} showToast={showToast} />
