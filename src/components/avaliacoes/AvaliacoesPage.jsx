@@ -6,6 +6,8 @@ import { GERADORES_INFO } from '../../avaliacoes/gerador';
 const rh = (sb) => sb.schema('rh');
 const CATEGORIAS = ['Raciocínio Lógico', 'Matemática Básica', 'Matemática Financeira Avançada', 'Outra'];
 const fmtData = (d) => d ? new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
+const fmtDur = (s) => { s = Math.round(s || 0); return s >= 60 ? `${Math.floor(s / 60)}min${String(s % 60).padStart(2, '0')}s` : `${s}s`; };
+const foraPorQuestao = (ev) => Object.entries(ev?.fora_por_questao || {}).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).map(([q, v]) => `Q${Number(q) + 1}: ${fmtDur(v)}`).join(', ');
 
 // ---------------- Modal: criar/editar avaliação ----------------
 function AvaliacaoModal({ initial, onClose, onSaved, showToast }) {
@@ -189,7 +191,7 @@ export default function AvaliacoesPage({ showToast }) {
     try {
       const [{ data: qs }, { data: res }] = await Promise.all([
         rh(supabase).from('talents_aval_questoes').select('*').eq('avaliacao_id', id).order('assunto'),
-        rh(supabase).from('talents_aval_convites').select('id, status, enviado_em, expira_em, candidate:talents_candidates(full_name), tentativa:talents_aval_tentativas(nota, acertos, total, indice_confianca, concluido_em, iniciado_em)').eq('avaliacao_id', id).order('enviado_em', { ascending: false }).limit(300),
+        rh(supabase).from('talents_aval_convites').select('id, status, enviado_em, expira_em, candidate:talents_candidates(full_name), tentativa:talents_aval_tentativas(nota, acertos, total, indice_confianca, concluido_em, iniciado_em, tempo_segundos, eventos)').eq('avaliacao_id', id).order('enviado_em', { ascending: false }).limit(300),
       ]);
       setQuestoes(qs || []); setResultados(res || []);
     } catch { setQuestoes([]); setResultados([]); } finally { setLoadingDetalhe(false); }
@@ -254,9 +256,15 @@ export default function AvaliacoesPage({ showToast }) {
                   const t = Array.isArray(c.tentativa) ? c.tentativa[0] : c.tentativa;
                   const nome = (Array.isArray(c.candidate) ? c.candidate[0]?.full_name : c.candidate?.full_name) || 'Candidato';
                   const concluido = t?.concluido_em;
+                  const ev = t?.eventos || {};
+                  const foraDet = foraPorQuestao(ev);
                   return (
                     <div key={c.id} className="px-3 py-2 rounded-lg border border-border bg-card flex items-center justify-between gap-2">
-                      <div className="min-w-0"><p className="text-sm text-foreground truncate">{nome}</p><p className="text-[11px] text-muted-foreground">Enviada {fmtData(c.enviado_em)}</p></div>
+                      <div className="min-w-0">
+                        <p className="text-sm text-foreground truncate">{nome}</p>
+                        <p className="text-[11px] text-muted-foreground">Enviada {fmtData(c.enviado_em)}</p>
+                        {concluido && ev.saiu_aba_qtd > 0 && <p className="text-[11px] text-amber-600 truncate" title={foraDet ? `Tempo fora por questão: ${foraDet}` : ''}>Saiu da aba {ev.saiu_aba_qtd}× · {fmtDur(ev.saiu_aba_seg)}{foraDet ? ` (${foraDet})` : ''}</p>}
+                      </div>
                       <div className="text-right flex-shrink-0">
                         {concluido ? <>
                           <p className="text-sm font-bold text-foreground">Nota {t.nota != null ? Number(t.nota).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) : '—'}</p>

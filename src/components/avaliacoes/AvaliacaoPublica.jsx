@@ -36,9 +36,12 @@ export default function AvaliacaoPublica() {
 
   const inicioRef = useRef(0);
   const slotStartRef = useRef(0);
-  const eventosRef = useRef({ saiu_aba_qtd: 0, saiu_aba_seg: 0, colou_qtd: 0, copiou_qtd: 0, saiu_tela_cheia_qtd: 0, tempo_por_questao: {} });
+  const slotRef = useRef(0);
+  const eventosRef = useRef({ saiu_aba_qtd: 0, saiu_aba_seg: 0, colou_qtd: 0, copiou_qtd: 0, saiu_tela_cheia_qtd: 0, tempo_por_questao: {}, fora_por_questao: {} });
   const hiddenAtRef = useRef(0);
   const finalizadoRef = useRef(false);
+
+  useEffect(() => { slotRef.current = slot; }, [slot]);
 
   // ---- carregar ----
   useEffect(() => {
@@ -84,16 +87,19 @@ export default function AvaliacaoPublica() {
   useEffect(() => {
     if (fase !== 'prova') return;
     const ev = eventosRef.current;
-    const onVis = () => {
-      if (document.hidden) hiddenAtRef.current = Date.now();
-      else if (hiddenAtRef.current) { ev.saiu_aba_qtd++; ev.saiu_aba_seg += Math.round((Date.now() - hiddenAtRef.current) / 1000); hiddenAtRef.current = 0; }
-    };
+    // "Saiu" unifica trocar de aba/minimizar (visibilitychange) E trocar de janela/app (blur).
+    // Dedupe: só conta um episódio por vez (o 2º 'sair' é no-op até 'voltar').
+    const sair = () => { if (!hiddenAtRef.current) hiddenAtRef.current = Date.now(); };
+    const voltar = () => { if (hiddenAtRef.current) { const dur = Math.round((Date.now() - hiddenAtRef.current) / 1000); ev.saiu_aba_qtd++; ev.saiu_aba_seg += dur; ev.fora_por_questao[slotRef.current] = (ev.fora_por_questao[slotRef.current] || 0) + dur; hiddenAtRef.current = 0; } };
+    const onVis = () => { if (document.hidden) sair(); else voltar(); };
     const onPaste = () => { ev.colou_qtd++; };
     const onCopy = (e) => { ev.copiou_qtd++; e.preventDefault(); };
     const onCtx = (e) => e.preventDefault();
     const onFs = () => { if (!document.fullscreenElement) ev.saiu_tela_cheia_qtd++; };
     const onBeforeUnload = (e) => { e.preventDefault(); e.returnValue = ''; };
     document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('blur', sair);
+    window.addEventListener('focus', voltar);
     document.addEventListener('paste', onPaste);
     document.addEventListener('copy', onCopy);
     document.addEventListener('contextmenu', onCtx);
@@ -108,6 +114,8 @@ export default function AvaliacaoPublica() {
     }, 1000);
     return () => {
       document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('blur', sair);
+      window.removeEventListener('focus', voltar);
       document.removeEventListener('paste', onPaste);
       document.removeEventListener('copy', onCopy);
       document.removeEventListener('contextmenu', onCtx);

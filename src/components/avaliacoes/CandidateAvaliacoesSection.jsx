@@ -1,10 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { GraduationCap, Send, Loader2, Copy, ShieldCheck, Clock, AlertTriangle } from 'lucide-react';
+import { GraduationCap, Send, Loader2, Copy, ShieldCheck, Clock, AlertTriangle, LogOut } from 'lucide-react';
 import { supabase } from '../../supabase';
 
 const rh = (sb) => sb.schema('rh');
 const fmtData = (d) => d ? new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
 const fmtNota = (n) => n == null ? '—' : Number(n).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+const fmtDur = (s) => { s = Math.round(s || 0); return s >= 60 ? `${Math.floor(s / 60)}min${String(s % 60).padStart(2, '0')}s` : `${s}s`; };
+// "Saiu da aba 2× · 1min10s (Q6: 1min05s, Q3: 5s)"
+const foraPorQuestao = (ev) => Object.entries(ev?.fora_por_questao || {}).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).map(([q, v]) => `Q${Number(q) + 1}: ${fmtDur(v)}`).join(', ');
 
 // Deriva o estado de exibição de um convite (inclui expiração 24h: não realizou x não finalizou).
 function situacao(conv) {
@@ -35,7 +38,7 @@ export default function CandidateAvaliacoesSection({ candidate, showToast, class
       const [{ data: avs }, { data: cvs }] = await Promise.all([
         rh(supabase).from('talents_aval_avaliacoes').select('id, nome, categoria, duracao_min').eq('ativo', true).order('nome'),
         rh(supabase).from('talents_aval_convites')
-          .select('id, token, status, enviado_em, expira_em, canal_email, canal_whatsapp, avaliacao:talents_aval_avaliacoes(nome), tentativa:talents_aval_tentativas(nota, acertos, total, indice_confianca, tempo_segundos, iniciado_em, concluido_em, assuntos_errados)')
+          .select('id, token, status, enviado_em, expira_em, canal_email, canal_whatsapp, avaliacao:talents_aval_avaliacoes(nome), tentativa:talents_aval_tentativas(nota, acertos, total, indice_confianca, tempo_segundos, iniciado_em, concluido_em, assuntos_errados, eventos)')
           .eq('candidate_id', candidate.id).order('enviado_em', { ascending: false }),
       ]);
       setAvaliacoes(avs || []);
@@ -108,6 +111,8 @@ export default function CandidateAvaliacoesSection({ candidate, showToast, class
             const t = s.t;
             const nome = (Array.isArray(conv.avaliacao) ? conv.avaliacao[0]?.nome : conv.avaliacao?.nome) || 'Avaliação';
             const erradosArr = t?.assuntos_errados ? Object.entries(t.assuntos_errados) : [];
+            const ev = t?.eventos || {};
+            const foraDet = foraPorQuestao(ev);
             return (
               <div key={conv.id} className="px-3 py-2.5 rounded-lg border border-border bg-background">
                 <div className="flex items-start justify-between gap-2">
@@ -124,6 +129,7 @@ export default function CandidateAvaliacoesSection({ candidate, showToast, class
                           <ShieldCheck size={12} /> Confiança {t.indice_confianca}%
                         </span>
                         {t.tempo_segundos != null && <span className="inline-flex items-center gap-1 text-muted-foreground"><Clock size={12} /> {Math.floor(t.tempo_segundos / 60)}min {t.tempo_segundos % 60}s</span>}
+                        {ev.saiu_aba_qtd > 0 && <span className="inline-flex items-center gap-1 text-amber-600" title={foraDet ? `Tempo fora por questão: ${foraDet}` : ''}><LogOut size={12} /> Saiu da aba {ev.saiu_aba_qtd}× · {fmtDur(ev.saiu_aba_seg)}{foraDet ? ` (${foraDet})` : ''}</span>}
                         {erradosArr.length > 0 && <span className="inline-flex items-center gap-1 text-muted-foreground"><AlertTriangle size={12} /> Errou: {erradosArr.map(([a, n]) => `${a} (${n})`).join(', ')}</span>}
                       </div>
                     )}
