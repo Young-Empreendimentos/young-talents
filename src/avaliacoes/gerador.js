@@ -283,6 +283,25 @@ export const GERADORES = {
 // Gera uma questão a partir do spec guardado no banco + semente.
 // spec.fixa: { opcoes: [...], correta: idx }  (questão de texto fixo)
 // spec.parametrizada: { gerador: 'mf_price' }  (usa GERADORES[gerador])
+// Catálogo dos geradores (para a tela de montar avaliações escolher o tipo de questão).
+export const GERADORES_INFO = [
+  { key: 'rl_sequencia', label: 'Sequência numérica', assunto: 'Sequências lógicas', categoria: 'Raciocínio Lógico' },
+  { key: 'rl_regra_tres', label: 'Regra de três / produção', assunto: 'Raciocínio proporcional', categoria: 'Raciocínio Lógico' },
+  { key: 'rl_datas', label: 'Dia da semana (datas)', assunto: 'Raciocínio com datas', categoria: 'Raciocínio Lógico' },
+  { key: 'rl_idade', label: 'Problema de idades', assunto: 'Raciocínio matemático', categoria: 'Raciocínio Lógico' },
+  { key: 'mb_operacao', label: 'Operação básica (+ − × ÷)', assunto: 'Operações básicas', categoria: 'Matemática Básica' },
+  { key: 'mb_multietapa', label: 'Cálculo de várias etapas', assunto: 'Cálculo com várias etapas', categoria: 'Matemática Básica' },
+  { key: 'mb_porcentagem', label: 'Porcentagem de um valor', assunto: 'Porcentagem', categoria: 'Matemática Básica' },
+  { key: 'mb_desconto', label: 'Preço com desconto', assunto: 'Descontos', categoria: 'Matemática Básica' },
+  { key: 'mb_orcamento', label: 'Orçamento com frete', assunto: 'Pequenos raciocínios', categoria: 'Matemática Básica' },
+  { key: 'mf_juros_composto', label: 'Juros compostos (montante)', assunto: 'Juros compostos', categoria: 'Matemática Financeira Avançada' },
+  { key: 'mf_taxas_acumuladas', label: 'Taxas acumuladas', assunto: 'Taxas acumuladas', categoria: 'Matemática Financeira Avançada' },
+  { key: 'mf_price', label: 'Parcela pela Tabela PRICE', assunto: 'Sistema PRICE', categoria: 'Matemática Financeira Avançada' },
+  { key: 'mf_sac', label: 'Parcela pelo SAC', assunto: 'Sistema SAC', categoria: 'Matemática Financeira Avançada' },
+  { key: 'mf_vpl', label: 'VPL (Valor Presente Líquido)', assunto: 'VPL', categoria: 'Matemática Financeira Avançada' },
+  { key: 'mf_vf_variavel', label: 'VF com taxas variáveis', assunto: 'VF com taxas variáveis', categoria: 'Matemática Financeira Avançada' },
+];
+
 export function gerarQuestao(questao, seed) {
   const rng = mulberry32(seed);
   const spec = questao.spec || {};
