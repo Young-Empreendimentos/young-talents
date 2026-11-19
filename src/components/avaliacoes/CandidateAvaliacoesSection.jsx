@@ -62,7 +62,7 @@ export default function CandidateAvaliacoesSection({ candidate, showToast, class
       const [{ data: avs }, { data: cvs }] = await Promise.all([
         rh(supabase).from('talents_aval_avaliacoes').select('id, nome, categoria, duracao_min, tipo').eq('ativo', true).order('nome'),
         rh(supabase).from('talents_aval_convites')
-          .select('id, token, status, enviado_em, expira_em, canal_email, canal_whatsapp, retorno_path, retorno_nome, retorno_em, avaliacao:talents_aval_avaliacoes(nome, tipo, arquivo_teste_path, arquivo_teste_nome), tentativa:talents_aval_tentativas(nota, acertos, total, indice_confianca, tempo_segundos, iniciado_em, concluido_em, assuntos_errados, eventos)')
+          .select('id, token, status, enviado_em, expira_em, canal_email, canal_whatsapp, retorno_path, retorno_nome, retorno_em, avaliacao:talents_aval_avaliacoes(nome, tipo, arquivo_teste_path, arquivo_teste_nome), tentativa:talents_aval_tentativas(nota, acertos, total, indice_confianca, tempo_segundos, iniciado_em, concluido_em, assuntos_errados, eventos, perfil)')
           .eq('candidate_id', candidate.id).order('enviado_em', { ascending: false }),
       ]);
       setAvaliacoes(avs || []);
@@ -164,6 +164,36 @@ export default function CandidateAvaliacoesSection({ candidate, showToast, class
             const av = avalDe(conv);
             const nome = av.nome || 'Avaliação';
             const ehPratica = av.tipo === 'pratica';
+            const ehPers = av.tipo === 'personalidade';
+
+            // ---------- QUESTIONÁRIO DE PERFIL (Big Five) ----------
+            if (ehPers) {
+              const s = situacao(conv);
+              const t = s.t;
+              const perfil = t?.perfil || null;
+              const concluido = s.key === 'concluido';
+              const topo = perfil ? Object.entries(perfil).map(([f, v]) => ({ f, pct: v?.pct ?? 0 })).sort((a, b) => b.pct - a.pct).slice(0, 2) : [];
+              return (
+                <div key={conv.id} onClick={concluido ? () => setDetalhe({ conviteId: conv.id, nome: candidate.fullName || 'Candidato' }) : undefined} className={`px-3 py-2.5 rounded-lg border border-border bg-background ${concluido ? 'cursor-pointer hover:border-brand-orange/50' : ''}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium text-foreground">{nome}</span>
+                        <span className="text-[10px] uppercase font-bold text-brand-orange bg-brand-orange/10 px-1.5 py-0.5 rounded">Perfil</span>
+                        <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${s.cls}`}>{s.label}</span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Enviada {fmtData(conv.enviado_em)}{conv.expira_em ? ` · expira ${fmtData(conv.expira_em)}` : ''}</p>
+                      {concluido && (perfil
+                        ? <p className="text-[11px] text-muted-foreground mt-1">{topo.length ? `Mais forte: ${topo.map(x => `${x.f} ${x.pct}%`).join(' · ')} — ` : ''}clique para ver o perfil</p>
+                        : <p className="text-[11px] text-muted-foreground mt-1">Respondido — clique para ver</p>)}
+                    </div>
+                    {(s.key === 'enviado' || s.key === 'andamento') && (
+                      <button onClick={(e) => { e.stopPropagation(); copiarLink(conv.token); }} className="p-1 text-muted-foreground hover:text-brand-orange flex-shrink-0" title="Copiar link"><Copy size={14} /></button>
+                    )}
+                  </div>
+                </div>
+              );
+            }
 
             // ---------- PROVA PRÁTICA ----------
             if (ehPratica) {

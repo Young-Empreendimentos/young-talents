@@ -43,6 +43,8 @@ export default function AvaliacaoPublica() {
 
   useEffect(() => { slotRef.current = slot; }, [slot]);
 
+  const ehPersonalidade = prova?.tipo === 'personalidade';
+
   // ---- carregar ----
   useEffect(() => {
     (async () => {
@@ -85,7 +87,7 @@ export default function AvaliacaoPublica() {
 
   // ---- vigilância + cronômetro (ativos só durante a prova) ----
   useEffect(() => {
-    if (fase !== 'prova') return;
+    if (fase !== 'prova' || ehPersonalidade) return;
     const ev = eventosRef.current;
     // "Saiu" unifica trocar de aba/minimizar (visibilitychange) E trocar de janela/app (blur).
     // Dedupe: só conta um episódio por vez (o 2º 'sair' é no-op até 'voltar').
@@ -123,11 +125,11 @@ export default function AvaliacaoPublica() {
       window.removeEventListener('beforeunload', onBeforeUnload);
       clearInterval(tick);
     };
-  }, [fase, finalizar]);
+  }, [fase, finalizar, ehPersonalidade]);
 
   const comecar = () => {
-    // Tela cheia é best-effort: não bloqueia o início se o navegador recusar/travar.
-    try { const p = document.documentElement.requestFullscreen?.(); if (p && typeof p.catch === 'function') p.catch(() => {}); } catch { /* ok */ }
+    // Tela cheia é best-effort (só nas provas com vigilância; personalidade não usa).
+    if (!ehPersonalidade) { try { const p = document.documentElement.requestFullscreen?.(); if (p && typeof p.catch === 'function') p.catch(() => {}); } catch { /* ok */ } }
     inicioRef.current = Date.now();
     slotStartRef.current = Date.now();
     setFase('prova');
@@ -159,23 +161,43 @@ export default function AvaliacaoPublica() {
         <h1 className="text-2xl font-bold text-gray-800">{prova?.nome}</h1>
         {prova?.descricao && <p className="text-gray-500 mt-1 text-sm">{prova.descricao}</p>}
       </div>
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        <div className="bg-gray-50 rounded-lg p-3 text-center"><p className="text-2xl font-bold text-gray-800">{questoes.length}</p><p className="text-xs text-gray-500">questões</p></div>
-        <div className="bg-gray-50 rounded-lg p-3 text-center"><p className="text-2xl font-bold text-gray-800">{prova?.duracao_min ? `${prova.duracao_min} min` : '—'}</p><p className="text-xs text-gray-500">tempo</p></div>
-      </div>
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-5 text-sm text-amber-800 flex gap-2">
-        <ShieldAlert className="w-5 h-5 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="font-semibold mb-1">Antes de começar, importante:</p>
-          <ul className="list-disc list-inside space-y-0.5 text-amber-700">
-            <li>A prova abre em <b>tela cheia</b> e tem tempo cronometrado.</li>
-            <li>Saídas da aba/janela, cópia e colagem são <b>registradas</b>.</li>
-            <li>Pode usar calculadora. Resolva por conta própria.</li>
-            <li>Só é possível enviar <b>uma vez</b>.</li>
-          </ul>
-        </div>
-      </div>
-      <button onClick={comecar} className="w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-colors">Começar a prova</button>
+      {ehPersonalidade ? (
+        <>
+          <div className="bg-gray-50 rounded-lg p-3 text-center mb-5"><p className="text-2xl font-bold text-gray-800">{questoes.length}</p><p className="text-xs text-gray-500">afirmações · leva poucos minutos</p></div>
+          <div className="bg-sky-50 border border-sky-200 rounded-lg p-4 mb-5 text-sm text-sky-800 flex gap-2">
+            <ShieldAlert className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold mb-1">Como responder:</p>
+              <ul className="list-disc list-inside space-y-0.5 text-sky-700">
+                <li><b>Não há respostas certas ou erradas.</b></li>
+                <li>Diga o quanto você concorda com cada frase, de 1 a 5.</li>
+                <li>Responda com sinceridade, sem pensar demais.</li>
+              </ul>
+            </div>
+          </div>
+          <button onClick={comecar} className="w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-colors">Começar</button>
+        </>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            <div className="bg-gray-50 rounded-lg p-3 text-center"><p className="text-2xl font-bold text-gray-800">{questoes.length}</p><p className="text-xs text-gray-500">questões</p></div>
+            <div className="bg-gray-50 rounded-lg p-3 text-center"><p className="text-2xl font-bold text-gray-800">{prova?.duracao_min ? `${prova.duracao_min} min` : '—'}</p><p className="text-xs text-gray-500">tempo</p></div>
+          </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-5 text-sm text-amber-800 flex gap-2">
+            <ShieldAlert className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold mb-1">Antes de começar, importante:</p>
+              <ul className="list-disc list-inside space-y-0.5 text-amber-700">
+                <li>A prova abre em <b>tela cheia</b> e tem tempo cronometrado.</li>
+                <li>Saídas da aba/janela, cópia e colagem são <b>registradas</b>.</li>
+                <li>Pode usar calculadora. Resolva por conta própria.</li>
+                <li>Só é possível enviar <b>uma vez</b>.</li>
+              </ul>
+            </div>
+          </div>
+          <button onClick={comecar} className="w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-colors">Começar a prova</button>
+        </>
+      )}
     </Casca>
   );
 
@@ -196,19 +218,33 @@ export default function AvaliacaoPublica() {
       <div className="flex-1 overflow-auto">
         <div className="max-w-2xl mx-auto px-4 py-6 w-full select-none">
           <div className="h-1.5 bg-gray-200 rounded-full mb-6 overflow-hidden"><div className="h-full bg-orange-500 transition-all" style={{ width: `${((slot + 1) / questoes.length) * 100}%` }} /></div>
-          <p className="text-xs font-semibold text-orange-600 mb-2">Questão {slot + 1} de {questoes.length}</p>
+          <p className="text-xs font-semibold text-orange-600 mb-2">{ehPersonalidade ? 'Afirmação' : 'Questão'} {slot + 1} de {questoes.length}</p>
           <p className="text-lg text-gray-800 mb-5 leading-relaxed">{q?.enunciado}</p>
-          <div className="space-y-2">
-            {q?.opcoes.map((op, i) => {
-              const sel = respostas[slot] === i;
-              return (
-                <button key={i} onClick={() => escolher(i)} className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all flex items-center gap-3 ${sel ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
-                  <span className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center text-sm font-bold ${sel ? 'border-orange-500 bg-orange-500 text-white' : 'border-gray-300 text-gray-500'}`}>{String.fromCharCode(65 + i)}</span>
-                  <span className="text-gray-800">{op}</span>
-                </button>
-              );
-            })}
-          </div>
+          {ehPersonalidade ? (
+            <div className="mt-2">
+              <div className="flex items-stretch gap-2">
+                {[1, 2, 3, 4, 5].map((v) => {
+                  const sel = respostas[slot] === v;
+                  return (
+                    <button key={v} onClick={() => escolher(v)} className={`flex-1 py-4 rounded-xl border-2 text-lg font-bold transition-all ${sel ? 'border-orange-500 bg-orange-500 text-white' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'}`}>{v}</button>
+                  );
+                })}
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mt-2"><span>Discordo totalmente</span><span>Concordo totalmente</span></div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {q?.opcoes.map((op, i) => {
+                const sel = respostas[slot] === i;
+                return (
+                  <button key={i} onClick={() => escolher(i)} className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all flex items-center gap-3 ${sel ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
+                    <span className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center text-sm font-bold ${sel ? 'border-orange-500 bg-orange-500 text-white' : 'border-gray-300 text-gray-500'}`}>{String.fromCharCode(65 + i)}</span>
+                    <span className="text-gray-800">{op}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 

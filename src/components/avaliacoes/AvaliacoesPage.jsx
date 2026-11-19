@@ -32,6 +32,7 @@ function AvaliacaoModal({ initial, onClose, onSaved, showToast }) {
   const fileRef = useRef(null);
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
   const pratica = f.tipo === 'pratica';
+  const pers = f.tipo === 'personalidade';
 
   const salvar = async () => {
     if (!f.nome.trim()) { showToast?.('Dê um nome à avaliação.', 'error'); return; }
@@ -62,9 +63,10 @@ function AvaliacaoModal({ initial, onClose, onSaved, showToast }) {
           <div><label className="text-xs font-medium text-muted-foreground">Nome</label><input value={f.nome} onChange={e => set('nome', e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm" placeholder="Ex: Raciocínio Lógico" /></div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">Tipo</label>
-            <div className="grid grid-cols-2 gap-2 mt-1">
-              <button type="button" onClick={() => set('tipo', 'objetiva')} className={`px-3 py-2 rounded-lg border text-sm text-left ${!pratica ? 'border-brand-orange bg-brand-orange/10 text-foreground' : 'border-border text-muted-foreground hover:text-foreground'}`}><span className="font-medium">Objetiva</span><br /><span className="text-[11px]">múltipla escolha online</span></button>
-              <button type="button" onClick={() => set('tipo', 'pratica')} className={`px-3 py-2 rounded-lg border text-sm text-left ${pratica ? 'border-brand-orange bg-brand-orange/10 text-foreground' : 'border-border text-muted-foreground hover:text-foreground'}`}><span className="font-medium">Prática</span><br /><span className="text-[11px]">envia arquivo, recebe de volta</span></button>
+            <div className="grid grid-cols-3 gap-2 mt-1">
+              <button type="button" onClick={() => set('tipo', 'objetiva')} className={`px-3 py-2 rounded-lg border text-sm text-left ${f.tipo === 'objetiva' ? 'border-brand-orange bg-brand-orange/10 text-foreground' : 'border-border text-muted-foreground hover:text-foreground'}`}><span className="font-medium">Objetiva</span><br /><span className="text-[11px]">múltipla escolha</span></button>
+              <button type="button" onClick={() => set('tipo', 'pratica')} className={`px-3 py-2 rounded-lg border text-sm text-left ${pratica ? 'border-brand-orange bg-brand-orange/10 text-foreground' : 'border-border text-muted-foreground hover:text-foreground'}`}><span className="font-medium">Prática</span><br /><span className="text-[11px]">envia arquivo</span></button>
+              <button type="button" onClick={() => set('tipo', 'personalidade')} className={`px-3 py-2 rounded-lg border text-sm text-left ${pers ? 'border-brand-orange bg-brand-orange/10 text-foreground' : 'border-border text-muted-foreground hover:text-foreground'}`}><span className="font-medium">Perfil</span><br /><span className="text-[11px]">Big Five (1–5)</span></button>
             </div>
           </div>
           <div><label className="text-xs font-medium text-muted-foreground">Categoria</label><select value={f.categoria} onChange={e => set('categoria', e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm">{CATEGORIAS.map(c => <option key={c}>{c}</option>)}</select></div>
@@ -79,6 +81,10 @@ function AvaliacaoModal({ initial, onClose, onSaved, showToast }) {
                 <input ref={fileRef} type="file" className="hidden" onChange={e => setFile(e.target.files?.[0] || null)} />
               </div>
               <p className="text-[11px] text-muted-foreground mt-1">Aceita qualquer formato (DWG, PDF, etc.). O candidato recebe este arquivo e devolve o resolvido.</p>
+            </div>
+          ) : pers ? (
+            <div className="rounded-lg border border-border bg-muted/30 px-3 py-2.5 text-[11px] text-muted-foreground">
+              Questionário de perfil (Big Five): afirmações com escala de 1 a 5, sem resposta certa. As afirmações aparecem na própria avaliação.
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3">
@@ -144,7 +150,7 @@ function QuestaoModal({ avaliacaoId, initial, onClose, onSaved, showToast }) {
 }
 
 // ---------------- Modal: resultados ----------------
-function ResultadosModal({ nome, pratica, resultados, loading, onClose, showToast }) {
+function ResultadosModal({ nome, pratica, pers, resultados, loading, onClose, showToast }) {
   const [detalhe, setDetalhe] = useState(null); // { conviteId, nome }
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -152,6 +158,16 @@ function ResultadosModal({ nome, pratica, resultados, loading, onClose, showToas
         <div className="flex items-center justify-between mb-4"><h3 className="text-lg font-bold text-foreground">Resultados · {nome}</h3><button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X size={18} /></button></div>
         {loading ? <div className="flex items-center gap-2 text-sm text-muted-foreground py-6 justify-center"><Loader2 size={16} className="animate-spin" /> Carregando…</div>
           : resultados.length === 0 ? <p className="text-sm text-muted-foreground italic py-4">Ninguém recebeu esta avaliação ainda.</p>
+          : pers ? <div className="space-y-1.5">{resultados.map(c => {
+              const t = Array.isArray(c.tentativa) ? c.tentativa[0] : c.tentativa;
+              const nm = (Array.isArray(c.candidate) ? c.candidate[0]?.full_name : c.candidate?.full_name) || 'Candidato';
+              const concluido = t?.concluido_em;
+              return (
+                <div key={c.id} onClick={concluido ? () => setDetalhe({ conviteId: c.id, nome: nm }) : undefined} className={`px-3 py-2 rounded-lg border border-border bg-background flex items-center justify-between gap-2 ${concluido ? 'cursor-pointer hover:border-brand-orange/50' : ''}`}>
+                  <div className="min-w-0"><p className="text-sm text-foreground truncate">{nm}</p><p className="text-[11px] text-muted-foreground">Enviada {fmtData(c.enviado_em)}{concluido ? ' · clique para ver o perfil' : ''}</p></div>
+                  <span className="text-[11px] text-muted-foreground flex-shrink-0">{concluido ? 'Respondido' : 'Aguardando'}</span>
+                </div>);
+            })}</div>
           : pratica ? <div className="space-y-1.5">{resultados.map(c => {
               const nm = (Array.isArray(c.candidate) ? c.candidate[0]?.full_name : c.candidate?.full_name) || 'Candidato';
               const devolvido = !!c.retorno_path;
@@ -262,6 +278,7 @@ export default function AvaliacoesPage({ showToast }) {
   if (sel) {
     const av = avFull || resumo.find(r => r.id === sel.id) || sel;
     const pratica = av.tipo === 'pratica';
+    const pers = av.tipo === 'personalidade';
     return (
       <div className="flex flex-col h-full overflow-hidden bg-background">
         <div className="px-4 sm:px-6 pt-4 pb-3 border-b border-border bg-card/50 space-y-2">
@@ -270,8 +287,9 @@ export default function AvaliacoesPage({ showToast }) {
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2"><GraduationCap size={22} className="text-brand-orange" /> {av.nome}
                 {pratica && <span className="text-[10px] uppercase font-bold text-brand-orange bg-brand-orange/10 px-2 py-0.5 rounded">Prática</span>}
+                {pers && <span className="text-[10px] uppercase font-bold text-brand-orange bg-brand-orange/10 px-2 py-0.5 rounded">Perfil</span>}
                 {!av.ativo && <span className="text-[10px] uppercase font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded">Inativa</span>}</h2>
-              <p className="text-xs text-muted-foreground mt-1">{pratica ? `Prova prática · devolução manual · ${av.categoria}` : `${av.categoria} · ${av.num_questoes} questões na prova · ${av.duracao_min ? `${av.duracao_min} min` : 'sem limite'}`}</p>
+              <p className="text-xs text-muted-foreground mt-1">{pratica ? `Prova prática · devolução manual · ${av.categoria}` : pers ? `Questionário de perfil (Big Five) · ${av.categoria}` : `${av.categoria} · ${av.num_questoes} questões na prova · ${av.duracao_min ? `${av.duracao_min} min` : 'sem limite'}`}</p>
             </div>
             <div className="flex items-center gap-2">
               <button onClick={() => setVerResultados(true)} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground"><BarChart3 size={14} /> Resultados ({resultados.length})</button>
@@ -304,6 +322,19 @@ export default function AvaliacoesPage({ showToast }) {
                   )}
                   <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
                     <p className="text-xs text-muted-foreground">O candidato recebe este arquivo por e-mail e WhatsApp e devolve o arquivo resolvido. A devolução é <b>manual</b>: você anexa o arquivo de volta na ficha de cada candidato (seção Avaliações).</p>
+                  </div>
+                </div>
+              ) : pers ? (
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground mb-1">Afirmações ({questoes.length})</h3>
+                  <p className="text-xs text-muted-foreground mb-3">Escala de 1 a 5 (Discordo totalmente → Concordo totalmente). Itens reversos têm a pontuação invertida no cálculo do fator.</p>
+                  <div className="space-y-2">
+                    {questoes.map((q, idx) => (
+                      <div key={q.id} className="px-4 py-3 rounded-lg border border-border bg-card flex items-start justify-between gap-2">
+                        <p className="text-sm text-foreground"><span className="text-muted-foreground font-medium">{idx + 1}.</span> {q.enunciado}</p>
+                        <span className="text-[10px] uppercase font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded flex-shrink-0">{q.spec?.fator || q.assunto}{q.spec?.reverso ? ' · rev' : ''}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ) : (
@@ -341,7 +372,7 @@ export default function AvaliacoesPage({ showToast }) {
           </div>
         </div>
 
-        {verResultados && <ResultadosModal nome={av.nome} pratica={pratica} resultados={resultados} loading={loadingDetalhe} onClose={() => setVerResultados(false)} showToast={showToast} />}
+        {verResultados && <ResultadosModal nome={av.nome} pratica={pratica} pers={pers} resultados={resultados} loading={loadingDetalhe} onClose={() => setVerResultados(false)} showToast={showToast} />}
         {modalAval && <AvaliacaoModal initial={modalAval.initial} onClose={() => setModalAval(null)} onSaved={() => { setModalAval(null); load(); carregarDetalhe(sel.id); }} showToast={showToast} />}
         {modalQuestao && <QuestaoModal avaliacaoId={sel.id} initial={modalQuestao.initial} onClose={() => setModalQuestao(null)} onSaved={() => { setModalQuestao(null); carregarDetalhe(sel.id); }} showToast={showToast} />}
       </div>
@@ -370,6 +401,7 @@ export default function AvaliacoesPage({ showToast }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {resumo.map(a => {
                 const pratica = a.tipo === 'pratica';
+                const pers = a.tipo === 'personalidade';
                 return (
                   <button key={a.id} onClick={() => { setVerResultados(false); setSel({ id: a.id, nome: a.nome, categoria: a.categoria, num_questoes: a.num_questoes, duracao_min: a.duracao_min, ativo: a.ativo, tipo: a.tipo }); }}
                     className={`text-left bg-card border rounded-xl p-5 hover:border-brand-orange/50 hover:shadow-md transition-all ${a.ativo ? 'border-border' : 'border-border/50 opacity-60'}`}>
@@ -377,6 +409,7 @@ export default function AvaliacoesPage({ showToast }) {
                       <div className="p-2 bg-brand-orange/10 rounded-lg"><GraduationCap size={18} className="text-brand-orange" /></div>
                       <div className="flex items-center gap-1">
                         {pratica && <span className="text-[10px] uppercase font-bold text-brand-orange bg-brand-orange/10 px-2 py-0.5 rounded">Prática</span>}
+                        {pers && <span className="text-[10px] uppercase font-bold text-brand-orange bg-brand-orange/10 px-2 py-0.5 rounded">Perfil</span>}
                         {!a.ativo && <span className="text-[10px] uppercase font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded">Inativa</span>}
                       </div>
                     </div>
